@@ -14,11 +14,25 @@ class AutoRejectPendingBookings extends Command
 
     public function handle(ActivityLogger $logger): int
     {
-        Booking::query()->where('status', 'pending')->withMin('roomBookings', 'start_datetime')->get()
+        Booking::query()
+            ->where('status', 'pending')
+            ->withMin('roomBookings', 'start_datetime')
+            ->get()
             ->filter(fn (Booking $booking) => $booking->room_bookings_min_start_datetime && now()->startOfDay()->gte(now()->parse($booking->room_bookings_min_start_datetime)->subDays(2)->startOfDay()))
             ->each(function (Booking $booking) use ($logger): void {
-                $booking->update(['status' => 'rejected', 'notes' => 'Ditolak otomatis sistem karena belum diproses sampai H-2']);
-                $logger->log(null, 'auto_reject', 'booking', $booking->id, $booking->notes);
+                $reason = 'Ditolak otomatis sistem karena belum diproses sampai H-2';
+                $booking->update([
+                    'status' => 'rejected',
+                    'notes' => $reason,
+                ]);
+
+                $booking->approvals()->where('status', 'pending')->update([
+                    'status' => 'rejected',
+                    'notes' => $reason,
+                    'decided_at' => now(),
+                ]);
+
+                $logger->log(null, 'auto_reject', 'booking', $booking->id, $reason);
             });
 
         return self::SUCCESS;

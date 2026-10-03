@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 480" width="100%" height="100%">
+  <rect width="1000" height="480" fill="#f8f9fa" rx="10" stroke="#dee2e6" stroke-width="2"/>
+  <text x="500" y="32" font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="bold" fill="#0d6efd" text-anchor="middle">DENAH LAB KOMPUTER GWM LANTAI 8</text>
+  
+  <rect x="30" y="55" width="130" height="150" fill="#e7f1ff" stroke="#0d6efd" stroke-width="2" rx="6"/>
+  <text x="95" y="125" font-family="system-ui, sans-serif" font-size="16" font-weight="bold" fill="#084298" text-anchor="middle">ADV 1</text>
+  <text x="95" y="145" font-family="system-ui, sans-serif" font-size="11" fill="#495057" text-anchor="middle">Advanced Lab 1</text>
+
+  <rect x="175" y="55" width="130" height="150" fill="#e7f1ff" stroke="#0d6efd" stroke-width="2" rx="6"/>
+  <text x="240" y="125" font-family="system-ui, sans-serif" font-size="16" font-weight="bold" fill="#084298" text-anchor="middle">ADV 2</text>
+  <text x="240" y="145" font-family="system-ui, sans-serif" font-size="11" fill="#495057" text-anchor="middle">Advanced Lab 2</text>
+
+  <rect x="320" y="55" width="130" height="150" fill="#e7f1ff" stroke="#0d6efd" stroke-width="2" rx="6"/>
+  <text x="385" y="125" font-family="system-ui, sans-serif" font-size="16" font-weight="bold" fill="#084298" text-anchor="middle">ADV 3</text>
+  <text x="385" y="145" font-family="system-ui, sans-serif" font-size="11" fill="#495057" text-anchor="middle">Advanced Lab 3</text>
+
+  <rect x="465" y="55" width="130" height="150" fill="#e7f1ff" stroke="#0d6efd" stroke-width="2" rx="6"/>
+  <text x="530" y="125" font-family="system-ui, sans-serif" font-size="16" font-weight="bold" fill="#084298" text-anchor="middle">ADV 4</text>
+  <text x="530" y="145" font-family="system-ui, sans-serif" font-size="11" fill="#495057" text-anchor="middle">Advanced Lab 4</text>
+
+  <rect x="610" y="55" width="170" height="150" fill="#e2f0d9" stroke="#385723" stroke-width="2" rx="6"/>
+  <text x="695" y="125" font-family="system-ui, sans-serif" font-size="16" font-weight="bold" fill="#276a3c" text-anchor="middle">PROG 1</text>
+  <text x="695" y="145" font-family="system-ui, sans-serif" font-size="11" fill="#495057" text-anchor="middle">Programming Lab 1</text>
+
+  <rect x="795" y="55" width="175" height="150" fill="#e2f0d9" stroke="#385723" stroke-width="2" rx="6"/>
+  <text x="882" y="125" font-family="system-ui, sans-serif" font-size="16" font-weight="bold" fill="#276a3c" text-anchor="middle">PROG 2</text>
+  <text x="882" y="145" font-family="system-ui, sans-serif" font-size="11" fill="#495057" text-anchor="middle">Programming Lab 2</text>
+
+  <rect x="30" y="215" width="940" height="40" fill="#e9ecef" stroke="#ced4da" stroke-width="1" rx="4"/>
+  <text x="500" y="240" font-family="system-ui, sans-serif" font-size="12" fill="#6c757d" font-weight="bold" letter-spacing="4" text-anchor="middle">KORIDOR UTAMA LANTAI 8 GWM</text>
+
+  <rect x="30" y="265" width="125" height="180" fill="#fff2cc" stroke="#d6b656" stroke-width="2" rx="6"/>
+  <text x="92" y="350" font-family="system-ui, sans-serif" font-size="16" font-weight="bold" fill="#8f6b00" text-anchor="middle">ENT 1</text>
+  <text x="92" y="370" font-family="system-ui, sans-serif" font-size="11" fill="#495057" text-anchor="middle">Enterprise 1</text>
+
+  <rect x="165" y="265" width="125" height="180" fill="#fff2cc" stroke="#d6b656" stroke-width="2" rx="6"/>
+  <text x="227" y="350" font-family="system-ui, sans-serif" font-size="16" font-weight="bold" fill="#8f6b00" text-anchor="middle">ENT 2</text>
+  <text x="227" y="370" font-family="system-ui, sans-serif" font-size="11" fill="#495057" text-anchor="middle">Enterprise 2</text>
+
+  <rect x="300" y="265" width="125" height="180" fill="#f8cecc" stroke="#b85450" stroke-width="2" rx="6"/>
+  <text x="362" y="350" font-family="system-ui, sans-serif" font-size="16" font-weight="bold" fill="#a0322d" text-anchor="middle">DB</text>
+  <text x="362" y="370" font-family="system-ui, sans-serif" font-size="11" fill="#495057" text-anchor="middle">Database Lab</text>
+
+  <rect x="435" y="265" width="125" height="180" fill="#e1d5e7" stroke="#9673a6" stroke-width="2" rx="6"/>
+  <text x="497" y="350" font-family="system-ui, sans-serif" font-size="16" font-weight="bold" fill="#69417d" text-anchor="middle">MMD</text>
+  <text x="497" y="370" font-family="system-ui, sans-serif" font-size="11" fill="#495057" text-anchor="middle">Multimedia Lab</text>
+
+  <rect x="570" y="265" width="140" height="180" fill="#dae8fc" stroke="#6c8ebf" stroke-width="2" rx="6"/>
+  <text x="640" y="350" font-family="system-ui, sans-serif" font-size="16" font-weight="bold" fill="#2d5894" text-anchor="middle">Network</text>
+  <text x="640" y="370" font-family="system-ui, sans-serif" font-size="11" fill="#495057" text-anchor="middle">Network Lab</text>
+
+  <rect x="720" y="265" width="120" height="180" fill="#f5f5f5" stroke="#666666" stroke-width="2" rx="6"/>
+  <text x="780" y="350" font-family="system-ui, sans-serif" font-size="16" font-weight="bold" fill="#333333" text-anchor="middle">INT 1</text>
+  <text x="780" y="370" font-family="system-ui, sans-serif" font-size="11" fill="#495057" text-anchor="middle">Intelligence 1</text>
+
+  <rect x="850" y="265" width="120" height="180" fill="#f5f5f5" stroke="#666666" stroke-width="2" rx="6"/>
+  <text x="910" y="350" font-family="system-ui, sans-serif" font-size="16" font-weight="bold" fill="#333333" text-anchor="middle">INT 2</text>
+  <text x="910" y="370" font-family="system-ui, sans-serif" font-size="11" fill="#495057" text-anchor="middle">Intelligence 2</text>
+</svg>

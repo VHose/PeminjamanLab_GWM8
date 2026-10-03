@@ -1,0 +1,1288 @@
+{
+  "lecturers": [
+    {
+      "nik": "720282",
+      "name": "Andreas Widjaja, S.Si., M.Sc., Ph.D.",
+      "active": true
+    },
+    {
+      "nik": "720319",
+      "name": "Rossevine Artha Nathasya, S.Kom., M.T.",
+      "active": true
+    },
+    {
+      "nik": "720140",
+      "name": "Prof. Dr. Ir. Mewati Ayub, M.T.",
+      "active": true
+    },
+    {
+      "nik": "720246",
+      "name": "Dr. Timotius Witono, S.Kom., M.T.",
+      "active": true
+    },
+    {
+      "nik": "720212",
+      "name": "Daniel Jahja Surjawan, S.Kom., M.T.",
+      "active": true
+    },
+    {
+      "nik": "410117",
+      "name": "Pritz Hutabarat, S.T., M.Pd., Ph.D.",
+      "active": true
+    },
+    {
+      "nik": "720303",
+      "name": "Wenny Franciska Senjaya, S.Kom., M.T., Ph.D.",
+      "active": true
+    },
+    {
+      "nik": "230648",
+      "name": "Dr. Eng. Andrijanto, S.T., M.Eng.",
+      "active": true
+    },
+    {
+      "nik": "720302",
+      "name": "Maresha Caroline Wijanto, S.Kom., M.T., Ph.D.",
+      "active": true
+    },
+    {
+      "nik": "310719",
+      "name": "Dr. Tery Setiawan, B.A., S.Psi., M.Si.",
+      "active": true
+    },
+    {
+      "nik": "320064",
+      "name": "Prof. Dr. Dra. Rosida Tiurma Manurung, M.Hum.",
+      "active": true
+    },
+    {
+      "nik": "99000555",
+      "name": "Pdt. Albert Naibaho, S.Si., M.Si. (Teol).",
+      "active": true
+    },
+    {
+      "nik": "99000303",
+      "name": "Pdt. Agustria Empi, M.Min.",
+      "active": true
+    },
+    {
+      "nik": "720247",
+      "name": "Erico Darmawan Handoyo, S.Kom., M.T.",
+      "active": true
+    },
+    {
+      "nik": "720309",
+      "name": "Oscar Karnalim, S.T., M.T., Ph.D., SMIEEE.",
+      "active": true
+    },
+    {
+      "nik": "720307",
+      "name": "Robby Tan, S.T., M.Kom.",
+      "active": true
+    },
+    {
+      "nik": "720004",
+      "name": "Ir. Teddy Marcus Zakaria, M.T.",
+      "active": true
+    },
+    {
+      "nik": "710003",
+      "name": "Djoni Setiawan Kartawihardja, S.T., M.T.",
+      "active": true
+    },
+    {
+      "nik": "710096",
+      "name": "Sulaeman Santoso, S.Kom., M.T.",
+      "active": true
+    },
+    {
+      "nik": "720225",
+      "name": "Meliana Christianti, S.Kom., M.T.",
+      "active": true
+    },
+    {
+      "nik": "720317",
+      "name": "Dr. Swat Lie Liliawati, S.H., M.Hum.",
+      "active": true
+    },
+    {
+      "nik": "720062",
+      "name": "Dr. Bernard R. Suteja, S.Kom., M.Kom.",
+      "active": true
+    },
+    {
+      "nik": "710004",
+      "name": "Prof. Dr. Hapnes Toba, M.Sc.",
+      "active": true
+    },
+    {
+      "nik": "720211",
+      "name": "Diana Trivena Yulianti, S.Kom., M.T.",
+      "active": true
+    },
+    {
+      "nik": "730015",
+      "name": "Dr. Niko Ibrahim, S.Kom., MIT.",
+      "active": true
+    },
+    {
+      "nik": "880089",
+      "name": "Demson Tiopan, S.H., M.H.",
+      "active": true
+    },
+    {
+      "nik": "640082",
+      "name": "Dr. Dra. Seriwati Ginting, M.Pd.",
+      "active": true
+    },
+    {
+      "nik": "730049",
+      "name": "Adelia, S.Kom., M.T.",
+      "active": true
+    }
+  ],
+  "courses": [
+    {
+      "code": "INF001202672",
+      "name": "Logika Informatika (Teori)",
+      "study_program_code": "IF",
+      "active": true
+    },
+    {
+      "code": "IN013",
+      "name": "Matematika Informatika",
+      "study_program_code": "IF",
+      "active": true
+    },
+    {
+      "code": "INF002202672",
+      "name": "Computational Thinking",
+      "study_program_code": "IF",
+      "active": true
+    },
+    {
+      "code": "INF003202672",
+      "name": "Jaringan Komputer (Teori)",
+      "study_program_code": "IF",
+      "active": true
+    },
+    {
+      "code": "INF004202672",
+      "name": "Bahasa Inggris untuk Praktisi Teknologi Informasi",
+      "study_program_code": "IF",
+      "active": true
+    },
+    {
+      "code": "INF005202672",
+      "name": "Pengantar Aplikasi Komputer",
+      "study_program_code": "IF",
+      "active": true
+    },
+    {
+      "code": "INF006202672",
+      "name": "User-Centric Informatics",
+      "study_program_code": "IF",
+      "active": true
+    },
+    {
+      "code": "INF040202672",
+      "name": "Bahasa Indonesia",
+      "study_program_code": "IF",
+      "active": true
+    },
+    {
+      "code": "INF041202672",
+      "name": "Fenomenologi Agama",
+      "study_program_code": "IF",
+      "active": true
+    },
+    {
+      "code": "INF042202672",
+      "name": "Pendidikan Agama Kristen",
+      "study_program_code": "IF",
+      "active": true
+    },
+    {
+      "code": "IN220",
+      "name": "Dasar Pemrograman (Teori)",
+      "study_program_code": "IF",
+      "active": true
+    },
+    {
+      "code": "IN230",
+      "name": "Rekayasa Perangkat Lunak",
+      "study_program_code": "IF",
+      "active": true
+    },
+    {
+      "code": "IN231",
+      "name": "Teknologi Multimedia",
+      "study_program_code": "IF",
+      "active": true
+    },
+    {
+      "code": "IN232",
+      "name": "Matematika Diskrit",
+      "study_program_code": "IF",
+      "active": true
+    },
+    {
+      "code": "IN233",
+      "name": "Algoritma dan Struktur Data (Teori)",
+      "study_program_code": "IF",
+      "active": true
+    },
+    {
+      "code": "IN234",
+      "name": "Paradigma Pemrograman (Teori)",
+      "study_program_code": "IF",
+      "active": true
+    },
+    {
+      "code": "IN041",
+      "name": "Pemrograman Berorientasi Objek 1 B *) (Teori)",
+      "study_program_code": "IF",
+      "active": true
+    },
+    {
+      "code": "IN237",
+      "name": "Basis Data Lanjut (Teori)",
+      "study_program_code": "IF",
+      "active": true
+    },
+    {
+      "code": "IN243",
+      "name": "Sistem Operasi Komputer",
+      "study_program_code": "IF",
+      "active": true
+    },
+    {
+      "code": "IN236",
+      "name": "Pemrograman Terapan (Teori)",
+      "study_program_code": "IF",
+      "active": true
+    },
+    {
+      "code": "IN051",
+      "name": "Pemrograman Berorientasi Objek 2 B *) (Teori)",
+      "study_program_code": "IF",
+      "active": true
+    },
+    {
+      "code": "IN250",
+      "name": "Manajemen Proyek",
+      "study_program_code": "IF",
+      "active": true
+    },
+    {
+      "code": "IN253",
+      "name": "Grafika Komputer (Teori)",
+      "study_program_code": "IF",
+      "active": true
+    },
+    {
+      "code": "IN063",
+      "name": "Grafika Komputer (Teori)",
+      "study_program_code": "IF",
+      "active": true
+    },
+    {
+      "code": "IN254",
+      "name": "Proyek Perangkat Lunak",
+      "study_program_code": "IF",
+      "active": true
+    },
+    {
+      "code": "IN255",
+      "name": "Proses Bisnis",
+      "study_program_code": "IF",
+      "active": true
+    },
+    {
+      "code": "MK061",
+      "name": "Etika Profesi",
+      "study_program_code": "IF",
+      "active": true
+    },
+    {
+      "code": "IN270",
+      "name": "Kerja Praktik",
+      "study_program_code": "IF",
+      "active": true
+    },
+    {
+      "code": "IN280",
+      "name": "Seminar Tugas Akhir",
+      "study_program_code": "IF",
+      "active": true
+    },
+    {
+      "code": "IN070",
+      "name": "Seminar Tugas Akhir",
+      "study_program_code": "IF",
+      "active": true
+    },
+    {
+      "code": "IN281",
+      "name": "Tugas Akhir",
+      "study_program_code": "IF",
+      "active": true
+    },
+    {
+      "code": "IN080",
+      "name": "Tugas Akhir",
+      "study_program_code": "IF",
+      "active": true
+    },
+    {
+      "code": "IN262",
+      "name": "Pemrograman Mobile (Teori)",
+      "study_program_code": "IF",
+      "active": true
+    },
+    {
+      "code": "IN264",
+      "name": "Web Semantik (Teori)",
+      "study_program_code": "IF",
+      "active": true
+    },
+    {
+      "code": "IN267",
+      "name": "Administrasi Jaringan Komputer (Teori)",
+      "study_program_code": "IF",
+      "active": true
+    },
+    {
+      "code": "IN271",
+      "name": "Internet of Things (Teori)",
+      "study_program_code": "IF",
+      "active": true
+    },
+    {
+      "code": "IN285",
+      "name": "Pemrograman Multi-Platform (Teori)",
+      "study_program_code": "IF",
+      "active": true
+    },
+    {
+      "code": "IN286",
+      "name": "Pemrosesan Bahasa Alami (Teori)",
+      "study_program_code": "IF",
+      "active": true
+    },
+    {
+      "code": "IN240",
+      "name": "Pemrograman Web Lanjut (Teori)",
+      "study_program_code": "IF",
+      "active": true
+    },
+    {
+      "code": "IN052",
+      "name": "Pemrograman Web 2 (Teori)",
+      "study_program_code": "IF",
+      "active": true
+    },
+    {
+      "code": "IN261",
+      "name": "Start-up Technopreneur",
+      "study_program_code": "IF",
+      "active": true
+    },
+    {
+      "code": "IN260",
+      "name": "Metode Penelitian Informatika",
+      "study_program_code": "IF",
+      "active": true
+    },
+    {
+      "code": "IN252",
+      "name": "Desain Antarmuka",
+      "study_program_code": "IF",
+      "active": true
+    },
+    {
+      "code": "MK017",
+      "name": "Pancasila",
+      "study_program_code": "IF",
+      "active": true
+    },
+    {
+      "code": "MK024",
+      "name": "Pendidikan Kewarganegaraan",
+      "study_program_code": "IF",
+      "active": true
+    },
+    {
+      "code": "IN061",
+      "name": "Desain Antarmuka Pengguna",
+      "study_program_code": "IF",
+      "active": true
+    },
+    {
+      "code": "IN062",
+      "name": "Metode Penelitian Informatika",
+      "study_program_code": "IF",
+      "active": true
+    },
+    {
+      "code": "MK037",
+      "name": "Kepemimpinan",
+      "study_program_code": "IF",
+      "active": true
+    },
+    {
+      "code": "INF28T202472",
+      "name": "INF28T202472 Program Pengayaan Studi Independen 10",
+      "study_program_code": "IF",
+      "active": true
+    },
+    {
+      "code": "SI101",
+      "name": "Analisis Sistem",
+      "study_program_code": "SI",
+      "active": true
+    },
+    {
+      "code": "SI202",
+      "name": "Manajemen Proyek TI",
+      "study_program_code": "SI",
+      "active": true
+    },
+    {
+      "code": "S201",
+      "name": "Kecerdasan Buatan",
+      "study_program_code": "S2",
+      "active": true
+    }
+  ],
+  "sections": [
+    {
+      "course_code": "INF001202672",
+      "room_code": "DB",
+      "lecturer_nik": "720282",
+      "class_code": "A",
+      "day_of_week": 1,
+      "start_time": "07:00",
+      "end_time": "08:30"
+    },
+    {
+      "course_code": "INF001202672",
+      "room_code": "DB",
+      "lecturer_nik": "720319",
+      "class_code": "A",
+      "day_of_week": 1,
+      "start_time": "09:30",
+      "end_time": "11:30"
+    },
+    {
+      "course_code": "INF001202672",
+      "room_code": "DB",
+      "lecturer_nik": "720319",
+      "class_code": "B",
+      "day_of_week": 1,
+      "start_time": "12:30",
+      "end_time": "14:00"
+    },
+    {
+      "course_code": "IN013",
+      "room_code": "DB",
+      "lecturer_nik": "720319",
+      "class_code": "A",
+      "day_of_week": 1,
+      "start_time": "12:30",
+      "end_time": "14:00"
+    },
+    {
+      "course_code": "INF001202672",
+      "room_code": "DB",
+      "lecturer_nik": "720319",
+      "class_code": "B",
+      "day_of_week": 1,
+      "start_time": "15:00",
+      "end_time": "17:00"
+    },
+    {
+      "course_code": "INF002202672",
+      "room_code": "ADV4",
+      "lecturer_nik": "720140",
+      "class_code": "A",
+      "day_of_week": 2,
+      "start_time": "13:00",
+      "end_time": "14:30"
+    },
+    {
+      "course_code": "INF002202672",
+      "room_code": "MMD",
+      "lecturer_nik": "720140",
+      "class_code": "B",
+      "day_of_week": 4,
+      "start_time": "13:00",
+      "end_time": "14:30"
+    },
+    {
+      "course_code": "INF003202672",
+      "room_code": "INT1",
+      "lecturer_nik": "720246",
+      "class_code": "A",
+      "day_of_week": 3,
+      "start_time": "13:00",
+      "end_time": "14:30"
+    },
+    {
+      "course_code": "INF003202672",
+      "room_code": "INT1",
+      "lecturer_nik": "720246",
+      "class_code": "A",
+      "day_of_week": 3,
+      "start_time": "15:00",
+      "end_time": "17:00"
+    },
+    {
+      "course_code": "INF003202672",
+      "room_code": "Network",
+      "lecturer_nik": "720212",
+      "class_code": "B",
+      "day_of_week": 2,
+      "start_time": "07:00",
+      "end_time": "08:30"
+    },
+    {
+      "course_code": "INF003202672",
+      "room_code": "Network",
+      "lecturer_nik": "720212",
+      "class_code": "B",
+      "day_of_week": 2,
+      "start_time": "09:30",
+      "end_time": "11:30"
+    },
+    {
+      "course_code": "INF004202672",
+      "room_code": "DB",
+      "lecturer_nik": "410117",
+      "class_code": "A",
+      "day_of_week": 3,
+      "start_time": "10:00",
+      "end_time": "11:30"
+    },
+    {
+      "course_code": "INF004202672",
+      "room_code": "DB",
+      "lecturer_nik": "410117",
+      "class_code": "B",
+      "day_of_week": 3,
+      "start_time": "13:00",
+      "end_time": "14:30"
+    },
+    {
+      "course_code": "INF005202672",
+      "room_code": "DB",
+      "lecturer_nik": "720303",
+      "class_code": "A",
+      "day_of_week": 2,
+      "start_time": "09:30",
+      "end_time": "11:00"
+    },
+    {
+      "course_code": "INF005202672",
+      "room_code": "DB",
+      "lecturer_nik": "230648",
+      "class_code": "B",
+      "day_of_week": 3,
+      "start_time": "07:30",
+      "end_time": "09:00"
+    },
+    {
+      "course_code": "INF006202672",
+      "room_code": "DB",
+      "lecturer_nik": "720302",
+      "class_code": "A",
+      "day_of_week": 4,
+      "start_time": "12:30",
+      "end_time": "14:00"
+    },
+    {
+      "course_code": "INF006202672",
+      "room_code": "ADV2",
+      "lecturer_nik": "720303",
+      "class_code": "B",
+      "day_of_week": 3,
+      "start_time": "09:30",
+      "end_time": "11:00"
+    },
+    {
+      "course_code": "INF006202672",
+      "room_code": "MMD",
+      "lecturer_nik": "310719",
+      "class_code": "A dan B",
+      "day_of_week": 4,
+      "start_time": "08:00",
+      "end_time": "09:30"
+    },
+    {
+      "course_code": "IN220",
+      "room_code": "ADV4",
+      "lecturer_nik": "720140",
+      "class_code": "A",
+      "day_of_week": 2,
+      "start_time": "09:30",
+      "end_time": "11:00"
+    },
+    {
+      "course_code": "IN220",
+      "room_code": "ADV3",
+      "lecturer_nik": "720319",
+      "class_code": "A1",
+      "day_of_week": 4,
+      "start_time": "09:30",
+      "end_time": "11:30"
+    },
+    {
+      "course_code": "IN220",
+      "room_code": "ADV3",
+      "lecturer_nik": "720319",
+      "class_code": "A2",
+      "day_of_week": 4,
+      "start_time": "12:30",
+      "end_time": "14:30"
+    },
+    {
+      "course_code": "IN230",
+      "room_code": "ADV1",
+      "lecturer_nik": "720302",
+      "class_code": "A",
+      "day_of_week": 3,
+      "start_time": "15:00",
+      "end_time": "17:30"
+    },
+    {
+      "course_code": "IN230",
+      "room_code": "DB",
+      "lecturer_nik": "720302",
+      "class_code": "B",
+      "day_of_week": 4,
+      "start_time": "15:00",
+      "end_time": "17:30"
+    },
+    {
+      "course_code": "IN231",
+      "room_code": "ADV3",
+      "lecturer_nik": "720247",
+      "class_code": "A",
+      "day_of_week": 2,
+      "start_time": "07:00",
+      "end_time": "08:30"
+    },
+    {
+      "course_code": "IN231",
+      "room_code": "ADV3",
+      "lecturer_nik": "720247",
+      "class_code": "B",
+      "day_of_week": 2,
+      "start_time": "09:30",
+      "end_time": "11:00"
+    },
+    {
+      "course_code": "IN232",
+      "room_code": "INT1",
+      "lecturer_nik": "720282",
+      "class_code": "A",
+      "day_of_week": 4,
+      "start_time": "07:00",
+      "end_time": "09:30"
+    },
+    {
+      "course_code": "IN232",
+      "room_code": "ADV2",
+      "lecturer_nik": "720282",
+      "class_code": "B",
+      "day_of_week": 4,
+      "start_time": "15:00",
+      "end_time": "17:30"
+    },
+    {
+      "course_code": "IN233",
+      "room_code": "ADV1",
+      "lecturer_nik": "720309",
+      "class_code": "A",
+      "day_of_week": 2,
+      "start_time": "15:00",
+      "end_time": "17:30"
+    },
+    {
+      "course_code": "IN233",
+      "room_code": "ADV1",
+      "lecturer_nik": "720309",
+      "class_code": "A",
+      "day_of_week": 2,
+      "start_time": "17:30",
+      "end_time": "19:30"
+    },
+    {
+      "course_code": "IN233",
+      "room_code": "ADV3",
+      "lecturer_nik": "720303",
+      "class_code": "B",
+      "day_of_week": 2,
+      "start_time": "15:00",
+      "end_time": "17:30"
+    },
+    {
+      "course_code": "IN233",
+      "room_code": "ADV2",
+      "lecturer_nik": "720303",
+      "class_code": "B",
+      "day_of_week": 3,
+      "start_time": "07:30",
+      "end_time": "09:30"
+    },
+    {
+      "course_code": "IN233",
+      "room_code": "ADV2",
+      "lecturer_nik": "720303",
+      "class_code": "C",
+      "day_of_week": 4,
+      "start_time": "09:30",
+      "end_time": "12:00"
+    },
+    {
+      "course_code": "IN233",
+      "room_code": "ADV2",
+      "lecturer_nik": "720303",
+      "class_code": "C",
+      "day_of_week": 4,
+      "start_time": "13:00",
+      "end_time": "15:00"
+    },
+    {
+      "course_code": "IN234",
+      "room_code": "ADV1",
+      "lecturer_nik": "720307",
+      "class_code": "A",
+      "day_of_week": 1,
+      "start_time": "09:30",
+      "end_time": "12:00"
+    },
+    {
+      "course_code": "IN234",
+      "room_code": "ADV1",
+      "lecturer_nik": "720307",
+      "class_code": "A",
+      "day_of_week": 1,
+      "start_time": "12:30",
+      "end_time": "14:30"
+    },
+    {
+      "course_code": "IN234",
+      "room_code": "ADV1",
+      "lecturer_nik": "720307",
+      "class_code": "B",
+      "day_of_week": 2,
+      "start_time": "09:30",
+      "end_time": "12:00"
+    },
+    {
+      "course_code": "IN234",
+      "room_code": "ADV1",
+      "lecturer_nik": "720307",
+      "class_code": "B",
+      "day_of_week": 2,
+      "start_time": "12:30",
+      "end_time": "14:30"
+    },
+    {
+      "course_code": "IN234",
+      "room_code": "ADV1",
+      "lecturer_nik": "720307",
+      "class_code": "C",
+      "day_of_week": 3,
+      "start_time": "09:30",
+      "end_time": "12:00"
+    },
+    {
+      "course_code": "IN041",
+      "room_code": "ADV1",
+      "lecturer_nik": "720307",
+      "class_code": "A",
+      "day_of_week": 3,
+      "start_time": "09:30",
+      "end_time": "12:00"
+    },
+    {
+      "course_code": "IN234",
+      "room_code": "ADV1",
+      "lecturer_nik": "720307",
+      "class_code": "C",
+      "day_of_week": 3,
+      "start_time": "12:30",
+      "end_time": "14:30"
+    },
+    {
+      "course_code": "IN041",
+      "room_code": "ADV1",
+      "lecturer_nik": "720307",
+      "class_code": "A",
+      "day_of_week": 3,
+      "start_time": "12:30",
+      "end_time": "14:30"
+    },
+    {
+      "course_code": "IN237",
+      "room_code": "ADV3",
+      "lecturer_nik": "720004",
+      "class_code": "A",
+      "day_of_week": 1,
+      "start_time": "09:30",
+      "end_time": "11:00"
+    },
+    {
+      "course_code": "IN237",
+      "room_code": "ADV3",
+      "lecturer_nik": "720004",
+      "class_code": "A",
+      "day_of_week": 1,
+      "start_time": "12:30",
+      "end_time": "14:30"
+    },
+    {
+      "course_code": "IN237",
+      "room_code": "ADV4",
+      "lecturer_nik": "720004",
+      "class_code": "B",
+      "day_of_week": 3,
+      "start_time": "09:30",
+      "end_time": "11:00"
+    },
+    {
+      "course_code": "IN237",
+      "room_code": "ADV4",
+      "lecturer_nik": "720004",
+      "class_code": "B",
+      "day_of_week": 3,
+      "start_time": "12:30",
+      "end_time": "14:30"
+    },
+    {
+      "course_code": "IN243",
+      "room_code": "ADV2",
+      "lecturer_nik": "710003",
+      "class_code": "A",
+      "day_of_week": 5,
+      "start_time": "13:00",
+      "end_time": "14:30"
+    },
+    {
+      "course_code": "IN243",
+      "room_code": "ADV2",
+      "lecturer_nik": "710003",
+      "class_code": "B",
+      "day_of_week": 5,
+      "start_time": "15:00",
+      "end_time": "16:30"
+    },
+    {
+      "course_code": "IN236",
+      "room_code": "ADV3",
+      "lecturer_nik": "720319",
+      "class_code": "A",
+      "day_of_week": 3,
+      "start_time": "12:30",
+      "end_time": "14:00"
+    },
+    {
+      "course_code": "IN236",
+      "room_code": "ADV1",
+      "lecturer_nik": "720319",
+      "class_code": "A",
+      "day_of_week": 5,
+      "start_time": "13:00",
+      "end_time": "15:00"
+    },
+    {
+      "course_code": "IN236",
+      "room_code": "ADV3",
+      "lecturer_nik": "720319",
+      "class_code": "B",
+      "day_of_week": 4,
+      "start_time": "15:00",
+      "end_time": "16:30"
+    },
+    {
+      "course_code": "IN051",
+      "room_code": "ADV3",
+      "lecturer_nik": "720319",
+      "class_code": "A",
+      "day_of_week": 4,
+      "start_time": "15:00",
+      "end_time": "16:30"
+    },
+    {
+      "course_code": "IN236",
+      "room_code": "ADV1",
+      "lecturer_nik": "720319",
+      "class_code": "B",
+      "day_of_week": 5,
+      "start_time": "15:00",
+      "end_time": "17:00"
+    },
+    {
+      "course_code": "IN051",
+      "room_code": "ADV1",
+      "lecturer_nik": "720319",
+      "class_code": "A",
+      "day_of_week": 5,
+      "start_time": "15:00",
+      "end_time": "17:00"
+    },
+    {
+      "course_code": "IN250",
+      "room_code": "ADV3",
+      "lecturer_nik": "720319",
+      "class_code": "A",
+      "day_of_week": 3,
+      "start_time": "07:00",
+      "end_time": "09:30"
+    },
+    {
+      "course_code": "IN250",
+      "room_code": "ADV3",
+      "lecturer_nik": "710003",
+      "class_code": "B",
+      "day_of_week": 3,
+      "start_time": "09:30",
+      "end_time": "12:00"
+    },
+    {
+      "course_code": "IN253",
+      "room_code": "ADV2",
+      "lecturer_nik": "710096",
+      "class_code": "A",
+      "day_of_week": 2,
+      "start_time": "07:00",
+      "end_time": "08:30"
+    },
+    {
+      "course_code": "IN063",
+      "room_code": "ADV2",
+      "lecturer_nik": "710096",
+      "class_code": "A",
+      "day_of_week": 2,
+      "start_time": "07:00",
+      "end_time": "08:30"
+    },
+    {
+      "course_code": "IN253",
+      "room_code": "ADV2",
+      "lecturer_nik": "710096",
+      "class_code": "A",
+      "day_of_week": 2,
+      "start_time": "09:30",
+      "end_time": "11:30"
+    },
+    {
+      "course_code": "IN063",
+      "room_code": "ADV2",
+      "lecturer_nik": "710096",
+      "class_code": "A",
+      "day_of_week": 2,
+      "start_time": "09:30",
+      "end_time": "11:30"
+    },
+    {
+      "course_code": "IN253",
+      "room_code": "ADV2",
+      "lecturer_nik": "710096",
+      "class_code": "B",
+      "day_of_week": 2,
+      "start_time": "12:30",
+      "end_time": "14:00"
+    },
+    {
+      "course_code": "IN253",
+      "room_code": "ADV2",
+      "lecturer_nik": "710096",
+      "class_code": "B",
+      "day_of_week": 2,
+      "start_time": "15:00",
+      "end_time": "17:00"
+    },
+    {
+      "course_code": "IN254",
+      "room_code": "INT2",
+      "lecturer_nik": "720309",
+      "class_code": "A",
+      "day_of_week": 3,
+      "start_time": "15:00",
+      "end_time": "17:30"
+    },
+    {
+      "course_code": "IN254",
+      "room_code": "INT2",
+      "lecturer_nik": "720309",
+      "class_code": "A",
+      "day_of_week": 3,
+      "start_time": "15:00",
+      "end_time": "17:30"
+    },
+    {
+      "course_code": "IN255",
+      "room_code": "MMD",
+      "lecturer_nik": "720225",
+      "class_code": "A",
+      "day_of_week": 3,
+      "start_time": "07:00",
+      "end_time": "09:30"
+    },
+    {
+      "course_code": "IN255",
+      "room_code": "MMD",
+      "lecturer_nik": "720225",
+      "class_code": "B",
+      "day_of_week": 3,
+      "start_time": "09:30",
+      "end_time": "12:00"
+    },
+    {
+      "course_code": "IN270",
+      "room_code": "DB",
+      "lecturer_nik": "710096",
+      "class_code": "A",
+      "day_of_week": 5,
+      "start_time": "07:00",
+      "end_time": "09:30"
+    },
+    {
+      "course_code": "IN280",
+      "room_code": "INT1",
+      "lecturer_nik": "720246",
+      "class_code": "A",
+      "day_of_week": 2,
+      "start_time": "17:30",
+      "end_time": "19:30"
+    },
+    {
+      "course_code": "IN070",
+      "room_code": "INT1",
+      "lecturer_nik": "720246",
+      "class_code": "A",
+      "day_of_week": 2,
+      "start_time": "17:30",
+      "end_time": "19:30"
+    },
+    {
+      "course_code": "IN281",
+      "room_code": "INT1",
+      "lecturer_nik": "720246",
+      "class_code": "A",
+      "day_of_week": 3,
+      "start_time": "17:30",
+      "end_time": "19:30"
+    },
+    {
+      "course_code": "IN080",
+      "room_code": "INT1",
+      "lecturer_nik": "720246",
+      "class_code": "A",
+      "day_of_week": 3,
+      "start_time": "17:30",
+      "end_time": "19:30"
+    },
+    {
+      "course_code": "IN262",
+      "room_code": "ADV1",
+      "lecturer_nik": "720307",
+      "class_code": "A",
+      "day_of_week": 4,
+      "start_time": "09:30",
+      "end_time": "12:00"
+    },
+    {
+      "course_code": "IN262",
+      "room_code": "ADV1",
+      "lecturer_nik": "720307",
+      "class_code": "A",
+      "day_of_week": 4,
+      "start_time": "12:30",
+      "end_time": "14:30"
+    },
+    {
+      "course_code": "IN264",
+      "room_code": "ADV4",
+      "lecturer_nik": "720062",
+      "class_code": "A",
+      "day_of_week": 1,
+      "start_time": "07:00",
+      "end_time": "09:30"
+    },
+    {
+      "course_code": "IN264",
+      "room_code": "ADV4",
+      "lecturer_nik": "720062",
+      "class_code": "A",
+      "day_of_week": 1,
+      "start_time": "09:30",
+      "end_time": "11:30"
+    },
+    {
+      "course_code": "IN264",
+      "room_code": "ADV4",
+      "lecturer_nik": "720062",
+      "class_code": "B",
+      "day_of_week": 1,
+      "start_time": "12:30",
+      "end_time": "15:00"
+    },
+    {
+      "course_code": "IN264",
+      "room_code": "ADV4",
+      "lecturer_nik": "720062",
+      "class_code": "B",
+      "day_of_week": 1,
+      "start_time": "15:00",
+      "end_time": "17:00"
+    },
+    {
+      "course_code": "IN267",
+      "room_code": "INT1",
+      "lecturer_nik": "720246",
+      "class_code": "A",
+      "day_of_week": 2,
+      "start_time": "13:00",
+      "end_time": "15:30"
+    },
+    {
+      "course_code": "IN267",
+      "room_code": "INT1",
+      "lecturer_nik": "720246",
+      "class_code": "A",
+      "day_of_week": 2,
+      "start_time": "15:30",
+      "end_time": "17:30"
+    },
+    {
+      "course_code": "IN267",
+      "room_code": "INT1",
+      "lecturer_nik": "710003",
+      "class_code": "B",
+      "day_of_week": 4,
+      "start_time": "09:30",
+      "end_time": "12:00"
+    },
+    {
+      "course_code": "IN267",
+      "room_code": "INT1",
+      "lecturer_nik": "710003",
+      "class_code": "B",
+      "day_of_week": 4,
+      "start_time": "12:30",
+      "end_time": "14:30"
+    },
+    {
+      "course_code": "IN271",
+      "room_code": "INT1",
+      "lecturer_nik": "720062",
+      "class_code": "A",
+      "day_of_week": 2,
+      "start_time": "07:00",
+      "end_time": "09:30"
+    },
+    {
+      "course_code": "IN271",
+      "room_code": "INT1",
+      "lecturer_nik": "720062",
+      "class_code": "A",
+      "day_of_week": 2,
+      "start_time": "09:30",
+      "end_time": "11:30"
+    },
+    {
+      "course_code": "IN285",
+      "room_code": "ADV2",
+      "lecturer_nik": "720247",
+      "class_code": "A",
+      "day_of_week": 1,
+      "start_time": "07:00",
+      "end_time": "09:30"
+    },
+    {
+      "course_code": "IN285",
+      "room_code": "ADV2",
+      "lecturer_nik": "720247",
+      "class_code": "A",
+      "day_of_week": 1,
+      "start_time": "09:30",
+      "end_time": "11:30"
+    },
+    {
+      "course_code": "IN286",
+      "room_code": "INT1",
+      "lecturer_nik": "710004",
+      "class_code": "A",
+      "day_of_week": 1,
+      "start_time": "12:30",
+      "end_time": "15:00"
+    },
+    {
+      "course_code": "IN286",
+      "room_code": "INT1",
+      "lecturer_nik": "710004",
+      "class_code": "A",
+      "day_of_week": 1,
+      "start_time": "15:00",
+      "end_time": "17:00"
+    },
+    {
+      "course_code": "IN261",
+      "room_code": "PROG1",
+      "lecturer_nik": "720211",
+      "class_code": "A",
+      "day_of_week": 2,
+      "start_time": "12:30",
+      "end_time": "15:00"
+    },
+    {
+      "course_code": "IN260",
+      "room_code": "ADV4",
+      "lecturer_nik": "720140",
+      "class_code": "A",
+      "day_of_week": 4,
+      "start_time": "09:30",
+      "end_time": "12:00"
+    },
+    {
+      "course_code": "IN252",
+      "room_code": "PROG1",
+      "lecturer_nik": "730015",
+      "class_code": "A",
+      "day_of_week": 5,
+      "start_time": "10:00",
+      "end_time": "11:30"
+    },
+    {
+      "course_code": "IN061",
+      "room_code": "PROG1",
+      "lecturer_nik": "730015",
+      "class_code": "A",
+      "day_of_week": 5,
+      "start_time": "10:00",
+      "end_time": "11:30"
+    },
+    {
+      "course_code": "IN062",
+      "room_code": "ADV4",
+      "lecturer_nik": "720140",
+      "class_code": "A",
+      "day_of_week": 4,
+      "start_time": "09:30",
+      "end_time": "12:00"
+    },
+    {
+      "course_code": "INF28T202472",
+      "room_code": "MMD",
+      "lecturer_nik": "730049",
+      "class_code": "A",
+      "day_of_week": 1,
+      "start_time": "12:30",
+      "end_time": "15:00"
+    }
+  ]
+}

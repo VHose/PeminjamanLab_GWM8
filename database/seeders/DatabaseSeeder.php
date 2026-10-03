@@ -2,7 +2,9 @@
 
 namespace Database\Seeders;
 
+use App\Models\ActivityLog;
 use App\Models\Booking;
+use App\Models\BookingApproval;
 use App\Models\Course;
 use App\Models\Lecturer;
 use App\Models\Period;
@@ -12,23 +14,20 @@ use App\Models\Section;
 use App\Models\StudyProgram;
 use App\Models\User;
 use Illuminate\Database\Seeder;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
         $roles = collect(['Visitor', 'Staf_Lab', 'Kepala_Prodi', 'Kepala_Lab'])
             ->mapWithKeys(fn (string $name) => [$name => Role::query()->firstOrCreate(['name' => $name])]);
 
         foreach ([
-            ['code' => 'IF', 'name' => 'S1 Teknik Informatika', 'color_hex' => '#FFF3B0'],
-            ['code' => 'SI', 'name' => 'S1 Sistem Informasi', 'color_hex' => '#FBEFD1'],
-            ['code' => 'S2', 'name' => 'S2 Magister Ilmu Komputer', 'color_hex' => '#FFB366'],
+            ['code' => 'IF', 'name' => 'S1 Teknik Informatika', 'color_hex' => '#FFF3B0', 'active' => true],
+            ['code' => 'SI', 'name' => 'S1 Sistem Informasi', 'color_hex' => '#FBEFD1', 'active' => true],
+            ['code' => 'S2', 'name' => 'S2 Magister Ilmu Komputer', 'color_hex' => '#FFB366', 'active' => true],
         ] as $studyProgram) {
             StudyProgram::query()->updateOrCreate(['code' => $studyProgram['code']], $studyProgram);
         }
@@ -44,28 +43,187 @@ class DatabaseSeeder extends Seeder
             );
         }
 
-        foreach ([['nik' => '19800101', 'name' => 'Dr. Andi Pratama'], ['nik' => '19810202', 'name' => 'Dr. Budi Santoso'], ['nik' => '19820303', 'name' => 'Siti Rahma, M.Kom.'], ['nik' => '19830404', 'name' => 'Rina Wijaya, M.T.'], ['nik' => '19840505', 'name' => 'Deni Kurniawan, M.Kom.']] as $lecturer) {
-            Lecturer::updateOrCreate(['nik' => $lecturer['nik']], $lecturer);
-        }
+        $visitorUser = User::query()->updateOrCreate(
+            ['email' => 'visitor@example.com'],
+            ['name' => 'Valentino Hose', 'role_id' => $roles['Visitor']->id, 'password' => Hash::make('password')],
+        );
+
+        $studentUser = User::query()->updateOrCreate(
+            ['email' => 'sheila@example.com'],
+            ['name' => 'Sheila Utomo', 'role_id' => $roles['Visitor']->id, 'password' => Hash::make('password')],
+        );
+
+        $otherStudent = User::query()->updateOrCreate(
+            ['email' => 'budi@example.com'],
+            ['name' => 'Budi Setiawan', 'role_id' => $roles['Visitor']->id, 'password' => Hash::make('password')],
+        );
+
         foreach (['ADV1', 'ADV2', 'ADV3', 'ADV4', 'PROG1', 'PROG2', 'ENT1', 'ENT2', 'DB', 'MMD', 'Network', 'INT1', 'INT2'] as $code) {
-            Room::updateOrCreate(['code' => $code], ['name' => null, 'capacity' => null, 'description' => null, 'active' => true]);
+            Room::query()->updateOrCreate(['code' => $code], ['name' => null, 'capacity' => null, 'description' => null, 'active' => true]);
         }
-        $programs = StudyProgram::pluck('id', 'code');
-        foreach ([['code' => 'IF101', 'name' => 'Dasar Pemrograman', 'study_program_id' => $programs['IF']], ['code' => 'IF201', 'name' => 'Basis Data', 'study_program_id' => $programs['IF']], ['code' => 'SI101', 'name' => 'Analisis Sistem', 'study_program_id' => $programs['SI']], ['code' => 'SI202', 'name' => 'Manajemen Proyek TI', 'study_program_id' => $programs['SI']], ['code' => 'S201', 'name' => 'Kecerdasan Buatan', 'study_program_id' => $programs['S2']]] as $course) {
-            Course::updateOrCreate(['code' => $course['code']], $course);
+
+        $dataPath = database_path('seeders/schedule_data.json');
+        $scheduleData = File::exists($dataPath) ? json_decode(File::get($dataPath), true) : ['lecturers' => [], 'courses' => [], 'sections' => []];
+
+        foreach ($scheduleData['lecturers'] as $lecturer) {
+            Lecturer::query()->updateOrCreate(['nik' => $lecturer['nik']], $lecturer);
         }
-        $period = Period::updateOrCreate(['name' => 'Ganjil 2026/2027'], ['semester' => 'odd', 'start_date' => '2026-10-05', 'end_date' => '2027-01-30', 'uts_start' => '2026-11-16', 'uts_end' => '2026-11-21', 'uas_start' => '2027-01-18', 'uas_end' => '2027-01-23']);
-        $rooms = Room::pluck('id', 'code');
-        $courses = Course::pluck('id', 'code');
-        foreach ([['course_id' => $courses['IF101'], 'room_id' => $rooms['ADV1'], 'lecturer_nik' => '19800101', 'day_of_week' => 1, 'start_time' => '07:00', 'end_time' => '09:00'], ['course_id' => $courses['IF201'], 'room_id' => $rooms['ADV2'], 'lecturer_nik' => '19810202', 'day_of_week' => 1, 'start_time' => '09:00', 'end_time' => '11:00'], ['course_id' => $courses['SI101'], 'room_id' => $rooms['ENT1'], 'lecturer_nik' => '19820303', 'day_of_week' => 2, 'start_time' => '08:00', 'end_time' => '10:00'], ['course_id' => $courses['SI202'], 'room_id' => $rooms['ENT2'], 'presenter_name' => 'Praktisi Industri', 'day_of_week' => 3, 'start_time' => '13:00', 'end_time' => '15:00'], ['course_id' => $courses['S201'], 'room_id' => $rooms['INT1'], 'lecturer_nik' => '19840505', 'day_of_week' => 4, 'start_time' => '10:00', 'end_time' => '12:00']] as $section) {
-            Section::updateOrCreate(['period_id' => $period->id, 'course_id' => $section['course_id'], 'room_id' => $section['room_id'], 'day_of_week' => $section['day_of_week'], 'start_time' => $section['start_time']], $section + ['period_id' => $period->id]);
+
+        $programs = StudyProgram::query()->pluck('id', 'code');
+        foreach ($scheduleData['courses'] as $course) {
+            Course::query()->updateOrCreate(
+                ['code' => $course['code']],
+                [
+                    'name' => $course['name'],
+                    'study_program_id' => $programs[$course['study_program_code']] ?? $programs['IF'],
+                    'active' => true,
+                ],
+            );
         }
-        $visitor = $roles['Visitor'];
-        $visitorUser = User::updateOrCreate(['email' => 'visitor@example.com'], ['name' => 'Valentino Hose', 'role_id' => $visitor->id, 'password' => Hash::make('password')]);
-        $booking = Booking::firstOrCreate(['requester_name' => 'Valentino Hose'], ['user_id' => $visitorUser->id, 'purpose' => 'Workshop UI/UX', 'participant_count' => 25, 'type' => 'new', 'status' => 'approved', 'submitted_at' => '2026-10-01 09:00:00']);
-        $booking->roomBookings()->firstOrCreate(['room_id' => $rooms['ADV1'], 'start_datetime' => '2026-10-07 13:00:00'], ['end_datetime' => '2026-10-07 15:00:00']);
-        $pending = Booking::firstOrCreate(['requester_name' => 'Sheila Utomo'], ['user_id' => $visitorUser->id, 'purpose' => 'Pelatihan organisasi mahasiswa', 'participant_count' => 30, 'type' => 'new', 'status' => 'pending', 'submitted_at' => '2026-10-02 09:00:00']);
-        $pending->roomBookings()->firstOrCreate(['room_id' => $rooms['ADV2'], 'start_datetime' => '2026-10-08 13:00:00'], ['end_datetime' => '2026-10-08 15:00:00']);
-        $pending->approvals()->firstOrCreate(['level' => 1], ['status' => 'pending']);
+
+        $ganjilPeriod = Period::query()->updateOrCreate(
+            ['name' => 'Semester Ganjil 2026/2027'],
+            [
+                'semester' => 'odd',
+                'start_date' => '2026-09-14',
+                'end_date' => '2027-01-29',
+                'uts_start' => '2026-11-02',
+                'uts_end' => '2026-11-14',
+                'uas_start' => '2027-01-18',
+                'uas_end' => '2027-01-29',
+                'active' => true,
+            ],
+        );
+
+        $genapPeriod = Period::query()->updateOrCreate(
+            ['name' => 'Semester Genap 2026/2027'],
+            [
+                'semester' => 'even',
+                'start_date' => '2027-02-15',
+                'end_date' => '2027-06-12',
+                'uts_start' => '2027-04-05',
+                'uts_end' => '2027-04-10',
+                'uas_start' => '2027-05-31',
+                'uas_end' => '2027-06-05',
+                'active' => true,
+            ],
+        );
+
+        $rooms = Room::query()->pluck('id', 'code');
+        $courses = Course::query()->pluck('id', 'code');
+
+        foreach ([$ganjilPeriod, $genapPeriod] as $period) {
+            foreach ($scheduleData['sections'] as $sec) {
+                if (!isset($courses[$sec['course_code']], $rooms[$sec['room_code']])) {
+                    continue;
+                }
+
+                Section::query()->create([
+                    'period_id' => $period->id,
+                    'course_id' => $courses[$sec['course_code']],
+                    'room_id' => $rooms[$sec['room_code']],
+                    'lecturer_nik' => $sec['lecturer_nik'],
+                    'class_code' => $sec['class_code'],
+                    'day_of_week' => $sec['day_of_week'],
+                    'start_time' => $sec['start_time'],
+                    'end_time' => $sec['end_time'],
+                ]);
+            }
+        }
+
+        $bookingApproved = Booking::query()->firstOrCreate(
+            ['requester_name' => 'Valentino Hose'],
+            [
+                'user_id' => $visitorUser->id,
+                'purpose' => 'Workshop UI/UX Design System',
+                'participant_count' => 30,
+                'type' => 'new',
+                'status' => 'approved',
+                'submitted_at' => '2026-10-01 09:00:00',
+            ],
+        );
+
+        $bookingApproved->roomBookings()->firstOrCreate(
+            ['room_id' => $rooms['ADV1'], 'start_datetime' => '2026-10-07 13:00:00'],
+            ['end_datetime' => '2026-10-07 15:00:00'],
+        );
+
+        BookingApproval::query()->updateOrCreate(
+            ['booking_id' => $bookingApproved->id, 'level' => 1],
+            ['approver_id' => User::where('email', 'kaprodi@example.com')->value('id'), 'status' => 'approved', 'notes' => 'Disetujui Kaprodi', 'decided_at' => '2026-10-01 10:30:00'],
+        );
+
+        BookingApproval::query()->updateOrCreate(
+            ['booking_id' => $bookingApproved->id, 'level' => 2],
+            ['approver_id' => User::where('email', 'kalab@example.com')->value('id'), 'status' => 'approved', 'notes' => 'Disetujui Kalab', 'decided_at' => '2026-10-01 11:00:00'],
+        );
+
+        $bookingPending1 = Booking::query()->firstOrCreate(
+            ['requester_name' => 'Sheila Utomo'],
+            [
+                'user_id' => $studentUser->id,
+                'purpose' => 'Pelatihan Organisasi Mahasiswa',
+                'participant_count' => 25,
+                'type' => 'new',
+                'status' => 'pending',
+                'submitted_at' => '2026-10-02 08:30:00',
+            ],
+        );
+
+        $bookingPending1->roomBookings()->firstOrCreate(
+            ['room_id' => $rooms['ADV2'], 'start_datetime' => '2026-10-08 13:00:00'],
+            ['end_datetime' => '2026-10-08 15:00:00'],
+        );
+
+        BookingApproval::query()->updateOrCreate(
+            ['booking_id' => $bookingPending1->id, 'level' => 1],
+            ['status' => 'pending'],
+        );
+
+        $bookingPending2 = Booking::query()->firstOrCreate(
+            ['requester_name' => 'Budi Setiawan'],
+            [
+                'user_id' => $otherStudent->id,
+                'purpose' => 'Sesi Belajar Bersama Coding Club',
+                'participant_count' => 20,
+                'type' => 'new',
+                'status' => 'pending',
+                'submitted_at' => '2026-10-02 09:15:00',
+            ],
+        );
+
+        $bookingPending2->roomBookings()->firstOrCreate(
+            ['room_id' => $rooms['ADV2'], 'start_datetime' => '2026-10-08 13:00:00'],
+            ['end_datetime' => '2026-10-08 15:00:00'],
+        );
+
+        BookingApproval::query()->updateOrCreate(
+            ['booking_id' => $bookingPending2->id, 'level' => 1],
+            ['status' => 'pending'],
+        );
+
+        ActivityLog::query()->create([
+            'user_id' => $visitorUser->id,
+            'action' => 'CREATE_BOOKING',
+            'entity_type' => 'Booking',
+            'entity_id' => $bookingApproved->id,
+            'description' => 'Pengajuan peminjaman oleh Valentino Hose',
+        ]);
+
+        ActivityLog::query()->create([
+            'user_id' => User::where('email', 'kaprodi@example.com')->value('id'),
+            'action' => 'APPROVE_LEVEL_1',
+            'entity_type' => 'Booking',
+            'entity_id' => $bookingApproved->id,
+            'description' => 'Disetujui Kaprodi untuk pengajuan ID ' . $bookingApproved->id,
+        ]);
+
+        ActivityLog::query()->create([
+            'user_id' => User::where('email', 'kalab@example.com')->value('id'),
+            'action' => 'APPROVE_LEVEL_2',
+            'entity_type' => 'Booking',
+            'entity_id' => $bookingApproved->id,
+            'description' => 'Disetujui Kalab untuk pengajuan ID ' . $bookingApproved->id,
+        ]);
     }
 }

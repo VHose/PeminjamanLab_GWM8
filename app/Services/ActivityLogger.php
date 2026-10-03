@@ -6,9 +6,6 @@ use App\Models\ActivityLog;
 
 class ActivityLogger
 {
-    /**
-     * Record an auditable application action in one consistent place.
-     */
     public function log(
         ?int $userId,
         string $action,

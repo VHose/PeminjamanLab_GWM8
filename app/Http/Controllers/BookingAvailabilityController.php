@@ -12,8 +12,17 @@ class BookingAvailabilityController extends Controller
 {
     public function __invoke(Request $request, BookingService $service): JsonResponse
     {
-        $data = $request->validate(['room_id' => 'required|exists:room,id', 'date' => 'required|date']);
+        $data = $request->validate([
+            'room_id' => 'required|exists:room,id',
+            'date' => 'required|date',
+        ]);
 
-        return response()->json(['unavailable' => $service->unavailableRanges(Room::findOrFail($data['room_id'])->id, Carbon::parse($data['date']))]);
+        $roomId = (int) $data['room_id'];
+        $date = Carbon::parse($data['date']);
+
+        return response()->json([
+            'unavailable' => $service->unavailableRanges($roomId, $date)->values(),
+            'pending' => $service->pendingRanges($roomId, $date)->values(),
+        ]);
     }
 }
