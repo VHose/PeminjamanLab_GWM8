@@ -1,0 +1,67 @@
+# Laravel & Dependencies
+/vendor
+/node_modules
+/public/build
+/public/hot
+/public/storage
+
+# Environment & Credentials
+.env
+.env.backup
+.env.production
+.env.local
+.env.*.local
+.env.testing
+/auth.json
+*.key
+*.pem
+*.crt
+/storage/*.key
+
+# Caches, Logs, & Temporary Files
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+/storage/pail
+/storage/clockwork
+/storage/debugbar
+
+# Testing
+/.phpunit.cache
+.phpunit.result.cache
+
+# Databases & Local Dumps
+*.sqlite
+*.sqlite-journal
+*.sqlite3
+*.db
+*.sql
+*.sql.gz
+
+# IDEs & Code Editors
+/.fleet
+/.idea
+/.nova
+/.vscode
+/.zed
+.phpactor.json
+*.sublime-project
+*.sublime-workspace
+Homestead.json
+Homestead.yaml
+
+# Operating System Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+ehthumbs_vista.db
+Thumbs.db
+Thumbs.db:encryptable
+desktop.ini
+$RECYCLE.BIN/
