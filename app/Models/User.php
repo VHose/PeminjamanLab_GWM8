@@ -69,4 +69,14 @@ class User extends Authenticatable
     {
         return $this->hasMany(ActivityLog::class);
     }
+
+    public function hasRole(string ...$roles): bool
+    {
+        return in_array($this->role?->name, $roles, true);
+    }
+
+    public function isInternal(): bool
+    {
+        return ! $this->hasRole('Visitor');
+    }
 }

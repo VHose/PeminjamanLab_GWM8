@@ -1,21 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="row justify-content-center">
-        <div class="col-lg-9">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body p-4 p-md-5">
-                    <span class="badge text-bg-primary mb-3">Tahap persiapan</span>
-                    <h1 class="display-6 fw-bold">Sistem Peminjaman Ruangan / Lab</h1>
-                    <p class="lead text-secondary mb-4">
-                        Aplikasi untuk pengajuan peminjaman ruangan, pengelolaan jadwal kelas,
-                        dan approval melalui prodi.
-                    </p>
-                    <div class="alert alert-info mb-0" role="alert">
-                        Data master dan alur peminjaman akan tersedia bertahap sesuai kebutuhan yang telah divalidasi.
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+<div class="d-flex justify-content-between mb-4"><div><h1 class="h3">Jadwal GWM Lantai 8</h1><p class="text-secondary">{{ $date->translatedFormat('l, d F Y') }}</p></div>@auth<a class="btn btn-primary" href="{{ route('bookings.create') }}">Ajukan Peminjaman</a>@endauth</div>
+<form class="card card-body mb-4"><div class="row g-2"><div class="col-md-4"><label class="form-label">Minggu</label><select name="week" class="form-select">@for($i=1;$i<=16;$i++)<option value="{{ $i }}" @selected($week==$i)>Minggu {{ $i }}</option>@endfor</select></div><div class="col-md-4"><label class="form-label">Hari</label><select name="day" class="form-select">@foreach(['Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'] as $i=>$name)<option value="{{ $i+1 }}" @selected($day==$i+1)>{{ $name }}</option>@endforeach</select></div><div class="col-md-4 d-flex align-items-end"><button class="btn btn-outline-primary">Tampilkan</button></div></div></form>
+<div class="table-responsive"><table class="table table-bordered bg-white"><thead><tr><th>Jam</th>@foreach($rooms as $room)<th>{{ $room->name }}</th>@endforeach</tr></thead><tbody>@foreach(range(7,21) as $hour)<tr><th>{{ sprintf('%02d:00',$hour) }}</th>@foreach($rooms as $room)<td>@foreach($sections->where('room_id',$room->id)->filter(fn($s)=>substr($s->start_time,0,2)==sprintf('%02d',$hour)) as $section)<div class="p-2 small" style="background:{{ $section->course->studyProgram->color_hex }}">{{ $section->course->name }}@if(auth()->user()?->isInternal())<br>{{ $section->lecturer?->name ?? $section->presenter_name }}@endif</div>@endforeach @foreach($bookings->where('room_id',$room->id)->filter(fn($b)=>$b->start_datetime->format('H')==sprintf('%02d',$hour)) as $item)<div class="p-2 small mt-1" style="background:#BFE3F7">{{ $item->booking->status==='pending'?'Pending':'Peminjaman' }}</div>@endforeach</td>@endforeach</tr>@endforeach</tbody></table></div>
 @endsection

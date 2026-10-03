@@ -11,10 +11,13 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
         <div class="container">
             <a class="navbar-brand fw-semibold" href="{{ route('home') }}">Peminjaman Ruangan Lab</a>
+            <div class="ms-auto d-flex gap-2 align-items-center text-white small">@auth <a class="text-white" href="{{ route('bookings.index') }}">Peminjaman</a>@if(auth()->user()->isInternal())<a class="text-white" href="{{ route('sections.index') }}">Jadwal</a><a class="text-white" href="{{ route('master.index','rooms') }}">Master</a>@endif @if(auth()->user()->hasRole('Kepala_Prodi','Kepala_Lab'))<a class="text-white" href="{{ route('approvals.index') }}">Approval</a>@endif <form method="post" action="{{ route('logout') }}">@csrf<button class="btn btn-sm btn-light">Keluar</button></form>@else <a class="btn btn-sm btn-light" href="{{ route('login') }}">Masuk</a>@endauth</div>
         </div>
     </nav>
 
     <main class="container py-5 flex-grow-1">
+        @if(session('success'))<div class="alert alert-success">{{ session('success') }}</div>@endif
+        @if($errors->any())<div class="alert alert-danger"><ul class="mb-0">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
         @yield('content')
     </main>
 
