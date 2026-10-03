@@ -9,7 +9,7 @@ class Section extends Model
 {
     protected $table = 'section';
 
-    protected $fillable = ['course_id', 'period_id', 'room_id', 'lecturer_nik', 'presenter_name', 'day_of_week', 'start_time', 'end_time'];
+    protected $fillable = ['course_id', 'period_id', 'room_id', 'lecturer_nik', 'presenter_name', 'class_code', 'class_type', 'day_of_week', 'start_time', 'end_time'];
 
     public function course(): BelongsTo
     {

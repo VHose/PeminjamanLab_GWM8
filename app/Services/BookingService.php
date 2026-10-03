@@ -32,4 +32,14 @@ class BookingService
 
         return $sections->map(fn ($s) => ['start' => substr($s->start_time, 0, 5), 'end' => substr($s->end_time, 0, 5)])->merge($bookings->map(fn ($b) => ['start' => $b->start_datetime->format('H:i'), 'end' => $b->end_datetime->format('H:i')]));
     }
+
+    public function pendingQueuePosition(BookingRoom $bookingRoom): int
+    {
+        return BookingRoom::query()
+            ->where('room_id', $bookingRoom->room_id)
+            ->where('start_datetime', '<', $bookingRoom->end_datetime)
+            ->where('end_datetime', '>', $bookingRoom->start_datetime)
+            ->whereHas('booking', fn ($query) => $query->where('status', 'pending')->where('submitted_at', '<=', $bookingRoom->booking->submitted_at))
+            ->count();
+    }
 }

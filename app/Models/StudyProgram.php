@@ -9,7 +9,12 @@ class StudyProgram extends Model
 {
     protected $table = 'study_program';
 
-    protected $fillable = ['code', 'name', 'color_hex'];
+    protected $fillable = ['code', 'name', 'color_hex', 'active'];
+
+    protected function casts(): array
+    {
+        return ['active' => 'boolean'];
+    }
 
     public function courses(): HasMany
     {

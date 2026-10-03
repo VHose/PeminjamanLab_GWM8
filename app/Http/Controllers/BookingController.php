@@ -22,14 +22,14 @@ class BookingController extends Controller
 
     public function create(): View
     {
-        return view('bookings.form', ['rooms' => Room::orderBy('name')->get(), 'booking' => null, 'changeFrom' => null]);
+        return view('bookings.form', ['rooms' => Room::where('active', true)->orderBy('code')->get(), 'booking' => null, 'changeFrom' => null]);
     }
 
     public function change(Booking $booking): View
     {
         abort_unless($booking->user_id === request()->user()->id && $booking->status === 'approved', 403);
 
-        return view('bookings.form', ['rooms' => Room::orderBy('name')->get(), 'booking' => null, 'changeFrom' => $booking]);
+        return view('bookings.form', ['rooms' => Room::where('active', true)->orderBy('code')->get(), 'booking' => null, 'changeFrom' => $booking]);
     }
 
     public function store(Request $request, BookingService $service, ActivityLogger $logger): RedirectResponse
@@ -43,9 +43,7 @@ class BookingController extends Controller
             }
         }
         DB::transaction(function () use ($data, $request, $logger) {
-            $starts = collect($data['slots'])->map(fn ($s) => Carbon::parse("{$s['date']} {$s['start']}"));
-            $ends = collect($data['slots'])->map(fn ($s) => Carbon::parse("{$s['date']} {$s['end']}"));
-            $booking = Booking::query()->create(collect($data)->except('slots')->merge(['user_id' => $request->user()->id, 'status' => 'pending', 'start_datetime' => $starts->min(), 'end_datetime' => $ends->max()])->all());
+            $booking = Booking::query()->create(collect($data)->except('slots')->merge(['user_id' => $request->user()->id, 'status' => 'pending'])->all());
             foreach ($data['slots'] as $slot) {
                 $booking->roomBookings()->create(['room_id' => $slot['room_id'], 'start_datetime' => Carbon::parse("{$slot['date']} {$slot['start']}"), 'end_datetime' => Carbon::parse("{$slot['date']} {$slot['end']}")]);
             } $booking->approvals()->create(['level' => $booking->type === 'change' ? 2 : 1]);
@@ -57,7 +55,7 @@ class BookingController extends Controller
 
     public function staffCreate(): View
     {
-        return view('bookings.staff-form', ['rooms' => Room::orderBy('name')->get()]);
+        return view('bookings.staff-form', ['rooms' => Room::where('active', true)->orderBy('code')->get()]);
     }
 
     public function staffStore(Request $request, BookingService $service, ActivityLogger $logger): RedirectResponse
@@ -74,7 +72,8 @@ class BookingController extends Controller
 
     public function cancel(Request $request, Booking $booking, ActivityLogger $logger): RedirectResponse
     {
-        abort_unless($booking->user_id === $request->user()->id && $booking->status === 'approved' && now()->lt($booking->start_datetime->copy()->subDays(2)), 403);
+        $firstStart = $booking->roomBookings()->min('start_datetime');
+        abort_unless($booking->user_id === $request->user()->id && $booking->status === 'approved' && $firstStart && now()->lt(Carbon::parse($firstStart)->subDays(2)), 403);
         $booking->update(['status' => 'cancelled']);
         $logger->log($request->user()->id, 'cancel', 'booking', $booking->id);
 

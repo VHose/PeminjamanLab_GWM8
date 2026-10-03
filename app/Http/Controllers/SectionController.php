@@ -31,7 +31,7 @@ class SectionController extends Controller
 
     private function form(?Section $section = null): View
     {
-        return view('sections.form', compact('section') + ['courses' => Course::with('studyProgram')->get(), 'rooms' => Room::all(), 'periods' => Period::all(), 'lecturers' => Lecturer::all()]);
+        return view('sections.form', compact('section') + ['courses' => Course::where('active', true)->with('studyProgram')->get(), 'rooms' => Room::where('active', true)->orderBy('code')->get(), 'periods' => Period::where('active', true)->get(), 'lecturers' => Lecturer::where('active', true)->get()]);
     }
 
     public function store(Request $request, ActivityLogger $logger): RedirectResponse
@@ -60,7 +60,7 @@ class SectionController extends Controller
 
     private function data(Request $request): array
     {
-        $data = $request->validate(['course_id' => 'required|exists:course,id', 'period_id' => 'required|exists:period,id', 'room_id' => 'required|exists:room,id', 'lecturer_nik' => 'nullable|exists:lecturer,nik', 'presenter_name' => 'nullable|string|max:255', 'day_of_week' => 'required|integer|between:1,6', 'start_time' => 'required|date_format:H:i', 'end_time' => 'required|date_format:H:i|after:start_time']);
+        $data = $request->validate(['course_id' => 'required|exists:course,id', 'period_id' => 'required|exists:period,id', 'room_id' => 'required|exists:room,id', 'lecturer_nik' => 'nullable|exists:lecturer,nik', 'presenter_name' => 'nullable|string|max:255|required_without:lecturer_nik', 'class_code' => 'nullable|string|max:255', 'class_type' => 'nullable|string|max:255', 'day_of_week' => 'required|integer|between:1,6', 'start_time' => 'required|date_format:H:i', 'end_time' => 'required|date_format:H:i|after:start_time']);
         if ($data['lecturer_nik'] ?? null) {
             $data['presenter_name'] = null;
         }

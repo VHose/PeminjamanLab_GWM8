@@ -15,7 +15,12 @@ class Lecturer extends Model
 
     protected $keyType = 'string';
 
-    protected $fillable = ['nik', 'name'];
+    protected $fillable = ['nik', 'lecturer_code', 'name', 'email', 'phone', 'active'];
+
+    protected function casts(): array
+    {
+        return ['active' => 'boolean'];
+    }
 
     public function sections(): HasMany
     {

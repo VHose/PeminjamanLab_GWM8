@@ -10,7 +10,12 @@ class Course extends Model
 {
     protected $table = 'course';
 
-    protected $fillable = ['study_program_id', 'code', 'name'];
+    protected $fillable = ['study_program_id', 'code', 'name', 'active'];
+
+    protected function casts(): array
+    {
+        return ['active' => 'boolean'];
+    }
 
     public function studyProgram(): BelongsTo
     {

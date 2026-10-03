@@ -15,11 +15,11 @@ use Illuminate\View\View;
 class MasterController extends Controller
 {
     private const CONFIG = [
-        'study-programs' => ['model' => StudyProgram::class, 'label' => 'Program Studi', 'fields' => ['code' => 'Kode', 'name' => 'Nama', 'color_hex' => 'Warna Hex'], 'rules' => ['code' => 'required|max:10|unique:study_program,code', 'name' => 'required|max:255', 'color_hex' => 'required|regex:/^#[0-9A-Fa-f]{6}$/']],
-        'lecturers' => ['model' => Lecturer::class, 'label' => 'Dosen', 'fields' => ['nik' => 'NIK', 'name' => 'Nama'], 'rules' => ['nik' => 'required|max:30|unique:lecturer,nik', 'name' => 'required|max:255']],
-        'rooms' => ['model' => Room::class, 'label' => 'Ruangan', 'fields' => ['name' => 'Nama', 'capacity' => 'Kapasitas', 'description' => 'Deskripsi'], 'rules' => ['name' => 'required|max:255|unique:room,name', 'capacity' => 'required|integer|min:1', 'description' => 'nullable']],
-        'courses' => ['model' => Course::class, 'label' => 'Mata Kuliah', 'fields' => ['study_program_id' => 'Program Studi', 'code' => 'Kode', 'name' => 'Nama'], 'rules' => ['study_program_id' => 'required|exists:study_program,id', 'code' => 'required|max:30|unique:course,code', 'name' => 'required|max:255']],
-        'periods' => ['model' => Period::class, 'label' => 'Periode', 'fields' => ['name' => 'Nama', 'semester' => 'Semester', 'start_date' => 'Mulai', 'end_date' => 'Selesai', 'uts_start' => 'UTS Mulai', 'uts_end' => 'UTS Selesai', 'uas_start' => 'UAS Mulai', 'uas_end' => 'UAS Selesai'], 'rules' => ['name' => 'required|max:255', 'semester' => 'required|in:odd,even', 'start_date' => 'required|date', 'end_date' => 'required|date|after_or_equal:start_date', 'uts_start' => 'nullable|date', 'uts_end' => 'nullable|date|after_or_equal:uts_start', 'uas_start' => 'nullable|date', 'uas_end' => 'nullable|date|after_or_equal:uas_start']],
+        'study-programs' => ['model' => StudyProgram::class, 'label' => 'Program Studi', 'fields' => ['code' => 'Kode', 'name' => 'Nama', 'color_hex' => 'Warna', 'active' => 'Aktif'], 'rules' => ['code' => 'required|max:10|unique:study_program,code', 'name' => 'required|max:255', 'color_hex' => 'required|regex:/^#[0-9A-Fa-f]{6}$/', 'active' => 'boolean']],
+        'lecturers' => ['model' => Lecturer::class, 'label' => 'Dosen', 'fields' => ['nik' => 'NIK', 'lecturer_code' => 'Kode Dosen', 'name' => 'Nama', 'email' => 'Email', 'phone' => 'Telepon', 'active' => 'Aktif'], 'rules' => ['nik' => 'required|max:30|unique:lecturer,nik', 'lecturer_code' => 'nullable|max:255|unique:lecturer,lecturer_code', 'name' => 'required|max:255', 'email' => 'nullable|email', 'phone' => 'nullable|max:30', 'active' => 'boolean']],
+        'rooms' => ['model' => Room::class, 'label' => 'Ruangan', 'fields' => ['code' => 'Kode', 'name' => 'Nama', 'capacity' => 'Kapasitas', 'description' => 'Deskripsi', 'active' => 'Aktif'], 'rules' => ['code' => 'required|max:20|unique:room,code', 'name' => 'nullable|max:100', 'capacity' => 'nullable|integer|min:1', 'description' => 'nullable', 'active' => 'boolean']],
+        'courses' => ['model' => Course::class, 'label' => 'Mata Kuliah', 'fields' => ['study_program_id' => 'Program Studi', 'code' => 'Kode', 'name' => 'Nama', 'active' => 'Aktif'], 'rules' => ['study_program_id' => 'required|exists:study_program,id', 'code' => 'required|max:30|unique:course,code', 'name' => 'required|max:255', 'active' => 'boolean']],
+        'periods' => ['model' => Period::class, 'label' => 'Periode', 'fields' => ['name' => 'Nama', 'semester' => 'Semester', 'start_date' => 'Mulai', 'end_date' => 'Selesai', 'uts_start' => 'UTS Mulai', 'uts_end' => 'UTS Selesai', 'uas_start' => 'UAS Mulai', 'uas_end' => 'UAS Selesai', 'active' => 'Aktif'], 'rules' => ['name' => 'required|max:255', 'semester' => 'required|in:odd,even', 'start_date' => 'required|date', 'end_date' => 'required|date|after:start_date', 'uts_start' => 'nullable|date', 'uts_end' => 'nullable|date|after:uts_start', 'uas_start' => 'nullable|date', 'uas_end' => 'nullable|date|after:uas_start', 'active' => 'boolean']],
     ];
 
     public function index(string $type): View
@@ -55,7 +55,11 @@ class MasterController extends Controller
         $config = $this->config($type);
         $record = $config['model']::query()->findOrFail($id);
         $rules = collect($config['rules'])->map(fn ($rule, $field) => str_replace(",{$config['model']::query()->getModel()->getTable()},{$field}", ",{$config['model']::query()->getModel()->getTable()},{$field},{$record->getKey()}", $rule))->all();
-        $record->update($request->validate($rules));
+        $data = $request->validate($rules);
+        if (in_array($type, ['lecturers', 'rooms'], true)) {
+            unset($data[$type === 'lecturers' ? 'nik' : 'code']);
+        }
+        $record->update($data);
         $logger->log($request->user()->id, 'update', $record->getTable(), $record->getKey());
 
         return redirect()->route('master.index', $type)->with('success', 'Data berhasil diperbarui.');
