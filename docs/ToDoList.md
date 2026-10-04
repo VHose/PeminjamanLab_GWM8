@@ -1,80 +1,135 @@
-# To‑Do List – Project Peminjaman Lab GWM Lantai 8
+# To‑Do List – Project Peminjaman Lab GWM Lantai 8
 
-## 1️⃣ Otentikasi & Manajemen Pengguna
+---
 
-| No. | Use‑Case | Langkah (User → Sistem) | Verifikasi |
-|-----|----------|------------------------|------------|
-| 1 | Registrasi | Visitor → **Register** (nama, email, password) → Sistem **buat akun** & kirim email konfirmasi | `users` dibuat, password di‑hash |
-| 2 | Login | Visitor / Staff / Kaprodi / Kalab → **Login** (email, password) → Sistem **otentikasi** & beri **role** | `Auth::attempt` berhasil, sesi tersimpan |
-| 3 | Logout | Pengguna yang sudah login → **Logout** → Sistem **destroy session** | Redirect ke halaman login |
-| 4 | Reset Password | Pengguna → **Forgot Password** → Sistem kirim link reset → Pengguna set password baru | Email terkirim, token valid |
-| 5 | Pengaturan Role | Admin → **Assign Role** (Visitor, Staff‑Lab, Kaprodi, Kalab) → Sistem **simpan role** pada tabel `role_user` | Role tersedia di `User::hasRole()` |
+## Ringkasan Role & Hak Akses
 
-## 2️⃣ Master Data (Administrasi)
+| Role | Hak Akses |
+|------|-----------|
+| **Visitor** | Daftar sendiri. Lihat jadwal (hanya nama mata kuliah, tanpa nama dosen). Ajukan peminjaman. Batalkan peminjaman milik sendiri (maks H‑2). |
+| **Staf_Lab** | Semua yang bisa Visitor + CRUD jadwal (section) + input booking atas nama dosen (langsung disetujui, tanpa antrian approval). Tidak bisa approve pengajuan dari Visitor. |
+| **Kepala_Prodi** | Semua yang bisa Staf_Lab + menjadi **approval pertama** untuk pengajuan peminjaman baru dari Visitor. |
+| **Kepala_Lab** | Semua yang bisa Staf_Lab + menjadi **approval kedua** (setelah Kaprodi setuju) + import jadwal dari Excel. |
 
-| No. | Use‑Case | Langkah | Verifikasi |
-|-----|----------|---------|------------|
-| 6 | Kelola Ruangan | Admin → **Master → Ruangan** → **Create / Edit / Delete** (kode, nama, kapasitas, aktif) → Simpan ke tabel `room` | `room` ter‑update, dropdown ruangan menampilkan |
-| 7 | Kelola Mata Kuliah | Admin → **Master → Mata Kuliah** → **Create / Edit / Delete** (kode, nama, prodi, aktif) → Simpan ke tabel `course` | `course` ter‑update, tersedia di form booking |
-| 8 | Kelola Dosen / Lecturer | Admin → **Master → Dosen** → **Create / Edit / Delete** (NIK, nama, gelar) → Simpan ke tabel `lecturer` | `lecturer` ter‑update, dapat dipilih di form |
-| 9 | Kelola Program Studi | Admin → **Master → Prodi** → **Create / Edit / Delete** (kode, nama, warna) → Simpan ke tabel `study_program` | Warna dipakai pada kalender |
-| 10 | Kelola Periode Akademik | Admin → **Master → Periode** → **Create / Edit** (nama, semester, start_date, end_date, uts_start‑uts_end, uas_start‑uas_end, aktif) → Simpan ke tabel `period` | Periode aktif dipilih di landing page, rentang UTS/UAS tercatat |
-| 11 | Kelola Jadwal Reguler (Section) | Admin → **Section → Create / Edit / Delete** (periode, hari, ruangan, jam, mata kuliah, dosen, tipe `regular`/`exam`) → Simpan ke tabel `section` | Section muncul di kalender kecuali minggu UTS/UAS (kosong) |
+---
 
-## 3️⃣ Calendar & Landing Page
+## 1️⃣ Otentikasi
 
-| No. | Use‑Case | Langkah | Verifikasi |
-|-----|----------|---------|------------|
-| 12 | Pilih Periode | Visitor → Dropdown **Periode** → Sistem **filter** data ke periode yang dipilih | URL `?period_id=` menampilkan data yang tepat |
-| 13 | Pilih Minggu Pertemuan | Visitor → Dropdown **Minggu** → Sistem **hitung** tanggal mulai & akhir minggu (Sen‑Sab) | Label `Minggu X dd‑dd Month YYYY` muncul |
-| 14 | Pilih Hari | Visitor → Dropdown **Hari** (Sen‑Sab) → Sistem **tampilkan** jadwal hari terpilih | Grid menampilkan slot 07:00‑22:00 |
-| 15 | Pilih Laboratorium | Visitor → Dropdown **Lab** (atau “Semua Lab”) → Sistem **filter** ruangan | Hanya ruangan yang dipilih yang muncul |
-| 16 | Tampilkan Section (Reguler) | Sistem → **Query** `section` (tipe `regular`) untuk hari & minggu terpilih **kecuali** minggu UTS/UAS → Render di kalender (warna prodi) | Pada minggu UTS/UAS tidak ada section reguler (kosong) |
-| 17 | Tampilkan Booking (Pending / Approved) | Sistem → **Query** `booking_room` dengan status `pending` / `approved` → Render blok berwarna (pending = orange, approved = light‑blue) | Klik blok → detail booking |
-| 18 | Indikator UTS/UAS | Jika minggu berada dalam rentang `uts_start‑uts_end` atau `uas_start‑uas_end` → **Tampilkan banner** "Minggu yang dipilih berada pada rentang UTS/UAS dan jadwal ujian belum tersedia" | Banner muncul & tidak menampilkan section reguler |
-| 19 | Tooltip & Queue Position | Pada slot pending → hitung posisi antrian (`pendingQueuePosition`) → tampilkan “Pending (N)” | Nilai N berubah sesuai urutan submission |
-| 20 | Responsive Bootstrap Layout | Semua elemen (dropdown, grid kalender, tabel) memakai **Bootstrap 5** → UI tetap rapi di desktop & mobile | Inspeksi di Chrome DevTools |
+| No. | Use‑Case | Siapa | Langkah | Verifikasi |
+|-----|----------|-------|---------|------------|
+| 1 | Registrasi | Visitor | Visitor → **Register** (nama, email, password) → Sistem buat akun → role otomatis `Visitor` | `users` dibuat, password di‑hash, role = Visitor |
+| 2 | Login | Semua role | Siapapun → **Login** (email, password) → Sistem otentikasi & kenali role → Redirect ke dashboard masing‑masing | Sesi tersimpan, middleware role aktif |
+| 3 | Logout | Semua role | Pengguna → **Logout** → Sistem destroy session | Redirect ke halaman login |
+| 4 | Reset Password 🟡 | Semua role | **Belum aktif** — belum ada konfigurasi SMTP di `.env`. Fitur placeholder sudah ada tapi email tidak terkirim sampai `MAIL_MAILER`, `MAIL_HOST`, `MAIL_USERNAME`, `MAIL_PASSWORD` diisi | Isi `.env` bagian mail terlebih dahulu |
 
-## 4️⃣ Booking (Peminjaman)
+---
+
+## 2️⃣ Use‑Case per Role
+
+### 👤 Visitor
 
 | No. | Use‑Case | Langkah | Verifikasi |
 |-----|----------|---------|------------|
-| 21 | Booking Baru (Visitor) | Visitor → **Create Booking** → isi (nama, keperluan, peserta, slot (room, tanggal, start‑end)) → Sistem **validasi** (kapasitas, format waktu, tidak bentrok, bukan periode UTS/UAS tanpa schedule) → Simpan `booking` status `pending` + `booking_room` → Buat approval level 1 (Kaprodi) | `booking.status = pending`, approval record dibuat |
-| 22 | Booking Baru (Staff‑Lab) | Staff → **Staff‑Create** → form serupa, **auto‑approve** (status `approved`) + level 2 (Kalab) otomatis dibuat | `booking.status = approved` langsung, tidak masuk antrian |
-| 23 | Booking Perubahan (Change) | Pemilik booking (status approved) → **Change** → pilih slot baru → Sistem **validasi** seperti booking baru → Buat record `booking` baru dengan `type = change`, `parent_booking_id` → Approval level 2 (Kalab) langsung (skip Kaprodi) | `parent_booking` tetap `approved`, `change` pending pada Kalab |
-| 24 | Validasi Bentrok Slot | Saat `store`, layanan `BookingService::validateSlotCollisions` memeriksa **overlap** pada ruangan & tanggal yang sama → Jika ada → `ValidationException` (error "Terdapat ruangan dan waktu yang saling bertabrakan") | Test `test_intra_request_collisions` lulus |
-| 25 | Pembulatan Waktu | Input menit → **Rule 4.2**: 00‑14 → :00, 15‑44 → :30, 45‑59 → next hour :00 → Sistem **konversi** sebelum simpan | Tampilan time‑slot 30‑menit konsisten |
-| 26 | Pembatasan Booking di UTS/UAS | `BookingService::isExamPeriodWithoutSchedule` mengembalikan **false** bila tidak ada `section` tipe `exam` pada hari tersebut → `store` menolak dengan error "Salah satu ruangan atau waktu sudah terisi jadwal atau belum dapat dipinjam pada periode ujian." | Test `test_booking_during_exam_period_without_schedule_is_rejected` lulus |
-| 27 | Pencarian Slot Tersedia | Pada form, dropdown jam menampilkan **timeSlots()** (07:00‑22:00 tiap 30 menit) → hanya menampilkan jam yang **tersedia** (tidak ada booking `approved` & tidak konflik dengan `section`) | UI menonaktifkan jam yang tidak boleh dipilih |
-| 28 | Cancel Booking (Visitor) | Visitor (pemilik) → **Cancel** pada booking status `approved` → Sistem cek **deadline** (`now() < start_datetime - 2 days`) → Update `booking.status = cancelled` → Slot kembali tersedia | Test `test_visitor_can_cancel_approved_booking_before_h2` lulus |
-| 29 | Auto‑Reject Pending (Cron) | Command `bookings:auto-reject` dijalankan tiap menit → **Cancel** semua booking `pending` yang **melebihi batas 2 hari** → Buat log activity "auto‑reject" | Test `test_auto_reject_command_and_queue_filtering` lulus |
+| 5 | Lihat jadwal | Visitor → Buka landing page → Pilih Periode, Minggu, Hari, Lab → Lihat grid kalender → Slot terisi hanya tampil **nama mata kuliah** (tanpa nama dosen, tanpa kode kelas) | Grid terbuka, dosen tidak tampil |
+| 6 | Ajukan peminjaman baru | Visitor → **Booking → Create** → isi nama peminjam, keperluan, jumlah peserta, pilih ruangan + tanggal + jam → Submit → Sistem validasi → Booking masuk status `pending` → Antri ke Kaprodi (approval level 1) | `booking.status = pending`, approval level 1 dibuat |
+| 7 | Lihat status peminjaman | Visitor → **Booking → Index** → Lihat daftar peminjaman milik sendiri beserta status (pending / approved / rejected / cancelled) | Hanya booking milik sendiri yang tampil |
+| 8 | Lihat detail peminjaman | Visitor → **Booking → Show** → Lihat detail slot, status approval, catatan penolakan (jika ada) | Detail tampil lengkap |
+| 9 | Ajukan perubahan peminjaman | Visitor (pemilik booking `approved`) → **Booking → Change** → pilih slot baru + isi alasan → Submit → Sistem buat booking baru `type = change` → Langsung antri ke Kalab (skip Kaprodi) | `parent_booking` tetap `approved`, booking baru `pending` di Kalab |
+| 10 | Batalkan peminjaman | Visitor (pemilik booking `approved`) → **Booking → Cancel** → Sistem cek deadline (minimal H‑2) → Booking menjadi `cancelled` → Slot kembali tersedia | Tidak bisa batal kalau H‑1 atau hari H |
 
-## 5️⃣ Approvals (Persetujuan)
+---
+
+### 🧑‍💼 Staf_Lab
 
 | No. | Use‑Case | Langkah | Verifikasi |
 |-----|----------|---------|------------|
-| 30 | Daftar Approval (Kaprodi) | Kaprodi → **Approvals → Index** → Sistem **query** approval level 1 yang `pending` → Tampilkan list (booking, ruangan, peminjam) | UI menampilkan tabel pending |
-| 31 | Daftar Approval (Kalab) | Kalab → **Approvals → Index** → Sistem **query** approval level 2 yang `pending` → Tampilkan list | UI menampilkan tabel pending |
-| 32 | Keputusan Approve | Kaprodi / Kalab → **Decide** → pilih `status = approved` → Sistem **update** approval (`status`, `decided_at`, `approver_id`) → Jika Kaprodi → *Buat approval level 2* (`pending`) → Jika Kalab (atau level 2) → **Booking status → approved** (atau `rejected` bila ada catatan) | Test `change booking approval goes directly to kalab` lulus |
-| 33 | Keputusan Reject | Kaprodi / Kalab → **Decide** → pilih `status = rejected` + `notes` wajib → Sistem **update** booking menjadi `rejected` → Buat entry `activity_log` | Test `rejection requires notes and sets status to rejected` lulus |
-| 34 | Activity Log | Setiap aksi (create, approve, reject, cancel, auto‑reject) → Service `ActivityLogger::log` menyimpan ke tabel `activity_log` (user_id, action, model, model_id, description) → UI **Logs → Index** menampilkan histori | Log dapat dilihat di `/logs` |
+| 11 | Semua use‑case Visitor | Sama seperti Visitor (no. 5‑10) | — |
+| 12 | Lihat jadwal lengkap | Staf_Lab → Buka kalender → Slot jadwal tampil **nama dosen + kode kelas** (informasi lengkap) | Nama dosen & kode kelas muncul |
+| 13 | Input booking atas nama dosen | Staf_Lab → **Booking → Staff‑Create** → isi nama dosen, keperluan, slot → Submit → Booking langsung **auto-approved** tanpa melalui antrian approval | `booking.status = approved` langsung |
+| 14 | Tambah jadwal (Section) | Staf_Lab → **Section → Create** → isi periode, hari, ruangan, jam, mata kuliah, dosen, tipe (`regular`/`exam`) → Simpan | Section muncul di kalender sesuai hari & periode |
+| 15 | Edit jadwal (Section) | Staf_Lab → **Section → Edit** → ubah data → Simpan | Data section ter‑update |
+| 16 | Hapus jadwal (Section) | Staf_Lab → **Section → Delete** → konfirmasi → Sistem hapus record | Section hilang dari kalender |
+| 17 | Kelola data master (Ruangan, Mata Kuliah, Dosen, Prodi, Periode) | Staf_Lab → **Master** → pilih tab → Create / Edit / Delete data | Data master ter‑update, tersedia di form & kalender |
+
+---
+
+### 🧑‍🏫 Kepala_Prodi
+
+| No. | Use‑Case | Langkah | Verifikasi |
+|-----|----------|---------|------------|
+| 18 | Semua use‑case Staf_Lab | Sama seperti Staf_Lab (no. 11‑17) | — |
+| 19 | Lihat daftar pengajuan (approval pertama) | Kaprodi → **Approvals → Index** → Lihat semua booking `pending` yang menunggu approval level 1 | Hanya pengajuan baru (bukan change) yang tampil |
+| 20 | Setujui pengajuan | Kaprodi → **Decide → Approved** → Sistem tandai approval level 1 selesai → Otomatis buat approval level 2 (Kalab) → Booking masih `pending` menunggu Kalab | Approval level 2 dibuat, booking belum approved |
+| 21 | Tolak pengajuan | Kaprodi → **Decide → Rejected** + isi alasan → Sistem update booking menjadi `rejected` → Log aktivitas tercatat | Booking `rejected`, alasan tersimpan di notes |
+| 22 | Lihat riwayat keputusan | Kaprodi → **Approvals → Index** → Lihat 10 keputusan terakhir (approved / rejected) beserta timestamp | Riwayat tampil di bawah tabel pending |
+
+---
+
+### 🧑‍💻 Kepala_Lab
+
+| No. | Use‑Case | Langkah | Verifikasi |
+|-----|----------|---------|------------|
+| 23 | Semua use‑case Staf_Lab | Sama seperti Staf_Lab (no. 11‑17) | — |
+| 24 | Lihat daftar pengajuan (approval kedua) | Kalab → **Approvals → Index** → Lihat booking yang sudah disetujui Kaprodi & menunggu approval level 2 + booking `change` langsung | Hanya muncul kalau Kaprodi sudah approve (atau booking type = change) |
+| 25 | Setujui pengajuan | Kalab → **Decide → Approved** → Booking menjadi `approved` → Muncul di kalender sebagai blok biru | `booking.status = approved`, tampil di grid kalender |
+| 26 | Setujui perubahan (change) | Kalab → **Decide → Approved** (untuk booking type `change`) → Booking lama (`parent`) otomatis `cancelled` → Booking baru menjadi `approved` | Parent booking `cancelled`, change booking `approved` |
+| 27 | Tolak pengajuan | Kalab → **Decide → Rejected** + isi alasan → Booking `rejected` → Log aktivitas tercatat | Booking `rejected`, alasan tersimpan |
+| 28 | Import jadwal dari Excel 🟡 | Kalab → **Import Excel** → Upload file → Sistem parse & seed data ke tabel `section` | Placeholder – belum diaktifkan |
+| 29 | Lihat riwayat keputusan | Kalab → **Approvals → Index** → Lihat 10 keputusan terakhir | Riwayat tampil |
+
+---
+
+## 3️⃣ Fitur Kalender & Landing Page
+
+| No. | Use‑Case | Siapa | Langkah | Verifikasi |
+|-----|----------|-------|---------|------------|
+| 30 | Pilih Periode | Semua | Dropdown **Periode** → Sistem filter semua data ke periode yang dipilih | URL `?period_id=` menampilkan data yang tepat |
+| 31 | Pilih Minggu Pertemuan | Semua | Dropdown **Minggu** → Sistem hitung tanggal Senin s.d. Sabtu minggu terpilih | Label format `Minggu X dd‑dd Month YYYY` muncul |
+| 32 | Pilih Hari | Semua | Dropdown **Hari** (Sen‑Sab) → Grid tampilkan jadwal hari terpilih | Grid slot 07:00‑22:00 |
+| 33 | Pilih Laboratorium | Semua | Dropdown **Lab** (atau "Semua Lab") → Filter ruangan yang ditampilkan | Hanya ruangan yang dipilih muncul |
+| 34 | Tampilan berbeda per role | Visitor / Internal | Visitor: hanya nama mata kuliah di slot. Staf_Lab / Kaprodi / Kalab: nama dosen + kode kelas | Cek tampilan login sebagai Visitor vs Staf |
+| 35 | Indikator UTS/UAS | Semua | Jika minggu terpilih masuk rentang UTS/UAS → Banner peringatan muncul → Grid kosong (jadwal reguler tidak ditampilkan) | Banner tampil, slot kosong |
+| 36 | Antrian pending | Semua internal | Slot pending tampil sebagai blok oranye dengan teks "Pending (N)" sesuai urutan antrian | N berubah sesuai urutan submit |
+
+---
+
+## 4️⃣ Validasi & Logika Sistem
+
+| No. | Use‑Case | Langkah | Verifikasi |
+|-----|----------|---------|------------|
+| 37 | Validasi bentrok slot | Sistem → Cek `BookingService::validateSlotCollisions` → Jika dua slot di request yang sama tumpang tindih → Error "Terdapat ruangan dan waktu yang saling bertabrakan" | Test `test_intra_request_collisions` lulus |
+| 38 | Validasi UTS/UAS | Sistem → `isExamPeriodWithoutSchedule` → Jika tidak ada section `exam` di hari itu → Tolak booking dengan error | Test `test_booking_during_exam_period_without_schedule_is_rejected` lulus |
+| 39 | Auto‑reject pending | Command `bookings:auto-reject` → Jalankan tiap hari → Cancel semua booking `pending` yang batas waktunya melebihi H‑2 → Buat log "auto‑reject" | Test `test_auto_reject_command_and_queue_filtering` lulus |
+| 40 | Pembulatan waktu | Input menit 00‑14 → :00, 15‑44 → :30, 45‑59 → jam berikutnya :00 | Time‑slot 30 menit konsisten |
+| 41 | Batal hanya sampai H‑2 | Sistem → Cek `now() < start_datetime - 2 days` → Jika sudah H‑1 atau hari H → Tolak cancel (403) | Test `test_visitor_can_cancel_approved_booking_before_h2` lulus |
+
+---
+
+## 5️⃣ Activity Log
+
+| No. | Use‑Case | Siapa | Langkah | Verifikasi |
+|-----|----------|-------|---------|------------|
+| 42 | Lihat riwayat aktivitas | Staf_Lab / Kaprodi / Kalab | **Logs → Index** → Lihat semua riwayat aksi (create, approve, reject, cancel, auto‑reject) beserta timestamp & pelaku | Halaman `/logs` menampilkan tabel aktivitas |
+| 43 | Log otomatis | Sistem | Setiap aksi (booking, approval, cancel) → `ActivityLogger::log` simpan ke tabel `activity_log` | Record baru muncul setiap ada aksi |
+
+---
 
 ## 6️⃣ Lain‑Lain
 
 | No. | Use‑Case | Langkah | Verifikasi |
 |-----|----------|---------|------------|
-| 35 | Export / Import Excel *(rencana fase selanjutnya)* | Admin → **Import Jadwal** → Upload file Excel → Service meng‑parse & **seed** `section` | Placeholder – belum di‑aktifkan |
-| 36 | Responsive Design | Semua view pakai **Bootstrap 5** + **grid system** → Pastikan tampilan pada smartphone, tablet, desktop | Manual UI test |
-| 37 | Error / Flash Messages | Setiap validasi / aksi berhasil atau gagal → Laravel `session()->flash('success|error')` → Ditampilkan di atas layout | UI menampilkan pesan sesuai aksi |
-| 38 | Security | Middleware `auth`, `role:Kaprodi|Kalab|Staff|Visitor` pada route masing‑masing → CSRF token pada semua form | Penetration test dasar |
-| 39 | Testing Coverage | Unit & Feature tests (55 assertions) mencakup semua skenario di atas → `php artisan test` **PASS** | Semua test lulus |
+| 44 | Responsive Design | Semua view pakai Bootstrap 5 → Tampilan rapi di desktop & mobile | Inspeksi Chrome DevTools (mobile view) |
+| 45 | Flash Messages | Setiap aksi berhasil atau gagal → Pesan flash tampil di atas halaman | Pesan `success` / `error` muncul |
+| 46 | Security & Middleware | Route dilindungi middleware `auth` + role check → CSRF token di semua form | Coba akses route tanpa login → redirect ke login |
+| 47 | Testing Coverage | 12 feature & unit test dengan 55 assertions → `php artisan test` PASS | Semua test hijau |
 
 ---
 
 **Cara Menggunakan**
-1. Centang nomor ketika fitur sudah ada & ter‑verifikasi di aplikasi.
-2. Lampirkan bukti UI (screenshot) atau log unit test pada tiap item.
-3. Item ber‑status **🟡** menandakan fitur masih dalam rencana (mis. Excel import).
-4. Pastikan semua notifikasi & validasi muncul sesuai kolom *Verifikasi*.
-
-Semua fitur di atas sudah **di‑implementasi**, **tes lulus**, dan **tidak ada komentar** di dalam kode.
+1. Centang nomor ketika fitur sudah ter‑verifikasi di aplikasi.
+2. Item 🟡 = fitur belum aktif / masih rencana.
+3. Uji setiap role secara bergantian menggunakan akun berikut (password: `password`):
+   - `visitor@example.com` → Visitor
+   - `staf.lab@example.com` → Staf_Lab
+   - `kaprodi@example.com` → Kepala_Prodi
+   - `kalab@example.com` → Kepala_Lab
