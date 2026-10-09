@@ -9,7 +9,16 @@ class Period extends Model
 {
     protected $table = 'period';
 
-    protected $fillable = ['name', 'semester', 'start_date', 'end_date', 'uts_start', 'uts_end', 'uas_start', 'uas_end', 'active'];
+    protected $fillable = [
+        'name',
+        'start_date',
+        'end_date',
+        'uts_start',
+        'uts_end',
+        'uas_start',
+        'uas_end',
+        'is_active',
+    ];
 
     protected function casts(): array
     {
@@ -20,7 +29,7 @@ class Period extends Model
             'uts_end' => 'date',
             'uas_start' => 'date',
             'uas_end' => 'date',
-            'active' => 'boolean',
+            'is_active' => 'boolean',
         ];
     }
 

@@ -45,12 +45,13 @@
                             <td class="fw-bold">{{ $section->room->code ?? '-' }}</td>
                             <td>{{ $dayNames[$section->day_of_week] ?? $section->day_of_week }}</td>
                             <td>{{ substr($section->start_time, 0, 5) }} - {{ substr($section->end_time, 0, 5) }}</td>
-                            <td>{{ $section->lecturer?->name ?? $section->presenter_name ?? '-' }}</td>
+                            <td>{{ $section->lecturer?->name ?? '-' }}</td>
                             <td>
-                                @if($section->class_code || $section->class_type)
-                                    <span class="badge text-bg-light border">{{ $section->class_code }} {{ $section->class_type }}</span>
+                                <span class="badge text-bg-light border">{{ $section->class_code }}</span>
+                                @if($section->schedule_type === 1)
+                                    <span class="badge bg-warning text-dark">Ujian</span>
                                 @else
-                                    <span class="text-muted">-</span>
+                                    <span class="badge bg-secondary">Reguler</span>
                                 @endif
                             </td>
                             <td class="text-end">

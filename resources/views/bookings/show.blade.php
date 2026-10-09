@@ -11,10 +11,10 @@
             <a class="btn btn-outline-secondary" href="{{ route('bookings.index') }}">Kembali ke Daftar</a>
         </div>
 
-        @if($booking->type === 'change' && $booking->parentBooking)
+        @if($booking->type === \App\Constants\BookingType::RESCHEDULE && $booking->parent)
             <div class="alert alert-warning mb-4">
                 <strong>Pengajuan Perubahan:</strong> Booking ini diajukan untuk mengubah jadwal dari booking sebelumnya 
-                <a href="{{ route('bookings.show', $booking->parentBooking) }}" class="fw-bold">#{{ $booking->parentBooking->id }}</a>.
+                <a href="{{ route('bookings.show', $booking->parent) }}" class="fw-bold">#{{ $booking->parent->id }}</a>.
             </div>
         @endif
 
@@ -22,11 +22,13 @@
             <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
                 <h2 class="h5 fw-bold mb-0">Informasi Peminjaman</h2>
                 <div>
-                    @if($booking->status === 'approved')
+                    @if($booking->status === \App\Constants\BookingStatus::APPROVED)
                         <span class="badge text-bg-success fs-6">Disetujui</span>
-                    @elseif($booking->status === 'pending')
-                        <span class="badge text-bg-warning fs-6">Menunggu Persetujuan</span>
-                    @elseif($booking->status === 'rejected')
+                    @elseif($booking->status === \App\Constants\BookingStatus::PENDING_KAPRODI)
+                        <span class="badge text-bg-warning fs-6">Menunggu Kaprodi</span>
+                    @elseif($booking->status === \App\Constants\BookingStatus::PENDING_KALAB)
+                        <span class="badge text-bg-primary fs-6">Menunggu Kalab</span>
+                    @elseif($booking->status === \App\Constants\BookingStatus::REJECTED)
                         <span class="badge text-bg-danger fs-6">Ditolak</span>
                     @else
                         <span class="badge text-bg-secondary fs-6">Dibatalkan</span>
@@ -40,8 +42,8 @@
                         <div class="fw-bold fs-6">{{ $booking->requester_name }}</div>
                     </div>
                     <div class="col-md-6">
-                        <div class="text-secondary small">Jumlah Peserta</div>
-                        <div class="fw-bold fs-6">{{ $booking->participant_count }} Orang</div>
+                        <div class="text-secondary small">Tipe Pengajuan</div>
+                        <div class="fw-bold fs-6">{{ $booking->type_label }}</div>
                     </div>
                     <div class="col-12">
                         <div class="text-secondary small">Tujuan Kegiatan</div>
@@ -49,8 +51,8 @@
                     </div>
                     @if($booking->notes)
                         <div class="col-12">
-                            <div class="text-secondary small">Catatan / Keterangan</div>
-                            <div class="alert alert-light border mb-0">{{ $booking->notes }}</div>
+                            <div class="text-secondary small">Catatan / Alasan Penolakan Booking</div>
+                            <div class="alert alert-light border mb-0 text-danger fw-semibold">{{ $booking->notes }}</div>
                         </div>
                     @endif
                 </div>
@@ -59,7 +61,7 @@
 
         <div class="card shadow-sm border-0 mb-4">
             <div class="card-header bg-white py-3">
-                <h2 class="h5 fw-bold mb-0">Daftar Ruangan & Waktu</h2>
+                <h2 class="h5 fw-bold mb-0">Daftar Ruangan & Status Persetujuan per Ruangan</h2>
             </div>
             <div class="card-body p-0">
                 <table class="table table-bordered mb-0">
@@ -69,15 +71,29 @@
                             <th>Tanggal</th>
                             <th>Waktu Mulai</th>
                             <th>Waktu Selesai</th>
+                            <th>Status Ruangan</th>
+                            <th>Catatan / Alasan</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($booking->roomBookings as $rb)
+                        @foreach($booking->details as $dt)
                             <tr>
-                                <td class="fw-bold">{{ $rb->room->code ?? '-' }} ({{ $rb->room->name ?? 'Lab' }})</td>
-                                <td>{{ $rb->start_datetime->format('l, d F Y') }}</td>
-                                <td>{{ $rb->start_datetime->format('H:i') }}</td>
-                                <td>{{ $rb->end_datetime->format('H:i') }}</td>
+                                <td class="fw-bold">{{ $dt->room->code ?? '-' }} ({{ $dt->room->name ?? 'Lab' }})</td>
+                                <td>{{ $dt->start_datetime->format('l, d F Y') }}</td>
+                                <td>{{ $dt->start_datetime->format('H:i') }}</td>
+                                <td>{{ $dt->end_datetime->format('H:i') }}</td>
+                                <td>
+                                    @if($dt->status === \App\Constants\BookingDetailStatus::APPROVED)
+                                        <span class="badge bg-success">Disetujui</span>
+                                    @elseif($dt->status === \App\Constants\BookingDetailStatus::REJECTED)
+                                        <span class="badge bg-danger">Ditolak</span>
+                                    @elseif($dt->status === \App\Constants\BookingDetailStatus::CANCELLED)
+                                        <span class="badge bg-secondary">Dibatalkan</span>
+                                    @else
+                                        <span class="badge bg-warning text-dark">Menunggu</span>
+                                    @endif
+                                </td>
+                                <td>{{ $dt->notes ?? '-' }}</td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -85,55 +101,12 @@
             </div>
         </div>
 
-        <div class="card shadow-sm border-0 mb-4">
-            <div class="card-header bg-white py-3">
-                <h2 class="h5 fw-bold mb-0">Tahapan Persetujuan (Approval)</h2>
-            </div>
-            <div class="card-body">
-                @if($booking->approvals->isEmpty())
-                    <p class="text-muted mb-0">Peminjaman ini disetujui langsung tanpa melalui tahapan persetujuan (peminjaman internal staf/dosen).</p>
-                @else
-                    <div class="row g-3">
-                        @foreach($booking->approvals->sortBy('level') as $appr)
-                            <div class="col-md-6">
-                                <div class="border rounded p-3 h-100 bg-light">
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <div class="fw-bold">
-                                            Tahap {{ $appr->level }}: {{ $appr->level === 1 ? 'Kepala Prodi' : 'Kepala Lab' }}
-                                        </div>
-                                        <div>
-                                            @if($appr->status === 'approved')
-                                                <span class="badge text-bg-success">Setuju</span>
-                                            @elseif($appr->status === 'rejected')
-                                                <span class="badge text-bg-danger">Tolak</span>
-                                            @else
-                                                <span class="badge text-bg-warning">Pending</span>
-                                            @endif
-                                        </div>
-                                    </div>
-                                    <div class="small text-secondary mb-1">
-                                        Pemeriksa: <span class="text-dark">{{ $appr->approver?->name ?? 'Belum diproses' }}</span>
-                                    </div>
-                                    <div class="small text-secondary mb-2">
-                                        Waktu: <span class="text-dark">{{ $appr->decided_at ? $appr->decided_at->format('d/m/Y H:i') : '-' }}</span>
-                                    </div>
-                                    @if($appr->notes)
-                                        <div class="small text-danger fw-semibold">Catatan: {{ $appr->notes }}</div>
-                                    @endif
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-                @endif
-            </div>
-        </div>
-
         @php
-            $firstSlot = $booking->roomBookings->sortBy('start_datetime')->first();
+            $firstSlot = $booking->details->sortBy('start_datetime')->first();
             $canCancelOrChange = $booking->user_id === auth()->id()
-                && $booking->status === 'approved'
+                && $booking->status === \App\Constants\BookingStatus::APPROVED
                 && $firstSlot
-                && now()->lt(\Carbon\Carbon::parse($firstSlot->start_datetime)->subDays(2));
+                && now()->lte(\Carbon\Carbon::parse($firstSlot->start_datetime)->subDays(2));
         @endphp
 
         @if($canCancelOrChange)

@@ -7,7 +7,7 @@
         <p class="text-secondary mb-0">Kelola dan pantau status pengajuan peminjaman laboratorium.</p>
     </div>
     <div class="d-flex gap-2">
-        @if(auth()->user()->isInternal())
+        @if(auth()->user()->hasRole('Staf_Lab'))
             <a class="btn btn-outline-primary" href="{{ route('staff-bookings.create') }}">Input Peminjaman Dosen</a>
         @endif
         <a class="btn btn-primary" href="{{ route('bookings.create') }}">Ajukan Peminjaman Baru</a>
@@ -23,7 +23,6 @@
                         <th>ID</th>
                         <th>Peminjam</th>
                         <th>Tujuan Kegiatan</th>
-                        <th>Peserta</th>
                         <th>Ruangan & Jadwal</th>
                         <th>Tipe</th>
                         <th>Status</th>
@@ -33,11 +32,11 @@
                 <tbody>
                     @forelse($bookings as $booking)
                         @php
-                            $firstSlot = $booking->roomBookings->sortBy('start_datetime')->first();
+                            $firstSlot = $booking->details->sortBy('start_datetime')->first();
                             $canCancelOrChange = $booking->user_id === auth()->id()
-                                && $booking->status === 'approved'
+                                && $booking->status === \App\Constants\BookingStatus::APPROVED
                                 && $firstSlot
-                                && now()->lt(\Carbon\Carbon::parse($firstSlot->start_datetime)->subDays(2));
+                                && now()->lte(\Carbon\Carbon::parse($firstSlot->start_datetime)->subDays(2));
                         @endphp
                         <tr>
                             <td class="fw-semibold">#{{ $booking->id }}</td>
@@ -48,29 +47,33 @@
                                 @endif
                             </td>
                             <td>{{ Str::limit($booking->purpose, 40) }}</td>
-                            <td>{{ $booking->participant_count }} Orang</td>
                             <td>
-                                @foreach($booking->roomBookings as $rb)
+                                @foreach($booking->details as $dt)
                                     <div class="small">
-                                        <span class="badge bg-secondary">{{ $rb->room->code ?? '-' }}</span>
-                                        {{ $rb->start_datetime->format('d/m/Y') }}:
-                                        {{ $rb->start_datetime->format('H:i') }} - {{ $rb->end_datetime->format('H:i') }}
+                                        <span class="badge bg-secondary">{{ $dt->room->code ?? '-' }}</span>
+                                        {{ $dt->start_datetime->format('d/m/Y') }}:
+                                        {{ $dt->start_datetime->format('H:i') }} - {{ $dt->end_datetime->format('H:i') }}
+                                        <span class="badge {{ $dt->status === 1 ? 'bg-success' : ($dt->status === 2 ? 'bg-danger' : 'bg-warning text-dark') }}" style="font-size: 0.65rem;">
+                                            {{ $dt->status_label }}
+                                        </span>
                                     </div>
                                 @endforeach
                             </td>
                             <td>
-                                @if($booking->type === 'change')
-                                    <span class="badge text-bg-warning">Perubahan</span>
+                                @if($booking->type === \App\Constants\BookingType::RESCHEDULE)
+                                    <span class="badge text-bg-warning">Ubah Jadwal</span>
                                 @else
                                     <span class="badge text-bg-info">Baru</span>
                                 @endif
                             </td>
                             <td>
-                                @if($booking->status === 'approved')
+                                @if($booking->status === \App\Constants\BookingStatus::APPROVED)
                                     <span class="badge text-bg-success">Disetujui</span>
-                                @elseif($booking->status === 'pending')
-                                    <span class="badge text-bg-warning">Pending</span>
-                                @elseif($booking->status === 'rejected')
+                                @elseif($booking->status === \App\Constants\BookingStatus::PENDING_KAPRODI)
+                                    <span class="badge text-bg-warning">Menunggu Kaprodi</span>
+                                @elseif($booking->status === \App\Constants\BookingStatus::PENDING_KALAB)
+                                    <span class="badge text-bg-primary">Menunggu Kalab</span>
+                                @elseif($booking->status === \App\Constants\BookingStatus::REJECTED)
                                     <span class="badge text-bg-danger">Ditolak</span>
                                 @else
                                     <span class="badge text-bg-secondary">Dibatalkan</span>
@@ -81,7 +84,7 @@
                                     <a class="btn btn-outline-secondary" href="{{ route('bookings.show', $booking) }}">Detail</a>
                                     @if($canCancelOrChange)
                                         <a class="btn btn-outline-primary" href="{{ route('bookings.change', $booking) }}">Ubah</a>
-                                        <form method="post" action="{{ route('bookings.cancel', $booking) }}" class="d-inline" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan peminjaman ini? Tindakan ini tidak dapat diulang.')">
+                                        <form method="post" action="{{ route('bookings.cancel', $booking) }}" class="d-inline" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan peminjaman ini? Paling lambat H-2.')">
                                             @csrf
                                             <button type="submit" class="btn btn-outline-danger">Batal</button>
                                         </form>
@@ -91,7 +94,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="text-center py-4 text-muted">Belum ada data peminjaman yang tercatat.</td>
+                            <td colspan="7" class="text-center py-4 text-muted">Belum ada data peminjaman yang tercatat.</td>
                         </tr>
                     @endforelse
                 </tbody>

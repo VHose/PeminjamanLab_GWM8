@@ -26,12 +26,19 @@
                         <li class="nav-item">
                             <a class="nav-link text-white" href="{{ route('bookings.create') }}">Ajukan Peminjaman</a>
                         </li>
-                        @if(auth()->user()->isInternal())
+                        @if(auth()->user()->hasRole('Staf_Lab'))
                             <li class="nav-item">
                                 <a class="nav-link text-white" href="{{ route('staff-bookings.create') }}">Input Dosen</a>
                             </li>
+                        @endif
+                        @if(auth()->user()->hasRole('Staf_Lab', 'Kepala_Prodi', 'Kepala_Lab'))
                             <li class="nav-item">
                                 <a class="nav-link text-white" href="{{ route('sections.index') }}">Jadwal Kuliah</a>
+                            </li>
+                        @endif
+                        @if(auth()->user()->hasRole('Admin'))
+                            <li class="nav-item">
+                                <a class="nav-link text-white" href="{{ route('admin.users.index') }}">Kelola Pengguna</a>
                             </li>
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle text-white" href="#" role="button" data-bs-toggle="dropdown">
@@ -39,12 +46,13 @@
                                 </a>
                                 <ul class="dropdown-menu">
                                     <li><a class="dropdown-item" href="{{ route('master.index', 'rooms') }}">Ruangan</a></li>
-                                    <li><a class="dropdown-item" href="{{ route('master.index', 'lecturers') }}">Dosen</a></li>
                                     <li><a class="dropdown-item" href="{{ route('master.index', 'courses') }}">Mata Kuliah</a></li>
                                     <li><a class="dropdown-item" href="{{ route('master.index', 'study-programs') }}">Program Studi</a></li>
                                     <li><a class="dropdown-item" href="{{ route('master.index', 'periods') }}">Periode Semester</a></li>
                                 </ul>
                             </li>
+                        @endif
+                        @if(auth()->user()->hasRole('Staf_Lab', 'Kepala_Prodi', 'Kepala_Lab', 'Admin'))
                             <li class="nav-item">
                                 <a class="nav-link text-white" href="{{ route('logs.index') }}">Log Audit</a>
                             </li>
@@ -58,7 +66,10 @@
                 </ul>
                 <div class="d-flex align-items-center gap-2">
                     @auth
-                        <span class="badge text-bg-light">{{ auth()->user()->name }} ({{ str_replace('_', ' ', auth()->user()->role?->name ?? 'User') }})</span>
+                        @php
+                            $activeRoleNames = auth()->user()->activeRoles()->pluck('name')->map(fn($n) => str_replace('_', ' ', $n))->join(', ') ?: 'Visitor';
+                        @endphp
+                        <span class="badge text-bg-light">{{ auth()->user()->name }} ({{ $activeRoleNames }})</span>
                         <form method="post" action="{{ route('logout') }}" class="d-inline">
                             @csrf
                             <button type="submit" class="btn btn-sm btn-outline-light">Keluar</button>

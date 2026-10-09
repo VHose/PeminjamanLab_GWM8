@@ -2,10 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Constants\BookingDetailStatus;
+use App\Constants\BookingStatus;
+use App\Constants\BookingType;
 use App\Models\Booking;
+use App\Models\BookingDetail;
 use App\Models\Room;
 use App\Services\ActivityLogger;
 use App\Services\BookingService;
+use App\Services\NotificationService;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -18,8 +23,8 @@ class BookingController extends Controller
     public function index(Request $request): View
     {
         $bookings = $request->user()->isInternal()
-            ? Booking::with(['roomBookings.room', 'requester', 'approvals'])->latest()->paginate(15)
-            : $request->user()->bookings()->with(['roomBookings.room', 'approvals'])->latest()->paginate(15);
+            ? Booking::with(['details.room', 'requester'])->latest()->paginate(15)
+            : $request->user()->bookings()->with(['details.room'])->latest()->paginate(15);
 
         return view('bookings.index', compact('bookings'));
     }
@@ -37,32 +42,31 @@ class BookingController extends Controller
             abort(403);
         }
 
-        $booking->load(['roomBookings.room', 'approvals.approver', 'requester', 'parentBooking']);
+        $booking->load(['details.room', 'requester', 'parent', 'children']);
 
         return view('bookings.show', compact('booking'));
     }
 
     public function change(Booking $booking): View
     {
-        $firstStart = $booking->roomBookings()->min('start_datetime');
+        $firstStart = $booking->details()->min('start_datetime');
         $canChange = $booking->user_id === request()->user()->id
-            && $booking->status === 'approved'
+            && $booking->status === BookingStatus::APPROVED
             && $firstStart
-            && now()->lt(Carbon::parse($firstStart)->subDays(2));
+            && Carbon::parse($firstStart)->gte(now()->addDays(2));
 
-        abort_unless($canChange, 403);
+        abort_unless($canChange, 403, 'Perubahan jadwal hanya bisa diajukan paling lambat H-2.');
 
         $rooms = Room::where('active', true)->orderBy('code')->get();
 
         return view('bookings.change', compact('booking', 'rooms'));
     }
 
-    public function store(Request $request, BookingService $service, ActivityLogger $logger): RedirectResponse
+    public function store(Request $request, BookingService $service, ActivityLogger $logger, NotificationService $notifications): RedirectResponse
     {
         $data = $request->validate([
-            'requester_name' => 'required|string|max:255',
+            'requester_name' => 'required|string|max:100',
             'purpose' => 'required|string',
-            'participant_count' => 'required|integer|min:1',
             'type' => 'required|in:new,change',
             'parent_booking_id' => 'nullable|required_if:type,change|exists:booking,id',
             'notes' => 'nullable|required_if:type,change|string',
@@ -75,53 +79,71 @@ class BookingController extends Controller
 
         $this->validateSlotCollisions($data['slots']);
 
+        $isChange = $data['type'] === 'change';
+        $parentBookingId = $isChange ? (int) $data['parent_booking_id'] : null;
+
+        // Validasi waktu mulai harus > 2 hari dari sekarang (H+2)
+        $minAllowedStart = now()->addDays(2);
+
         foreach ($data['slots'] as $slot) {
             $start = Carbon::parse("{$slot['date']} {$slot['start']}");
             $end = Carbon::parse("{$slot['date']} {$slot['end']}");
 
+            if ($start->lt($minAllowedStart)) {
+                throw ValidationException::withMessages([
+                    'slots' => 'Waktu mulai peminjaman harus lebih dari 2 hari dari sekarang (minimal H+2).',
+                ]);
+            }
+
             if (! in_array($slot['start'], $service->startSlots(), true)
                 || ! in_array($slot['end'], $service->endSlots(), true)
-                || ! $service->isAvailable((int) $slot['room_id'], $start, $end)) {
+                || ! $service->isAvailable((int) $slot['room_id'], $start, $end, $parentBookingId)) {
                 throw ValidationException::withMessages([
                     'slots' => 'Salah satu ruangan atau waktu sudah terisi jadwal atau belum dapat dipinjam pada periode ujian.',
                 ]);
             }
         }
 
-        DB::transaction(function () use ($data, $request, $logger) {
-            $booking = Booking::query()->create([
+        $booking = DB::transaction(function () use ($data, $request, $isChange, $parentBookingId, $logger) {
+            $booking = Booking::create([
                 'user_id' => $request->user()->id,
-                'parent_booking_id' => $data['parent_booking_id'] ?? null,
+                'parent_booking_id' => $parentBookingId,
                 'requester_name' => $data['requester_name'],
                 'purpose' => $data['purpose'],
-                'participant_count' => $data['participant_count'],
-                'type' => $data['type'],
-                'status' => 'pending',
-                'notes' => $data['notes'] ?? null,
+                'type' => $isChange ? BookingType::RESCHEDULE : BookingType::NEW_BOOKING,
+                'status' => $isChange ? BookingStatus::PENDING_KALAB : BookingStatus::PENDING_KAPRODI,
+                'notes' => $isChange ? ($data['notes'] ?? null) : null,
                 'submitted_at' => now(),
             ]);
 
             foreach ($data['slots'] as $slot) {
-                $booking->roomBookings()->create([
+                $booking->details()->create([
                     'room_id' => $slot['room_id'],
                     'start_datetime' => Carbon::parse("{$slot['date']} {$slot['start']}"),
                     'end_datetime' => Carbon::parse("{$slot['date']} {$slot['end']}"),
+                    'status' => BookingDetailStatus::PENDING,
+                    'notes' => null,
                 ]);
             }
-
-            $booking->approvals()->create([
-                'level' => $booking->type === 'change' ? 2 : 1,
-                'status' => 'pending',
-            ]);
 
             $logger->log(
                 $request->user()->id,
                 'create',
                 'booking',
-                $booking->id,
-                $booking->type === 'change' ? 'Pengajuan perubahan jadwal/ruangan.' : 'Pengajuan peminjaman baru.'
+                (string) $booking->id,
+                $isChange ? 'Pengajuan permohonan perubahan jadwal/ruangan.' : 'Pengajuan peminjaman laboratorium baru.',
+                ['type' => $booking->type, 'slots_count' => count($data['slots'])]
             );
+
+            return $booking;
         });
+
+        // Email notifications
+        if ($isChange) {
+            $notifications->notifyRescheduleSubmitted($booking);
+        } else {
+            $notifications->notifyNewBooking($booking);
+        }
 
         return redirect()->route('bookings.index')->with('success', 'Pengajuan peminjaman berhasil dikirim.');
     }
@@ -136,9 +158,8 @@ class BookingController extends Controller
     public function staffStore(Request $request, BookingService $service, ActivityLogger $logger): RedirectResponse
     {
         $data = $request->validate([
-            'requester_name' => 'required|string|max:255',
+            'requester_name' => 'required|string|max:100',
             'purpose' => 'required|string',
-            'participant_count' => 'required|integer|min:1',
             'slots' => 'required|array|min:1',
             'slots.*.room_id' => 'required|exists:room,id',
             'slots.*.date' => 'required|date',
@@ -162,21 +183,24 @@ class BookingController extends Controller
         }
 
         DB::transaction(function () use ($data, $request, $logger) {
-            $booking = Booking::query()->create([
+            $booking = Booking::create([
                 'user_id' => $request->user()->id,
+                'parent_booking_id' => null,
                 'requester_name' => $data['requester_name'],
                 'purpose' => $data['purpose'],
-                'participant_count' => $data['participant_count'],
-                'type' => 'new',
-                'status' => 'approved',
+                'type' => BookingType::NEW_BOOKING,
+                'status' => BookingStatus::APPROVED,
+                'notes' => 'Diinput oleh staf atas nama dosen.',
                 'submitted_at' => now(),
             ]);
 
             foreach ($data['slots'] as $slot) {
-                $booking->roomBookings()->create([
+                $booking->details()->create([
                     'room_id' => $slot['room_id'],
                     'start_datetime' => Carbon::parse("{$slot['date']} {$slot['start']}"),
                     'end_datetime' => Carbon::parse("{$slot['date']} {$slot['end']}"),
+                    'status' => BookingDetailStatus::APPROVED,
+                    'notes' => null,
                 ]);
             }
 
@@ -184,28 +208,41 @@ class BookingController extends Controller
                 $request->user()->id,
                 'create',
                 'booking',
-                $booking->id,
-                'Peminjaman diinput oleh staf atas nama dosen dan langsung disetujui.'
+                (string) $booking->id,
+                'Peminjaman diinput oleh staf atas nama dosen dan langsung disetujui.',
+                ['requester_name' => $data['requester_name']]
             );
         });
 
+        // Booking staf tidak mengirim email
         return redirect()->route('bookings.index')->with('success', 'Peminjaman atas nama dosen berhasil dimasukkan.');
     }
 
     public function cancel(Request $request, Booking $booking, ActivityLogger $logger): RedirectResponse
     {
-        $firstStart = $booking->roomBookings()->min('start_datetime');
+        $firstStart = $booking->details()->min('start_datetime');
         $canCancel = $booking->user_id === $request->user()->id
-            && $booking->status === 'approved'
+            && $booking->status === BookingStatus::APPROVED
             && $firstStart
-            && now()->lt(Carbon::parse($firstStart)->subDays(2));
+            && Carbon::parse($firstStart)->gte(now()->addDays(2));
 
-        abort_unless($canCancel, 403);
+        abort_unless($canCancel, 403, 'Pembatalan hanya dapat dilakukan paling lambat H-2.');
 
-        $booking->update(['status' => 'cancelled']);
-        $logger->log($request->user()->id, 'cancel', 'booking', $booking->id, 'Dibatalkan oleh peminjam.');
+        DB::transaction(function () use ($booking, $request, $logger) {
+            $booking->update(['status' => BookingStatus::CANCELLED]);
+            $booking->details()->update(['status' => BookingDetailStatus::CANCELLED]);
 
-        return back()->with('success', 'Peminjaman berhasil dibatalkan dan slot kembali tersedia.');
+            $logger->log(
+                $request->user()->id,
+                'cancel',
+                'booking',
+                (string) $booking->id,
+                'Peminjaman dibatalkan oleh peminjam.'
+            );
+        });
+
+        // Pembatalan tidak mengirim email
+        return back()->with('success', 'Peminjaman berhasil dibatalkan.');
     }
 
     private function validateSlotCollisions(array $slots): void

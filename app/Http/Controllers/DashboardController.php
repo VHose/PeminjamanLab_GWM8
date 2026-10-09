@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\BookingRoom;
+use App\Constants\BookingDetailStatus;
+use App\Constants\ScheduleType;
+use App\Models\BookingDetail;
 use App\Models\Period;
 use App\Models\Room;
 use App\Models\Section;
@@ -15,7 +17,7 @@ class DashboardController extends Controller
 {
     public function __invoke(Request $request, BookingService $bookingService): View
     {
-        $allPeriods = Period::where('active', true)->orderBy('start_date')->get();
+        $allPeriods = Period::where('is_active', true)->orderBy('start_date')->get();
         $selectedPeriodId = $request->input('period_id');
         $period = $allPeriods->firstWhere('id', $selectedPeriodId) ?: $allPeriods->first();
 
@@ -84,25 +86,51 @@ class DashboardController extends Controller
 
             if ($inUts || $inUas) {
                 $sections = Section::with(['course.studyProgram', 'lecturer'])
-                    ->where(['period_id' => $period->id, 'day_of_week' => $day, 'class_type' => 'exam'])
+                    ->where(['period_id' => $period->id, 'day_of_week' => $day, 'schedule_type' => ScheduleType::EXAM])
                     ->get();
             } else {
                 $sections = Section::with(['course.studyProgram', 'lecturer'])
-                    ->where(['period_id' => $period->id, 'day_of_week' => $day])
-                    ->where(fn ($q) => $q->whereNull('class_type')->orWhere('class_type', '!=', 'exam'))
+                    ->where(['period_id' => $period->id, 'day_of_week' => $day, 'schedule_type' => ScheduleType::REGULAR])
                     ->get();
             }
         }
 
-        $bookings = BookingRoom::with(['booking', 'room'])
+        // Ambil hanya booking_detail berstatus 0 (Pending) atau 1 (Approved)
+        $bookings = BookingDetail::with(['booking', 'room'])
             ->whereDate('start_datetime', $date)
-            ->whereHas('booking', fn ($q) => $q->whereIn('status', ['pending', 'approved']))
+            ->whereIn('status', [BookingDetailStatus::PENDING, BookingDetailStatus::APPROVED])
             ->get();
 
-        $bookings->each(function (BookingRoom $bookingRoom) use ($bookingService) {
-            $bookingRoom->queue_position = $bookingRoom->booking->status === 'pending'
-                ? $bookingService->pendingQueuePosition($bookingRoom)
+        $bookings->each(function (BookingDetail $bookingDetail) use ($bookingService) {
+            $bookingDetail->queue_position = $bookingDetail->status === BookingDetailStatus::PENDING
+                ? $bookingService->pendingQueuePosition($bookingDetail)
                 : null;
+        });
+
+        // Tentukan apakah user merupakan role internal (Staf_Lab, Kepala_Prodi, Kepala_Lab, Admin)
+        $user = $request->user();
+        $isInternal = $user && $user->hasActiveRole('Staf_Lab', 'Kepala_Prodi', 'Kepala_Lab', 'Admin');
+
+        // Format nama display untuk calendar (tanpa NIK, dan inisial untuk non-internal)
+        $bookings->each(function (BookingDetail $bookingDetail) use ($isInternal) {
+            $rawName = $bookingDetail->booking->requester_name;
+            if ($isInternal) {
+                $bookingDetail->display_requester = $rawName;
+            } else {
+                // Inisial: huruf pertama tiap kata, huruf kecil, dipisah titik
+                $words = array_filter(explode(' ', trim($rawName)));
+                $initials = array_map(fn ($w) => strtolower(mb_substr($w, 0, 1)), $words);
+                $bookingDetail->display_requester = 'Peminjaman oleh ' . implode('.', $initials);
+            }
+        });
+
+        $sections->each(function (Section $section) use ($isInternal) {
+            if ($isInternal) {
+                $section->display_lecturer = $section->lecturer?->name;
+            } else {
+                // Visitor & Dosen: hanya nama mata kuliah saja (dosen disembunyikan)
+                $section->display_lecturer = null;
+            }
         });
 
         $timeSlots = [];
@@ -125,6 +153,7 @@ class DashboardController extends Controller
             'bookings',
             'isExamPeriodWithoutSchedule',
             'timeSlots',
+            'isInternal',
         ));
     }
 }

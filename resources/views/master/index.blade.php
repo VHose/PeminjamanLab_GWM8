@@ -14,9 +14,6 @@
         <a class="nav-link {{ $type === 'rooms' ? 'active' : '' }}" href="{{ route('master.index', 'rooms') }}">Ruangan</a>
     </li>
     <li class="nav-item">
-        <a class="nav-link {{ $type === 'lecturers' ? 'active' : '' }}" href="{{ route('master.index', 'lecturers') }}">Dosen</a>
-    </li>
-    <li class="nav-item">
         <a class="nav-link {{ $type === 'courses' ? 'active' : '' }}" href="{{ route('master.index', 'courses') }}">Mata Kuliah</a>
     </li>
     <li class="nav-item">
@@ -52,14 +49,12 @@
                                             <span class="d-inline-block border rounded" style="width: 20px; height: 20px; background-color: {{ $record->$field }};"></span>
                                             <code>{{ $record->$field }}</code>
                                         </span>
-                                    @elseif($field === 'active')
+                                    @elseif($field === 'active' || $field === 'is_active')
                                         @if($record->$field)
                                             <span class="badge text-bg-success">Aktif</span>
                                         @else
                                             <span class="badge text-bg-secondary">Nonaktif</span>
                                         @endif
-                                    @elseif($field === 'semester')
-                                        <span class="badge text-bg-light border">{{ $record->$field === 'odd' ? 'Ganjil' : 'Genap' }}</span>
                                     @elseif($field === 'study_program_id')
                                         <span class="fw-semibold">{{ $record->studyProgram->name ?? $record->$field }}</span>
                                     @else

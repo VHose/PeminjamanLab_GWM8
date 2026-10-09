@@ -2,49 +2,67 @@
 
 namespace App\Models;
 
+use App\Constants\BookingStatus;
+use App\Constants\BookingType;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Booking extends Model
 {
     protected $table = 'booking';
 
-    protected $fillable = ['user_id', 'parent_booking_id', 'requester_name', 'purpose', 'participant_count', 'type', 'status', 'notes', 'submitted_at'];
+    protected $fillable = [
+        'user_id',
+        'parent_booking_id',
+        'requester_name',
+        'purpose',
+        'type',
+        'status',
+        'notes',
+        'submitted_at',
+    ];
 
     protected function casts(): array
     {
-        return ['submitted_at' => 'datetime'];
+        return [
+            'type' => 'integer',
+            'status' => 'integer',
+            'submitted_at' => 'datetime',
+        ];
     }
+
+    /* ── Relationships ── */
 
     public function requester(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    public function parentBooking(): BelongsTo
+    public function parent(): BelongsTo
     {
         return $this->belongsTo(self::class, 'parent_booking_id');
     }
 
-    public function changeRequests(): HasMany
+    public function children(): HasMany
     {
         return $this->hasMany(self::class, 'parent_booking_id');
     }
 
-    public function roomBookings(): HasMany
+    public function details(): HasMany
     {
-        return $this->hasMany(BookingRoom::class);
+        return $this->hasMany(BookingDetail::class);
     }
 
-    public function rooms(): BelongsToMany
+    /* ── Accessors ── */
+
+    public function getStatusLabelAttribute(): string
     {
-        return $this->belongsToMany(Room::class, 'booking_room')->withPivot(['start_datetime', 'end_datetime'])->withTimestamps();
+        return BookingStatus::label($this->status);
     }
 
-    public function approvals(): HasMany
+    public function getTypeLabelAttribute(): string
     {
-        return $this->hasMany(BookingApproval::class);
+        return BookingType::label($this->type);
     }
 }

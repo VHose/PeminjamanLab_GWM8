@@ -19,8 +19,11 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Kata Sandi</label>
-                        <input class="form-control" name="password" type="password" placeholder="Masukkan kata sandi..." required>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <label class="form-label fw-semibold mb-0">Kata Sandi</label>
+                            <a href="{{ route('password.request') }}" class="small text-decoration-none">Lupa kata sandi?</a>
+                        </div>
+                        <input class="form-control mt-1" name="password" type="password" placeholder="Masukkan kata sandi..." required>
                     </div>
 
                     <div class="form-check mb-3">

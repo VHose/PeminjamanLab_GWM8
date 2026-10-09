@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Role extends Model
 {
@@ -11,8 +10,15 @@ class Role extends Model
 
     protected $fillable = ['name'];
 
-    public function users(): HasMany
+    public function users()
     {
-        return $this->hasMany(User::class);
+        return $this->belongsToMany(User::class, 'user_role')
+            ->withPivot('id', 'start_date', 'end_date')
+            ->withTimestamps();
+    }
+
+    public function userRoles()
+    {
+        return $this->hasMany(UserRole::class);
     }
 }

@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Course;
-use App\Models\Lecturer;
 use App\Models\Period;
 use App\Models\Room;
 use App\Models\StudyProgram;
@@ -21,17 +20,11 @@ class MasterController extends Controller
             'fields' => ['code' => 'Kode', 'name' => 'Nama', 'color_hex' => 'Warna Kalender', 'active' => 'Aktif'],
             'rules' => ['code' => 'required|max:10|unique:study_program,code', 'name' => 'required|max:255', 'color_hex' => 'required|regex:/^#[0-9A-Fa-f]{6}$/', 'active' => 'boolean'],
         ],
-        'lecturers' => [
-            'model' => Lecturer::class,
-            'label' => 'Dosen',
-            'fields' => ['nik' => 'NIK', 'lecturer_code' => 'Kode Dosen', 'name' => 'Nama', 'email' => 'Email', 'phone' => 'Telepon', 'active' => 'Aktif'],
-            'rules' => ['nik' => 'required|max:30|unique:lecturer,nik', 'lecturer_code' => 'nullable|max:255|unique:lecturer,lecturer_code', 'name' => 'required|max:255', 'email' => 'nullable|email', 'phone' => 'nullable|max:30', 'active' => 'boolean'],
-        ],
         'rooms' => [
             'model' => Room::class,
             'label' => 'Ruangan',
-            'fields' => ['code' => 'Kode', 'name' => 'Nama', 'capacity' => 'Kapasitas', 'description' => 'Deskripsi', 'active' => 'Aktif'],
-            'rules' => ['code' => 'required|max:20|unique:room,code', 'name' => 'nullable|max:100', 'capacity' => 'nullable|integer|min:1', 'description' => 'nullable|string', 'active' => 'boolean'],
+            'fields' => ['code' => 'Kode', 'name' => 'Nama', 'capacity' => 'Kapasitas', 'active' => 'Aktif'],
+            'rules' => ['code' => 'required|max:20|unique:room,code', 'name' => 'nullable|max:100', 'capacity' => 'nullable|integer|min:1', 'active' => 'boolean'],
         ],
         'courses' => [
             'model' => Course::class,
@@ -42,8 +35,8 @@ class MasterController extends Controller
         'periods' => [
             'model' => Period::class,
             'label' => 'Periode',
-            'fields' => ['name' => 'Nama', 'semester' => 'Semester', 'start_date' => 'Mulai', 'end_date' => 'Selesai', 'uts_start' => 'UTS Mulai', 'uts_end' => 'UTS Selesai', 'uas_start' => 'UAS Mulai', 'uas_end' => 'UAS Selesai', 'active' => 'Aktif'],
-            'rules' => ['name' => 'required|max:255', 'semester' => 'required|in:odd,even', 'start_date' => 'required|date', 'end_date' => 'required|date|after:start_date', 'uts_start' => 'nullable|date', 'uts_end' => 'nullable|date|after:uts_start', 'uas_start' => 'nullable|date', 'uas_end' => 'nullable|date|after:uas_start', 'active' => 'boolean'],
+            'fields' => ['name' => 'Nama', 'start_date' => 'Mulai', 'end_date' => 'Selesai', 'uts_start' => 'UTS Mulai', 'uts_end' => 'UTS Selesai', 'uas_start' => 'UAS Mulai', 'uas_end' => 'UAS Selesai', 'is_active' => 'Aktif'],
+            'rules' => ['name' => 'required|max:50|unique:period,name', 'start_date' => 'required|date', 'end_date' => 'required|date|after:start_date', 'uts_start' => 'nullable|date', 'uts_end' => 'nullable|date|after:uts_start', 'uas_start' => 'nullable|date', 'uas_end' => 'nullable|date|after:uas_start', 'is_active' => 'boolean'],
         ],
     ];
 
@@ -69,7 +62,7 @@ class MasterController extends Controller
         $data = $request->validate($config['rules']);
         $record = $config['model']::query()->create($data);
 
-        $logger->log($request->user()->id, 'create', $record->getTable(), $record->getKey(), "Menambah data {$config['label']}.");
+        $logger->log($request->user()->id, 'create', $record->getTable(), (string) $record->getKey(), "Menambah data {$config['label']}.");
 
         return redirect()->route('master.index', $type)->with('success', 'Data berhasil ditambahkan.');
     }
@@ -94,12 +87,12 @@ class MasterController extends Controller
         })->all();
 
         $data = $request->validate($rules);
-        if (in_array($type, ['lecturers', 'rooms'], true)) {
-            unset($data[$type === 'lecturers' ? 'nik' : 'code']);
+        if ($type === 'rooms') {
+            unset($data['code']);
         }
 
         $record->update($data);
-        $logger->log($request->user()->id, 'update', $record->getTable(), $record->getKey(), "Memperbarui data {$config['label']}.");
+        $logger->log($request->user()->id, 'update', $record->getTable(), (string) $record->getKey(), "Memperbarui data {$config['label']}.");
 
         return redirect()->route('master.index', $type)->with('success', 'Data berhasil diperbarui.');
     }
@@ -108,7 +101,7 @@ class MasterController extends Controller
     {
         $config = $this->config($type);
         $record = $config['model']::query()->findOrFail($id);
-        $key = $record->getKey();
+        $key = (string) $record->getKey();
         $table = $record->getTable();
         $record->delete();
 

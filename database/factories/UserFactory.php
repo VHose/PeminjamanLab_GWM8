@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Models\Role;
 use App\Models\User;
+use App\Models\UserRole;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -13,20 +14,12 @@ use Illuminate\Support\Str;
  */
 class UserFactory extends Factory
 {
-    /**
-     * The current password being used by the factory.
-     */
     protected static ?string $password;
 
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
     public function definition(): array
     {
         return [
-            'role_id' => Role::query()->firstOrCreate(['name' => 'Visitor'])->id,
+            'id' => User::generateVisitorId(),
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
@@ -35,9 +28,18 @@ class UserFactory extends Factory
         ];
     }
 
-    /**
-     * Indicate that the model's email address should be unverified.
-     */
+    public function configure(): static
+    {
+        return $this->afterCreating(function (User $user) {
+            $visitorRole = Role::query()->firstOrCreate(['name' => 'Visitor']);
+            UserRole::query()->firstOrCreate([
+                'user_id' => $user->id,
+                'role_id' => $visitorRole->id,
+                'start_date' => now()->toDateString(),
+            ]);
+        });
+    }
+
     public function unverified(): static
     {
         return $this->state(fn (array $attributes) => [

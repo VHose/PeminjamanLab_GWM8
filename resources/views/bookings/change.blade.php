@@ -26,7 +26,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($booking->roomBookings as $rb)
+                        @foreach($booking->details as $rb)
                             <tr>
                                 <td class="fw-bold">{{ $rb->room->code ?? '-' }}</td>
                                 <td>{{ $rb->start_datetime->format('d/m/Y') }}</td>
@@ -50,13 +50,9 @@
                 </div>
                 <div class="card-body">
                     <div class="row g-3">
-                        <div class="col-md-6">
+                        <div class="col-md-12">
                             <label class="form-label fw-semibold">Nama Peminjam / Penanggung Jawab <span class="text-danger">*</span></label>
                             <input class="form-control" name="requester_name" value="{{ old('requester_name', $booking->requester_name) }}" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Perkiraan Jumlah Peserta <span class="text-danger">*</span></label>
-                            <input class="form-control" name="participant_count" type="number" min="1" value="{{ old('participant_count', $booking->participant_count) }}" required>
                         </div>
                         <div class="col-12">
                             <label class="form-label fw-semibold">Tujuan Kegiatan <span class="text-danger">*</span></label>

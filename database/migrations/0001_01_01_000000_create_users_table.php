@@ -6,26 +6,45 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
+        Schema::create('study_program', function (Blueprint $table) {
+            $table->id();
+            $table->string('code', 30)->nullable()->unique();
+            $table->string('name', 100)->unique();
+            $table->string('color_hex', 7);
+            $table->boolean('active')->default(true);
+            $table->timestamps();
+        });
+
         Schema::create('role', function (Blueprint $table) {
             $table->id();
-            $table->string('name', 30)->unique();
+            $table->string('name', 50)->unique();
             $table->timestamps();
         });
 
         Schema::create('user', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('role_id')->constrained('role')->restrictOnDelete();
-            $table->string('name');
-            $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
+            $table->string('id', 30)->primary();
+            $table->string('name', 100);
+            $table->string('email', 100)->unique();
             $table->string('password');
+            $table->string('phone', 20)->nullable();
+            $table->foreignId('study_program_id')->nullable()->constrained('study_program')->nullOnDelete();
             $table->rememberToken();
+            $table->timestamp('email_verified_at')->nullable();
             $table->timestamps();
+        });
+
+        Schema::create('user_role', function (Blueprint $table) {
+            $table->id();
+            $table->string('user_id', 30);
+            $table->foreignId('role_id')->constrained('role')->restrictOnDelete();
+            $table->date('start_date');
+            $table->date('end_date')->nullable();
+            $table->timestamps();
+
+            $table->foreign('user_id')->references('id')->on('user')->restrictOnDelete();
+            $table->index(['user_id', 'role_id']);
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
@@ -36,7 +55,7 @@ return new class extends Migration
 
         Schema::create('sessions', function (Blueprint $table) {
             $table->string('id')->primary();
-            $table->foreignId('user_id')->nullable()->index();
+            $table->string('user_id', 30)->nullable()->index();
             $table->string('ip_address', 45)->nullable();
             $table->text('user_agent')->nullable();
             $table->longText('payload');
@@ -44,14 +63,13 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('sessions');
         Schema::dropIfExists('password_reset_tokens');
+        Schema::dropIfExists('user_role');
         Schema::dropIfExists('user');
         Schema::dropIfExists('role');
+        Schema::dropIfExists('study_program');
     }
 };

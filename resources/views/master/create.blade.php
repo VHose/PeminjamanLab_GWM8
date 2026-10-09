@@ -29,15 +29,10 @@
                                         </option>
                                     @endforeach
                                 </select>
-                            @elseif($field === 'semester')
-                                <select class="form-select" name="semester" required>
-                                    <option value="odd" @selected(old('semester') === 'odd')>Ganjil</option>
-                                    <option value="even" @selected(old('semester') === 'even')>Genap</option>
-                                </select>
-                            @elseif($field === 'active')
-                                <input type="hidden" name="active" value="0">
+                            @elseif($field === 'active' || $field === 'is_active')
+                                <input type="hidden" name="{{ $field }}" value="0">
                                 <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" name="active" value="1" id="activeCheck" @checked(old('active', true))>
+                                    <input class="form-check-input" type="checkbox" name="{{ $field }}" value="1" id="activeCheck" @checked(old($field, true))>
                                     <label class="form-check-label" for="activeCheck">Status Aktif</label>
                                 </div>
                             @elseif($field === 'description')

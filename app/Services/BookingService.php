@@ -2,7 +2,9 @@
 
 namespace App\Services;
 
-use App\Models\BookingRoom;
+use App\Constants\BookingDetailStatus;
+use App\Constants\ScheduleType;
+use App\Models\BookingDetail;
 use App\Models\Period;
 use App\Models\Section;
 use Carbon\Carbon;
@@ -25,37 +27,57 @@ class BookingService
         return collect(range(1, 30))->map(fn ($i) => Carbon::createFromFormat('H:i', '07:00')->addMinutes($i * 30)->format('H:i'))->all();
     }
 
-    public function isAvailable(int $roomId, Carbon $start, Carbon $end): bool
+    public function isAvailable(int $roomId, Carbon $start, Carbon $end, ?int $excludeBookingId = null): bool
     {
-        if ($this->isExamPeriodWithoutSchedule($start)) {
+        if ($this->isExamPeriodWithoutSchedule($start, $roomId)) {
             return false;
         }
 
-        if (BookingRoom::where('room_id', $roomId)
-            ->whereHas('booking', fn ($q) => $q->where('status', 'approved'))
+        // Check against approved booking details (status = APPROVED / 1)
+        $bookingConflictQuery = BookingDetail::query()
+            ->where('room_id', $roomId)
+            ->where('status', BookingDetailStatus::APPROVED)
             ->where('start_datetime', '<', $end)
-            ->where('end_datetime', '>', $start)
-            ->exists()) {
+            ->where('end_datetime', '>', $start);
+
+        if ($excludeBookingId !== null) {
+            $bookingConflictQuery->where('booking_id', '!=', $excludeBookingId);
+        }
+
+        if ($bookingConflictQuery->exists()) {
             return false;
         }
 
+        // Check against active regular sections
         $period = Period::whereDate('start_date', '<=', $start)->whereDate('end_date', '>=', $start)->first();
-        if ($period && Section::where([
-            'period_id' => $period->id,
-            'room_id' => $roomId,
-            'day_of_week' => $start->dayOfWeekIso,
-        ])->where(fn ($q) => $q->whereNull('class_type')->orWhere('class_type', '!=', 'exam'))
-          ->where('start_time', '<', $end->format('H:i:s'))
-          ->where('end_time', '>', $start->format('H:i:s'))->exists()) {
-            return false;
+        if ($period) {
+            $isExamDate = $this->isExamDate($period, $start);
+
+            $sectionQuery = Section::where([
+                'period_id' => $period->id,
+                'room_id' => $roomId,
+                'day_of_week' => $start->dayOfWeekIso,
+            ])
+            ->where('start_time', '<', $end->format('H:i:s'))
+            ->where('end_time', '>', $start->format('H:i:s'));
+
+            if ($isExamDate) {
+                // If it is an exam date, sections that conflict are exam sections
+                $sectionQuery->where('schedule_type', ScheduleType::EXAM);
+            } else {
+                $sectionQuery->where('schedule_type', ScheduleType::REGULAR);
+            }
+
+            if ($sectionQuery->exists()) {
+                return false;
+            }
         }
 
         return true;
     }
 
-    public function isExamPeriodWithoutSchedule(Carbon $date): bool
+    public function isExamDate(?Period $period, Carbon $date): bool
     {
-        $period = Period::whereDate('start_date', '<=', $date)->whereDate('end_date', '>=', $date)->first();
         if (! $period) {
             return false;
         }
@@ -63,13 +85,26 @@ class BookingService
         $inUts = $period->uts_start && $period->uts_end && $date->betweenIncluded($period->uts_start, $period->uts_end);
         $inUas = $period->uas_start && $period->uas_end && $date->betweenIncluded($period->uas_start, $period->uas_end);
 
-        if ($inUts || $inUas) {
-            $hasExamSections = Section::where('period_id', $period->id)
-                ->where('class_type', 'exam')
-                ->where('day_of_week', $date->dayOfWeekIso)
-                ->exists();
+        return (bool) ($inUts || $inUas);
+    }
 
-            return ! $hasExamSections;
+    public function isExamPeriodWithoutSchedule(Carbon $date, ?int $roomId = null): bool
+    {
+        $period = Period::whereDate('start_date', '<=', $date)->whereDate('end_date', '>=', $date)->first();
+        if (! $period) {
+            return false;
+        }
+
+        if ($this->isExamDate($period, $date)) {
+            $query = Section::where('period_id', $period->id)
+                ->where('schedule_type', ScheduleType::EXAM)
+                ->where('day_of_week', $date->dayOfWeekIso);
+
+            if ($roomId !== null) {
+                $query->where('room_id', $roomId);
+            }
+
+            return ! $query->exists();
         }
 
         return false;
@@ -78,12 +113,7 @@ class BookingService
     public function unavailableRanges(int $roomId, Carbon $date): Collection
     {
         $period = Period::whereDate('start_date', '<=', $date)->whereDate('end_date', '>=', $date)->first();
-        $isExam = false;
-        if ($period) {
-            $inUts = $period->uts_start && $period->uts_end && $date->betweenIncluded($period->uts_start, $period->uts_end);
-            $inUas = $period->uas_start && $period->uas_end && $date->betweenIncluded($period->uas_start, $period->uas_end);
-            $isExam = $inUts || $inUas;
-        }
+        $isExam = $period && $this->isExamDate($period, $date);
 
         $sections = collect();
         if ($period && ! $isExam) {
@@ -91,20 +121,20 @@ class BookingService
                 'period_id' => $period->id,
                 'room_id' => $roomId,
                 'day_of_week' => $date->dayOfWeekIso,
-            ])->where(fn ($q) => $q->whereNull('class_type')->orWhere('class_type', '!=', 'exam'))
-              ->get(['start_time', 'end_time']);
+                'schedule_type' => ScheduleType::REGULAR,
+            ])->get(['start_time', 'end_time']);
         } elseif ($period && $isExam) {
             $sections = Section::where([
                 'period_id' => $period->id,
                 'room_id' => $roomId,
                 'day_of_week' => $date->dayOfWeekIso,
-                'class_type' => 'exam',
+                'schedule_type' => ScheduleType::EXAM,
             ])->get(['start_time', 'end_time']);
         }
 
-        $approvedBookings = BookingRoom::where('room_id', $roomId)
+        $approvedBookings = BookingDetail::where('room_id', $roomId)
             ->whereDate('start_datetime', $date)
-            ->whereHas('booking', fn ($q) => $q->where('status', 'approved'))
+            ->where('status', BookingDetailStatus::APPROVED)
             ->get();
 
         return $sections->map(fn ($s) => [
@@ -120,9 +150,9 @@ class BookingService
 
     public function pendingRanges(int $roomId, Carbon $date): Collection
     {
-        $pendingBookings = BookingRoom::where('room_id', $roomId)
+        $pendingBookings = BookingDetail::where('room_id', $roomId)
             ->whereDate('start_datetime', $date)
-            ->whereHas('booking', fn ($q) => $q->where('status', 'pending'))
+            ->where('status', BookingDetailStatus::PENDING)
             ->get();
 
         return $pendingBookings->map(fn ($b) => [
@@ -132,22 +162,31 @@ class BookingService
         ]);
     }
 
-    public function pendingQueuePosition(BookingRoom $bookingRoom): int
+    public function pendingQueuePosition(BookingDetail $bookingDetail): int
     {
-        return BookingRoom::query()
-            ->where('room_id', $bookingRoom->room_id)
-            ->where('start_datetime', '<', $bookingRoom->end_datetime)
-            ->where('end_datetime', '>', $bookingRoom->start_datetime)
-            ->whereHas('booking', function ($query) use ($bookingRoom) {
-                $query->where('status', 'pending')
-                    ->where(function ($sub) use ($bookingRoom) {
-                        $sub->where('submitted_at', '<', $bookingRoom->booking->submitted_at)
-                            ->orWhere(function ($sub2) use ($bookingRoom) {
-                                $sub2->where('submitted_at', '=', $bookingRoom->booking->submitted_at)
-                                    ->where('id', '<=', $bookingRoom->booking->id);
-                            });
-                    });
+        $booking = $bookingDetail->booking;
+        if (! $booking) {
+            return 1;
+        }
+
+        // Jumlah detail berstatus 0 di ruangan yang sama dengan waktu tumpang tindih dan submitted_at lebih awal, + 1
+        $earlierCount = BookingDetail::query()
+            ->where('room_id', $bookingDetail->room_id)
+            ->where('status', BookingDetailStatus::PENDING)
+            ->where('id', '!=', $bookingDetail->id)
+            ->where('start_datetime', '<', $bookingDetail->end_datetime)
+            ->where('end_datetime', '>', $bookingDetail->start_datetime)
+            ->whereHas('booking', function ($query) use ($booking) {
+                $query->where(function ($sub) use ($booking) {
+                    $sub->where('submitted_at', '<', $booking->submitted_at)
+                        ->orWhere(function ($sub2) use ($booking) {
+                            $sub2->where('submitted_at', '=', $booking->submitted_at)
+                                ->where('id', '<', $booking->id);
+                        });
+                });
             })
             ->count();
+
+        return $earlierCount + 1;
     }
 }

@@ -21,13 +21,9 @@
                 </div>
                 <div class="card-body">
                     <div class="row g-3">
-                        <div class="col-md-6">
+                        <div class="col-12">
                             <label class="form-label fw-semibold">Nama Peminjam / Penanggung Jawab / Instansi <span class="text-danger">*</span></label>
                             <input class="form-control" name="requester_name" value="{{ old('requester_name', auth()->user()->name) }}" placeholder="Contoh: Valentino Hose / Himpunan IF" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Perkiraan Jumlah Peserta <span class="text-danger">*</span></label>
-                            <input class="form-control" name="participant_count" type="number" min="1" value="{{ old('participant_count', 30) }}" placeholder="Contoh: 35" required>
                         </div>
                         <div class="col-12">
                             <label class="form-label fw-semibold">Tujuan Kegiatan <span class="text-danger">*</span></label>

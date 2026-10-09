@@ -154,8 +154,8 @@
                                                 @endif
                                             </div>
                                             <div class="small text-secondary" style="font-size: 0.72rem;">{{ substr($sec->start_time, 0, 5) }} - {{ substr($sec->end_time, 0, 5) }}</div>
-                                            @if(auth()->check() && auth()->user()->isInternal())
-                                                <div class="small text-dark">{{ $sec->lecturer?->name ?? $sec->presenter_name }}</div>
+                                            @if($isInternal && $sec->display_lecturer)
+                                                <div class="small text-dark">{{ $sec->display_lecturer }}</div>
                                                 @if($sec->class_code)
                                                     <span class="badge text-bg-light border" style="font-size: 0.68rem;">{{ $sec->class_code }}</span>
                                                 @endif
@@ -169,25 +169,18 @@
                                     @endphp
                                     <td class="p-1" style="background-color: #BFE3F7; {{ $isStart ? '' : 'border-top: none;' }}">
                                         @if($isStart)
-                                            @if($bk->booking->status === 'pending')
+                                            @if($bk->status === \App\Constants\BookingDetailStatus::PENDING)
                                                 <div class="fw-bold text-primary">Pending ({{ $bk->queue_position ?? 1 }})</div>
                                                 <div class="small text-secondary" style="font-size: 0.70rem; line-height: 1.2;">Jika ingin meminjam pada jam yang sama akan masuk ke antrian selanjutnya</div>
                                                 <div class="small text-muted" style="font-size: 0.70rem;">{{ $bk->start_datetime->format('H:i') }} - {{ $bk->end_datetime->format('H:i') }}</div>
-                                                @if(auth()->check() && auth()->user()->isInternal())
-                                                    <div class="small text-dark fw-semibold mt-1">{{ $bk->booking->requester_name }}</div>
+                                                @if($isInternal)
+                                                    <div class="small text-dark fw-semibold mt-1">{{ $bk->display_requester }}</div>
                                                 @endif
                                             @else
-                                                @if(auth()->check() && auth()->user()->isInternal())
-                                                    <div class="fw-bold text-dark">Peminjaman: {{ $bk->booking->requester_name }}</div>
-                                                    <div class="small text-secondary" style="font-size: 0.72rem;">{{ $bk->start_datetime->format('H:i') }} - {{ $bk->end_datetime->format('H:i') }}</div>
+                                                <div class="fw-bold text-dark">{{ $bk->display_requester }}</div>
+                                                <div class="small text-secondary" style="font-size: 0.72rem;">{{ $bk->start_datetime->format('H:i') }} - {{ $bk->end_datetime->format('H:i') }}</div>
+                                                @if($isInternal)
                                                     <div class="small text-muted" style="font-size: 0.70rem;">{{ Str::limit($bk->booking->purpose, 25) }}</div>
-                                                @else
-                                                    @php
-                                                        $words = array_filter(preg_split('/[^a-zA-Z0-9]+/', trim($bk->booking->requester_name)));
-                                                        $initials = collect($words)->map(fn($w) => strtolower(substr($w, 0, 1)))->join('.');
-                                                    @endphp
-                                                    <div class="fw-bold text-dark">Peminjaman oleh {{ $initials }}</div>
-                                                    <div class="small text-secondary" style="font-size: 0.72rem;">{{ $bk->start_datetime->format('H:i') }} - {{ $bk->end_datetime->format('H:i') }}</div>
                                                 @endif
                                             @endif
                                         @endif

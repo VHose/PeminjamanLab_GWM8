@@ -39,20 +39,16 @@
                     </div>
 
                     <div class="row g-3 mb-3">
-                        <div class="col-md-6">
+                        <div class="col-md-12">
                             <label class="form-label fw-semibold">Dosen Pengampu</label>
                             <select class="form-select" name="lecturer_nik" id="lecturerSelect">
-                                <option value="">Dosen belum terdata / lainnya</option>
+                                <option value="">-- Pilih Dosen Pengampu --</option>
                                 @foreach($lecturers as $lecturer)
-                                    <option value="{{ $lecturer->nik }}" @selected(old('lecturer_nik') == $lecturer->nik)>
+                                    <option value="{{ $lecturer->id }}" @selected(old('lecturer_nik') == $lecturer->id)>
                                         {{ $lecturer->name }}
                                     </option>
                                 @endforeach
                             </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Nama Dosen / Praktisi (Jika belum terdata)</label>
-                            <input class="form-control" name="presenter_name" id="presenterInput" value="{{ old('presenter_name') }}" placeholder="Tulis nama dosen/pemateri...">
                         </div>
                     </div>
 
@@ -67,12 +63,15 @@
                             </select>
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label fw-semibold">Kode Kelas</label>
-                            <input class="form-control" name="class_code" value="{{ old('class_code') }}" placeholder="Contoh: IF-A / Kelas 1">
+                            <label class="form-label fw-semibold">Kode Kelas <span class="text-danger">*</span></label>
+                            <input class="form-control" name="class_code" value="{{ old('class_code', 'A') }}" placeholder="Contoh: A / B / C" required>
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label fw-semibold">Jenis Kelas</label>
-                            <input class="form-control" name="class_type" value="{{ old('class_type') }}" placeholder="Contoh: Teori / Praktikum">
+                            <label class="form-label fw-semibold">Tipe Jadwal <span class="text-danger">*</span></label>
+                            <select class="form-select" name="schedule_type" required>
+                                <option value="0" @selected(old('schedule_type', '0') == '0')>Reguler (Kuliah Biasa)</option>
+                                <option value="1" @selected(old('schedule_type') == '1')>Ujian (UTS / UAS)</option>
+                            </select>
                         </div>
                     </div>
 
