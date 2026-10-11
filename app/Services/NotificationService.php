@@ -6,6 +6,7 @@ use App\Models\Booking;
 use App\Models\User;
 use App\Notifications\BookingApprovedByKaprodiNotification;
 use App\Notifications\BookingFinalResultNotification;
+use App\Notifications\BookingSubmittedRequesterNotification;
 use App\Notifications\NewBookingSubmittedNotification;
 use App\Notifications\RescheduleBookingSubmittedNotification;
 use Illuminate\Support\Facades\Log;
@@ -13,7 +14,7 @@ use Illuminate\Support\Facades\Log;
 class NotificationService
 {
     /**
-     * Kirim notifikasi pengajuan baru ke semua Kepala_Prodi yang aktif.
+     * Kirim notifikasi pengajuan baru ke semua Kepala_Prodi yang aktif dan konfirmasi ke peminjam.
      */
     public function notifyNewBooking(Booking $booking): void
     {
@@ -30,8 +31,14 @@ class NotificationService
             foreach ($kaprodis as $kaprodi) {
                 $kaprodi->notify(new NewBookingSubmittedNotification($booking));
             }
+
+            // Kirim email bukti/detail pengajuan ke peminjam
+            $requester = $booking->requester;
+            if ($requester && $requester->email) {
+                $requester->notify(new BookingSubmittedRequesterNotification($booking));
+            }
         } catch (\Throwable $e) {
-            Log::error('Gagal mengirim email pengajuan baru ke Kaprodi: ' . $e->getMessage(), ['booking_id' => $booking->id]);
+            Log::error('Gagal mengirim email pengajuan baru: ' . $e->getMessage(), ['booking_id' => $booking->id]);
         }
     }
 
@@ -76,8 +83,14 @@ class NotificationService
             foreach ($kalabs as $kalab) {
                 $kalab->notify(new RescheduleBookingSubmittedNotification($booking));
             }
+
+            // Kirim email bukti/detail perubahan ke peminjam
+            $requester = $booking->requester;
+            if ($requester && $requester->email) {
+                $requester->notify(new BookingSubmittedRequesterNotification($booking));
+            }
         } catch (\Throwable $e) {
-            Log::error('Gagal mengirim email ubah jadwal ke Kalab: ' . $e->getMessage(), ['booking_id' => $booking->id]);
+            Log::error('Gagal mengirim email ubah jadwal: ' . $e->getMessage(), ['booking_id' => $booking->id]);
         }
     }
 

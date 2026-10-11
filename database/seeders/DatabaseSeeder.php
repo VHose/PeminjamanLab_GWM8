@@ -61,21 +61,21 @@ class DatabaseSeeder extends Seeder
         );
         $assignRole($admin, 'Admin');
 
-        // 4. Dosen yang juga Kepala_Prodi (2 baris user_role)
-        $kaprodi = User::query()->updateOrCreate(
-            ['email' => 'kaprodi@example.com'],
-            ['id' => '720319', 'name' => 'Rossevine Artha Nathasya, S.Kom., M.T.', 'study_program_id' => $prodiMap['IF'], 'password' => Hash::make('password')]
+        // 4. Dosen yang memegang peran Kepala_Prodi & Kepala_Lab (email testing: 2472026@maranatha.ac.id)
+        $kaprodiKalab = User::query()->updateOrCreate(
+            ['id' => '720282'],
+            ['email' => '2472026@maranatha.ac.id', 'name' => 'Andreas Widjaja, S.Si., M.Sc., Ph.D.', 'study_program_id' => $prodiMap['IF'], 'password' => Hash::make('password')]
         );
-        $assignRole($kaprodi, 'Dosen');
-        $assignRole($kaprodi, 'Kepala_Prodi');
+        $assignRole($kaprodiKalab, 'Dosen');
+        $assignRole($kaprodiKalab, 'Kepala_Prodi');
+        $assignRole($kaprodiKalab, 'Kepala_Lab');
 
-        // 5. Dosen yang juga Kepala_Lab (2 baris user_role)
-        $kalab = User::query()->updateOrCreate(
-            ['email' => 'kalab@example.com'],
-            ['id' => '720282', 'name' => 'Andreas Widjaja, S.Si., M.Sc., Ph.D.', 'study_program_id' => $prodiMap['IF'], 'password' => Hash::make('password')]
+        // Dosen lainnya
+        $dosenRossevine = User::query()->updateOrCreate(
+            ['id' => '720319'],
+            ['email' => 'rossevine@example.com', 'name' => 'Rossevine Artha Nathasya, S.Kom., M.T.', 'study_program_id' => $prodiMap['IF'], 'password' => Hash::make('password')]
         );
-        $assignRole($kalab, 'Dosen');
-        $assignRole($kalab, 'Kepala_Lab');
+        $assignRole($dosenRossevine, 'Dosen');
 
         // 6. Staf Lab
         $staf = User::query()->updateOrCreate(
@@ -257,7 +257,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         ActivityLog::query()->create([
-            'user_id' => $kaprodi->id,
+            'user_id' => $kaprodiKalab->id,
             'action' => 'approve',
             'entity_type' => 'booking',
             'entity_id' => (string) $bookingApproved->id,
@@ -268,7 +268,7 @@ class DatabaseSeeder extends Seeder
         $firstDetail = $bookingApproved->details->first();
         if ($firstDetail) {
             ActivityLog::query()->create([
-                'user_id' => $kalab->id,
+                'user_id' => $kaprodiKalab->id,
                 'action' => 'approve',
                 'entity_type' => 'booking_detail',
                 'entity_id' => (string) $firstDetail->id,
