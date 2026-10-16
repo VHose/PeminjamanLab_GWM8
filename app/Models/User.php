@@ -2,9 +2,10 @@
 
 namespace App\Models;
 
-use App\Constants\BookingDetailStatus;
-use App\Constants\BookingStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -20,11 +21,13 @@ class User extends Authenticatable
 
     protected $fillable = [
         'id',
+        'study_program_id',
         'name',
         'email',
-        'password',
         'phone',
-        'study_program_id',
+        'password',
+        'is_active',
+        'must_change_password',
     ];
 
     protected $hidden = [
@@ -35,84 +38,87 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
+            'is_active' => 'boolean',
+            'must_change_password' => 'boolean',
             'password' => 'hashed',
         ];
     }
 
     /* ── Relationships ── */
 
-    public function studyProgram()
+    public function studyProgram(): BelongsTo
     {
-        return $this->belongsTo(StudyProgram::class);
+        return $this->belongsTo(StudyProgram::class, 'study_program_id');
     }
 
-    public function roles()
+    public function roles(): BelongsToMany
     {
-        return $this->belongsToMany(Role::class, 'user_role')
-            ->withPivot('id', 'start_date', 'end_date')
-            ->withTimestamps();
+        return $this->belongsToMany(Role::class, 'user_role', 'user_id', 'role_id')
+            ->withPivot('period_id');
     }
 
-    public function userRoles()
+    public function userRoles(): HasMany
     {
-        return $this->hasMany(UserRole::class);
+        return $this->hasMany(UserRole::class, 'user_id');
     }
 
-    public function bookings()
+    public function schedules(): HasMany
     {
-        return $this->hasMany(Booking::class);
+        return $this->hasMany(Schedule::class, 'user_id');
     }
 
-    public function activityLogs()
+    public function bookings(): HasMany
     {
-        return $this->hasMany(ActivityLog::class);
+        return $this->hasMany(Booking::class, 'user_id');
     }
 
-    /* ── Active Role Helpers ── */
-
-    public function activeRoles()
+    public function activityLogs(): HasMany
     {
-        $today = now()->toDateString();
+        return $this->hasMany(ActivityLog::class, 'user_id');
+    }
 
-        return $this->belongsToMany(Role::class, 'user_role')
-            ->withPivot('id', 'start_date', 'end_date')
-            ->wherePivot('start_date', '<=', $today)
-            ->where(function ($q) use ($today) {
-                $q->whereNull('user_role.end_date')
-                  ->orWhere('user_role.end_date', '>=', $today);
-            })
-            ->withTimestamps();
+    /* ── Active Role Helpers (Per Periode) ── */
+
+    public function activePeriodId(): ?int
+    {
+        return Period::where('is_active', true)->value('id');
+    }
+
+    public function activeRoles(?int $periodId = null)
+    {
+        $targetPeriodId = $periodId ?? $this->activePeriodId();
+
+        $query = $this->belongsToMany(Role::class, 'user_role', 'user_id', 'role_id')
+            ->withPivot('period_id');
+
+        if ($targetPeriodId !== null) {
+            $query->wherePivot('period_id', $targetPeriodId);
+        }
+
+        return $query;
     }
 
     public function hasActiveRole(string ...$roleNames): bool
     {
-        $today = now()->toDateString();
+        $targetPeriodId = $this->activePeriodId();
 
-        $hasExplicit = $this->roles()
-            ->whereIn('role.name', $roleNames)
-            ->wherePivot('start_date', '<=', $today)
-            ->where(function ($q) use ($today) {
-                $q->whereNull('user_role.end_date')
-                  ->orWhere('user_role.end_date', '>=', $today);
-            })
-            ->exists();
+        $query = $this->roles()->whereIn('role.name', $roleNames);
+        if ($targetPeriodId !== null) {
+            $query->wherePivot('period_id', $targetPeriodId);
+        }
 
+        $hasExplicit = $query->exists();
         if ($hasExplicit) {
             return true;
         }
 
-        // Jika user tidak punya active role sama sekali, diperlakukan sebagai Visitor
+        // Jika user tidak punya role aktif pada periode ini, fallback sebagai Visitor
         if (in_array('Visitor', $roleNames, true)) {
-            $hasAnyActive = $this->roles()
-                ->wherePivot('start_date', '<=', $today)
-                ->where(function ($q) use ($today) {
-                    $q->whereNull('user_role.end_date')
-                      ->orWhere('user_role.end_date', '>=', $today);
-                })
-                ->exists();
-
-            return ! $hasAnyActive;
+            $anyRoleQuery = $this->roles();
+            if ($targetPeriodId !== null) {
+                $anyRoleQuery->wherePivot('period_id', $targetPeriodId);
+            }
+            return ! $anyRoleQuery->exists();
         }
 
         return false;
@@ -124,9 +130,9 @@ class User extends Authenticatable
         return $this->hasActiveRole(...$roles);
     }
 
-    public function isInternal(): bool
+    public function isInternal(?int $periodId = null): bool
     {
-        $names = $this->activeRoles()->pluck('name');
+        $names = $this->activeRoles($periodId)->pluck('name');
 
         return $names->isNotEmpty() && $names->contains(fn ($n) => $n !== 'Visitor');
     }

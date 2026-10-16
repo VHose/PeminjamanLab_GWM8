@@ -1,0 +1,29 @@
+{
+ "period": "2026/2027 Ganjil",
+ "source": "Kalender akademik Semester Ganjil 26/27",
+ "uts": {
+  "start": "2026-11-02",
+  "end": "2026-11-13"
+ },
+ "uas": {
+  "start": "2027-01-18",
+  "end": "2027-01-29"
+ },
+ "holidays": [
+  {
+   "start_date": "2026-12-21",
+   "end_date": "2027-01-03",
+   "note": "NATARU (Natal dan Tahun Baru)"
+  },
+  {
+   "start_date": "2027-01-04",
+   "end_date": "2027-01-04",
+   "note": "Libur (merah di kalender akademik)"
+  },
+  {
+   "start_date": "2027-01-05",
+   "end_date": "2027-01-05",
+   "note": "Isra' Mi'raj Nabi Muhammad SAW"
+  }
+ ]
+}

@@ -9,32 +9,47 @@ class UserRole extends Model
 {
     protected $table = 'user_role';
 
-    protected $fillable = ['user_id', 'role_id', 'start_date', 'end_date'];
+    public $timestamps = false;
+
+    public $incrementing = false;
+
+    protected $primaryKey = ['user_id', 'role_id', 'period_id'];
+
+    protected $fillable = [
+        'user_id',
+        'role_id',
+        'period_id',
+    ];
 
     protected function casts(): array
     {
         return [
-            'start_date' => 'date',
-            'end_date' => 'date',
+            'role_id' => 'integer',
+            'period_id' => 'integer',
         ];
+    }
+
+    protected function setKeysForSaveQuery($query)
+    {
+        $query->where('user_id', '=', $this->getAttribute('user_id'))
+              ->where('role_id', '=', $this->getAttribute('role_id'))
+              ->where('period_id', '=', $this->getAttribute('period_id'));
+
+        return $query;
     }
 
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     public function role(): BelongsTo
     {
-        return $this->belongsTo(Role::class);
+        return $this->belongsTo(Role::class, 'role_id');
     }
 
-    /** Check if this role assignment is active today. */
-    public function isActive(): bool
+    public function period(): BelongsTo
     {
-        $today = now()->toDateString();
-
-        return $this->start_date->toDateString() <= $today
-            && ($this->end_date === null || $this->end_date->toDateString() >= $today);
+        return $this->belongsTo(Period::class, 'period_id');
     }
 }

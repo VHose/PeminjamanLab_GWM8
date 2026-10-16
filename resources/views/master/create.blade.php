@@ -16,44 +16,54 @@
                 <form method="post" action="{{ route('master.store', $type) }}">
                     @csrf
 
-                    @foreach($config['fields'] as $field => $label)
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">{{ $config['pk_label'] }} <span class="text-danger">*</span></label>
+                        <input type="text" name="id" class="form-control" value="{{ old('id') }}" required maxlength="{{ $type === 'courses' ? 15 : ($type === 'rooms' ? 10 : 5) }}">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Nama {{ $config['label'] }} <span class="text-danger">*</span></label>
+                        <input type="text" name="name" class="form-control" value="{{ old('name') }}" required maxlength="100">
+                    </div>
+
+                    @if($type === 'study-programs')
                         <div class="mb-3">
-                            <label class="form-label fw-semibold">{{ $label }}</label>
-
-                            @if($field === 'study_program_id')
-                                <select class="form-select" name="{{ $field }}" required>
-                                    <option value="">-- Pilih Program Studi --</option>
-                                    @foreach($studyPrograms as $program)
-                                        <option value="{{ $program->id }}" @selected(old($field) == $program->id)>
-                                            {{ $program->code }} — {{ $program->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            @elseif($field === 'active' || $field === 'is_active')
-                                <input type="hidden" name="{{ $field }}" value="0">
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" name="{{ $field }}" value="1" id="activeCheck" @checked(old($field, true))>
-                                    <label class="form-check-label" for="activeCheck">Status Aktif</label>
-                                </div>
-                            @elseif($field === 'description')
-                                <textarea class="form-control" name="description" rows="3" placeholder="Deskripsi atau fasilitas ruangan...">{{ old($field) }}</textarea>
-                            @elseif($field === 'color_hex')
-                                <input class="form-control form-control-color" type="color" name="color_hex" value="{{ old('color_hex', '#FFF3B0') }}" title="Pilih warna">
-                            @elseif(in_array($field, ['start_date', 'end_date', 'uts_start', 'uts_end', 'uas_start', 'uas_end'], true))
-                                <input class="form-control" type="date" name="{{ $field }}" value="{{ old($field) }}">
-                            @elseif($field === 'capacity')
-                                <input class="form-control" type="number" min="1" name="capacity" value="{{ old('capacity') }}" placeholder="Jumlah kapasitas orang">
-                            @elseif($field === 'email')
-                                <input class="form-control" type="email" name="email" value="{{ old('email') }}" placeholder="email@example.com">
-                            @else
-                                <input class="form-control" type="text" name="{{ $field }}" value="{{ old($field) }}" placeholder="Masukkan {{ strtolower($label) }}...">
-                            @endif
+                            <label class="form-label fw-semibold">Warna Jadwal <span class="text-danger">*</span></label>
+                            <div class="d-flex align-items-center gap-2">
+                                <input type="color" name="color_hex" class="form-control form-control-color" value="{{ old('color_hex', '#E2E3E5') }}" title="Pilih warna untuk jadwal prodi ini">
+                                <input type="text" class="form-control" style="max-width:120px;" value="{{ old('color_hex', '#E2E3E5') }}" readonly id="colorHexText">
+                            </div>
+                            <div class="form-text">Warna yang tampil di grid jadwal untuk mata kuliah prodi ini.</div>
                         </div>
-                    @endforeach
+                    @endif
 
-                    <div class="d-flex justify-content-end gap-2 mt-4">
-                        <a class="btn btn-light border" href="{{ route('master.index', $type) }}">Batal</a>
-                        <button type="submit" class="btn btn-primary">Simpan Data</button>
+                    @if($type === 'rooms')
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Kapasitas (Orang)</label>
+                            <input type="number" name="capacity" class="form-control" value="{{ old('capacity') }}" min="1" max="200" placeholder="Contoh: 40">
+                        </div>
+                    @elseif($type === 'courses')
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Program Studi <span class="text-danger">*</span></label>
+                            <select name="study_program_id" class="form-select" required>
+                                <option value="">-- Pilih Program Studi --</option>
+                                @foreach($studyPrograms as $sp)
+                                    <option value="{{ $sp->id }}" @selected(old('study_program_id') == $sp->id)>
+                                        {{ $sp->id }} — {{ $sp->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    @endif
+
+                    <div class="form-check form-switch mb-4">
+                        <input class="form-check-input" type="checkbox" name="is_active" value="1" id="activeCheck" @checked(old('is_active', true))>
+                        <label class="form-check-label fw-semibold" for="activeCheck">Status Aktif</label>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <a class="btn btn-outline-secondary" href="{{ route('master.index', $type) }}">Batal</a>
+                        <button type="submit" class="btn btn-primary px-4">Simpan Data</button>
                     </div>
                 </form>
             </div>
@@ -61,3 +71,19 @@
     </div>
 </div>
 @endsection
+
+@if($type === 'study-programs')
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const picker = document.querySelector('input[name="color_hex"]');
+    const text = document.getElementById('colorHexText');
+    if (picker && text) {
+        picker.addEventListener('input', function() {
+            text.value = this.value.toUpperCase();
+        });
+    }
+});
+</script>
+@endpush
+@endif

@@ -2,6 +2,8 @@
 
 namespace App\Constants;
 
+use App\Enums\BookingStatus as BookingStatusEnum;
+
 class BookingStatus
 {
     public const PENDING_KAPRODI = 0;
@@ -9,6 +11,7 @@ class BookingStatus
     public const APPROVED = 2;
     public const REJECTED = 3;
     public const CANCELLED = 4;
+    public const CHANGE_REQUESTED = 5;
 
     public const LABELS = [
         self::PENDING_KAPRODI => 'Menunggu Kaprodi',
@@ -16,10 +19,11 @@ class BookingStatus
         self::APPROVED => 'Disetujui',
         self::REJECTED => 'Ditolak',
         self::CANCELLED => 'Dibatalkan',
+        self::CHANGE_REQUESTED => 'Perubahan Diajukan',
     ];
 
     public static function label(int $value): string
     {
-        return self::LABELS[$value] ?? 'Tidak Diketahui';
+        return BookingStatusEnum::tryFrom($value)?->label() ?? self::LABELS[$value] ?? 'Tidak Diketahui';
     }
 }

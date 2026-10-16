@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -11,30 +12,53 @@ class ActivityLog extends Model
 
     public $timestamps = false;
 
-    protected $fillable = ['user_id', 'action', 'entity_type', 'entity_id', 'data', 'created_at'];
+    public $incrementing = false;
 
-    protected function casts(): array
-    {
-        return [
-            'data' => 'array',
-            'created_at' => 'datetime',
-        ];
-    }
+    protected $primaryKey = 'created_at';
+
+    protected $keyType = 'string';
+
+    protected $fillable = [
+        'created_at',
+        'user_id',
+        'action',
+        'subject_type',
+        'subject_id',
+        'description',
+        'ip_address',
+    ];
 
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     /**
-     * Override to only set created_at, since there is no updated_at column.
+     * Helper untuk mencatat log aktivitas dengan presisi mikrodetik pada PK created_at.
      */
-    public static function boot(): void
-    {
-        parent::boot();
+    public static function record(
+        ?string $userId,
+        string $action,
+        string $subjectType,
+        string|int $subjectId,
+        ?string $description = null,
+        ?string $ipAddress = null
+    ): self {
+        $timestamp = Carbon::now()->format('Y-m-d H:i:s.u');
 
-        static::creating(function (self $model) {
-            $model->created_at = $model->created_at ?? now();
-        });
+        // Pastikan tidak ada collision PK mikrodetik jika terjadi insert beruntun cepat
+        while (static::where('created_at', $timestamp)->exists()) {
+            $timestamp = Carbon::parse($timestamp)->addMicroseconds(1)->format('Y-m-d H:i:s.u');
+        }
+
+        return static::create([
+            'created_at' => $timestamp,
+            'user_id' => $userId,
+            'action' => substr($action, 0, 30),
+            'subject_type' => substr($subjectType, 0, 30),
+            'subject_id' => substr((string) $subjectId, 0, 30),
+            'description' => $description ? substr($description, 0, 255) : null,
+            'ip_address' => $ipAddress ?? request()?->ip(),
+        ]);
     }
 }

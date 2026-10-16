@@ -2,6 +2,8 @@
 
 namespace App\Constants;
 
+use App\Enums\BookingDetailStatus as BookingDetailStatusEnum;
+
 class BookingDetailStatus
 {
     public const PENDING = 0;
@@ -18,6 +20,6 @@ class BookingDetailStatus
 
     public static function label(int $value): string
     {
-        return self::LABELS[$value] ?? 'Tidak Diketahui';
+        return BookingDetailStatusEnum::tryFrom($value)?->label() ?? self::LABELS[$value] ?? 'Tidak Diketahui';
     }
 }

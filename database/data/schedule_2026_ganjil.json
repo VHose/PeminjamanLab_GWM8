@@ -1,0 +1,1820 @@
+{
+ "period": "2026/2027 Ganjil",
+ "source": "JadwalFinal.pdf (Program Sarjana Teknik Informatika). Hanya baris yang memakai lab GWM lantai 8",
+ "lecturers": [
+  {
+   "id": "210292",
+   "name": "Prof. Robby Yussac Tallar, S.T., M.T., Dipl.IWRM, Ph.D."
+  },
+  {
+   "id": "230406",
+   "name": "Ir. Yulianti, S.T., M.T., IPM."
+  },
+  {
+   "id": "230648",
+   "name": "Dr. Eng. Andrijanto, S.T., M.Eng."
+  },
+  {
+   "id": "310719",
+   "name": "Dr. Tery Setiawan, B.A., S.Psi., M.Si."
+  },
+  {
+   "id": "410117",
+   "name": "Pritz Hutabarat, S.T., M.Pd., Ph.D."
+  },
+  {
+   "id": "710003",
+   "name": "Djoni Setiawan Kartawihardja, S.T., M.T."
+  },
+  {
+   "id": "710004",
+   "name": "Prof. Dr. Hapnes Toba, M.Sc."
+  },
+  {
+   "id": "710071",
+   "name": "Tiur Gantini, S.T., M.T."
+  },
+  {
+   "id": "710096",
+   "name": "Sulaeman Santoso, S.Kom., M.T."
+  },
+  {
+   "id": "720004",
+   "name": "Ir. Teddy Marcus Zakaria, M.T."
+  },
+  {
+   "id": "720062",
+   "name": "Dr. Bernard R. Suteja, S.Kom., M.Kom."
+  },
+  {
+   "id": "720080",
+   "name": "Tjatur Kandaga, S.Si., M.T."
+  },
+  {
+   "id": "720140",
+   "name": "Prof. Dr. Ir. Mewati Ayub, M.T."
+  },
+  {
+   "id": "720211",
+   "name": "Diana Trivena Yulianti, S.Kom., M.T."
+  },
+  {
+   "id": "720212",
+   "name": "Daniel Jahja Surjawan, S.Kom., M.T."
+  },
+  {
+   "id": "720225",
+   "name": "Meliana Christianti, S.Kom., M.T."
+  },
+  {
+   "id": "720246",
+   "name": "Dr. Timotius Witono, S.Kom., M.T."
+  },
+  {
+   "id": "720247",
+   "name": "Erico Darmawan Handoyo, S.Kom., M.T."
+  },
+  {
+   "id": "720282",
+   "name": "Andreas Widjaja, S.Si., M.Sc., Ph.D."
+  },
+  {
+   "id": "720302",
+   "name": "Maresha Caroline Wijanto, S.Kom., M.T., Ph.D."
+  },
+  {
+   "id": "720303",
+   "name": "Wenny Franciska Senjaya, S.Kom., M.T., Ph.D."
+  },
+  {
+   "id": "720307",
+   "name": "Robby Tan, S.T., M.Kom."
+  },
+  {
+   "id": "720309",
+   "name": "Oscar Karnalim, S.T., M.T., Ph.D., SMIEEE."
+  },
+  {
+   "id": "720319",
+   "name": "Rossevine Artha Nathasya, S.Kom., M.T."
+  },
+  {
+   "id": "730001",
+   "name": "Radiant V. Imbar, S.Kom., M.T."
+  },
+  {
+   "id": "730015",
+   "name": "Dr. Niko Ibrahim, S.Kom., MIT."
+  },
+  {
+   "id": "730049",
+   "name": "Adelia, S.Kom., M.T."
+  },
+  {
+   "id": "730062",
+   "name": "Sendy Ferdian Sujadi, S.Kom., M.T."
+  },
+  {
+   "id": "99000723",
+   "name": "Ir. Aan Darmawan Hangkawidjaja, M.T."
+  }
+ ],
+ "courses": [
+  {
+   "id": "INF001202672",
+   "study_program_id": "72",
+   "name": "Logika Informatika"
+  },
+  {
+   "id": "IN013",
+   "study_program_id": "72",
+   "name": "Matematika Informatika"
+  },
+  {
+   "id": "INF002202672",
+   "study_program_id": "72",
+   "name": "Computational Thinking"
+  },
+  {
+   "id": "INF003202672",
+   "study_program_id": "72",
+   "name": "Jaringan Komputer"
+  },
+  {
+   "id": "INF004202672",
+   "study_program_id": "72",
+   "name": "Bahasa Inggris untuk Praktisi Teknologi Informasi"
+  },
+  {
+   "id": "INF005202672",
+   "study_program_id": "72",
+   "name": "Pengantar Aplikasi Komputer"
+  },
+  {
+   "id": "INF006202672",
+   "study_program_id": "72",
+   "name": "User-Centric Informatics"
+  },
+  {
+   "id": "IN220",
+   "study_program_id": "72",
+   "name": "Dasar Pemrograman"
+  },
+  {
+   "id": "IN230",
+   "study_program_id": "72",
+   "name": "Rekayasa Perangkat Lunak"
+  },
+  {
+   "id": "IN231",
+   "study_program_id": "72",
+   "name": "Teknologi Multimedia"
+  },
+  {
+   "id": "IN232",
+   "study_program_id": "72",
+   "name": "Matematika Diskrit"
+  },
+  {
+   "id": "IN233",
+   "study_program_id": "72",
+   "name": "Algoritma dan Struktur Data"
+  },
+  {
+   "id": "IN234",
+   "study_program_id": "72",
+   "name": "Paradigma Pemrograman"
+  },
+  {
+   "id": "IN041",
+   "study_program_id": "72",
+   "name": "Pemrograman Berorientasi Objek 1 B kelas C)"
+  },
+  {
+   "id": "IN237",
+   "study_program_id": "72",
+   "name": "Basis Data Lanjut"
+  },
+  {
+   "id": "IN243",
+   "study_program_id": "72",
+   "name": "Sistem Operasi Komputer"
+  },
+  {
+   "id": "IN236",
+   "study_program_id": "72",
+   "name": "Pemrograman Terapan"
+  },
+  {
+   "id": "IN051",
+   "study_program_id": "72",
+   "name": "Pemrograman Berorientasi Objek 2 B kelas B)"
+  },
+  {
+   "id": "IN250",
+   "study_program_id": "72",
+   "name": "Manajemen Proyek"
+  },
+  {
+   "id": "IN253",
+   "study_program_id": "72",
+   "name": "Grafika Komputer"
+  },
+  {
+   "id": "IN063",
+   "study_program_id": "72",
+   "name": "Grafika Komputer kelas A"
+  },
+  {
+   "id": "IN254",
+   "study_program_id": "72",
+   "name": "Proyek Perangkat Lunak"
+  },
+  {
+   "id": "IN255",
+   "study_program_id": "72",
+   "name": "Proses Bisnis"
+  },
+  {
+   "id": "IN270",
+   "study_program_id": "72",
+   "name": "Kerja Praktik"
+  },
+  {
+   "id": "IN280",
+   "study_program_id": "72",
+   "name": "Seminar Tugas Akhir"
+  },
+  {
+   "id": "IN070",
+   "study_program_id": "72",
+   "name": "Seminar Tugas Akhir"
+  },
+  {
+   "id": "IN281",
+   "study_program_id": "72",
+   "name": "Tugas Akhir"
+  },
+  {
+   "id": "IN080",
+   "study_program_id": "72",
+   "name": "Tugas Akhir"
+  },
+  {
+   "id": "IN262",
+   "study_program_id": "72",
+   "name": "Pemrograman Mobile"
+  },
+  {
+   "id": "IN264",
+   "study_program_id": "72",
+   "name": "Web Semantik"
+  },
+  {
+   "id": "IN267",
+   "study_program_id": "72",
+   "name": "Administrasi Jaringan Komputer"
+  },
+  {
+   "id": "IN271",
+   "study_program_id": "72",
+   "name": "Internet of Things"
+  },
+  {
+   "id": "IN285",
+   "study_program_id": "72",
+   "name": "Pemrograman Multi-Platform"
+  },
+  {
+   "id": "IN286",
+   "study_program_id": "72",
+   "name": "Pemrosesan Bahasa Alami"
+  },
+  {
+   "id": "IN261",
+   "study_program_id": "72",
+   "name": "Start-up Technopreneur"
+  },
+  {
+   "id": "IN260",
+   "study_program_id": "72",
+   "name": "Metode Penelitian Informatika"
+  },
+  {
+   "id": "IN252",
+   "study_program_id": "72",
+   "name": "Desain Antarmuka"
+  },
+  {
+   "id": "IN061",
+   "study_program_id": "72",
+   "name": "Desain Antarmuka Pengguna"
+  },
+  {
+   "id": "IN062",
+   "study_program_id": "72",
+   "name": "Metode Penelitian Informatika"
+  },
+  {
+   "id": "INF28T202472",
+   "study_program_id": "72",
+   "name": "Program Pengayaan Studi Independen 10"
+  },
+  {
+   "id": "SIB001202373",
+   "study_program_id": "73",
+   "name": "Sistem Informasi"
+  },
+  {
+   "id": "SIB002202373",
+   "study_program_id": "73",
+   "name": "Pemrograman Dasar"
+  },
+  {
+   "id": "SIB003202373",
+   "study_program_id": "73",
+   "name": "Statistika Deskriptif dan Probabilitas"
+  },
+  {
+   "id": "SIB004202373",
+   "study_program_id": "73",
+   "name": "Pengenalan Enterprise Architecture"
+  },
+  {
+   "id": "SIB005202373",
+   "study_program_id": "73",
+   "name": "E-Bisnis Fundamental dan Manajemen E-Commerce"
+  },
+  {
+   "id": "SIB012202373",
+   "study_program_id": "73",
+   "name": "Visualisasi Data"
+  },
+  {
+   "id": "SIB013202373",
+   "study_program_id": "73",
+   "name": "Sistem Informasi Manajemen Rantai Pasokan"
+  },
+  {
+   "id": "SIB014202373",
+   "study_program_id": "73",
+   "name": "Pemasaran Online"
+  },
+  {
+   "id": "SIB015202373",
+   "study_program_id": "73",
+   "name": "Administrasi Basis Data"
+  },
+  {
+   "id": "SIB016202373",
+   "study_program_id": "73",
+   "name": "Dasar Desain Antarmuka Pengguna"
+  },
+  {
+   "id": "SIB017202373",
+   "study_program_id": "73",
+   "name": "Organisasi dan Manajemen Perusahaan Industri"
+  },
+  {
+   "id": "SIB025202373",
+   "study_program_id": "73",
+   "name": "Kerja Praktek Kompetensi"
+  },
+  {
+   "id": "SIB026202373",
+   "study_program_id": "73",
+   "name": "Pengenalan Data Engineering"
+  },
+  {
+   "id": "SIB027202373",
+   "study_program_id": "73",
+   "name": "Bahasa Inggris untuk Bisnis"
+  },
+  {
+   "id": "SIB028202373",
+   "study_program_id": "73",
+   "name": "Sistem Operasi dan Jaringan Komputer"
+  },
+  {
+   "id": "SIB029202373",
+   "study_program_id": "73",
+   "name": "Keamanan Sistem Informasi"
+  },
+  {
+   "id": "SIB030202373",
+   "study_program_id": "73",
+   "name": "Manajemen Proyek Teknologi Informasi"
+  },
+  {
+   "id": "SIB031202373",
+   "study_program_id": "73",
+   "name": "Manajemen Resiko Teknologi Informasi"
+  },
+  {
+   "id": "SIB039202373",
+   "study_program_id": "73",
+   "name": "Kapita Selekta"
+  },
+  {
+   "id": "SIB040202373",
+   "study_program_id": "73",
+   "name": "Pengembangan Aplikasi Enterprise"
+  },
+  {
+   "id": "SIB041202373",
+   "study_program_id": "73",
+   "name": "Strategi Penelitian"
+  },
+  {
+   "id": "SIB042202373",
+   "study_program_id": "73",
+   "name": "Sistem Manajemen Pengetahuan"
+  },
+  {
+   "id": "SIB043202373",
+   "study_program_id": "73",
+   "name": "Teknologi Penyimpanan Data"
+  },
+  {
+   "id": "SIB044202373",
+   "study_program_id": "73",
+   "name": "Keamanan Siber"
+  },
+  {
+   "id": "SIB045202373",
+   "study_program_id": "73",
+   "name": "Tugas Akhir"
+  },
+  {
+   "id": "BIH01",
+   "study_program_id": "73",
+   "name": "Program Pengayaan"
+  },
+  {
+   "id": "SIB046202373",
+   "study_program_id": "73",
+   "name": "Program Pengayaan-MBKM 1"
+  },
+  {
+   "id": "SIB047202373",
+   "study_program_id": "73",
+   "name": "Program Pengayaan-MBKM 2"
+  }
+ ],
+ "schedules": [
+  {
+   "course_id": "INF001202672",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 1,
+   "user_id": "720282",
+   "room_id": "DB",
+   "start_time": "07:00",
+   "end_time": "08:40"
+  },
+  {
+   "course_id": "INF001202672",
+   "class_code": "A",
+   "type": 1,
+   "day_of_week": 1,
+   "user_id": "720319",
+   "room_id": "DB",
+   "start_time": "09:30",
+   "end_time": "11:30"
+  },
+  {
+   "course_id": "INF001202672",
+   "class_code": "B",
+   "type": 0,
+   "day_of_week": 1,
+   "user_id": "720319",
+   "room_id": "DB",
+   "start_time": "12:30",
+   "end_time": "14:10"
+  },
+  {
+   "course_id": "IN013",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 1,
+   "user_id": "720319",
+   "room_id": "DB",
+   "start_time": "12:30",
+   "end_time": "14:10"
+  },
+  {
+   "course_id": "INF001202672",
+   "class_code": "B",
+   "type": 1,
+   "day_of_week": 1,
+   "user_id": "720319",
+   "room_id": "DB",
+   "start_time": "15:00",
+   "end_time": "17:00"
+  },
+  {
+   "course_id": "INF002202672",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 2,
+   "user_id": "720140",
+   "room_id": "ADV4",
+   "start_time": "13:00",
+   "end_time": "14:40"
+  },
+  {
+   "course_id": "INF002202672",
+   "class_code": "B",
+   "type": 0,
+   "day_of_week": 4,
+   "user_id": "720140",
+   "room_id": "MMD",
+   "start_time": "13:00",
+   "end_time": "14:40"
+  },
+  {
+   "course_id": "INF003202672",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 3,
+   "user_id": "720246",
+   "room_id": "INT1",
+   "start_time": "13:00",
+   "end_time": "14:40"
+  },
+  {
+   "course_id": "INF003202672",
+   "class_code": "A",
+   "type": 1,
+   "day_of_week": 3,
+   "user_id": "720246",
+   "room_id": "INT1",
+   "start_time": "15:00",
+   "end_time": "17:00"
+  },
+  {
+   "course_id": "INF003202672",
+   "class_code": "B",
+   "type": 0,
+   "day_of_week": 2,
+   "user_id": "720212",
+   "room_id": "Network",
+   "start_time": "07:00",
+   "end_time": "08:40"
+  },
+  {
+   "course_id": "INF003202672",
+   "class_code": "B",
+   "type": 1,
+   "day_of_week": 2,
+   "user_id": "720212",
+   "room_id": "Network",
+   "start_time": "09:30",
+   "end_time": "11:30"
+  },
+  {
+   "course_id": "INF004202672",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 3,
+   "user_id": "410117",
+   "room_id": "DB",
+   "start_time": "10:00",
+   "end_time": "11:40"
+  },
+  {
+   "course_id": "INF004202672",
+   "class_code": "B",
+   "type": 0,
+   "day_of_week": 3,
+   "user_id": "410117",
+   "room_id": "DB",
+   "start_time": "13:00",
+   "end_time": "14:40"
+  },
+  {
+   "course_id": "INF005202672",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 2,
+   "user_id": "720303",
+   "room_id": "DB",
+   "start_time": "09:30",
+   "end_time": "11:10"
+  },
+  {
+   "course_id": "INF005202672",
+   "class_code": "B",
+   "type": 0,
+   "day_of_week": 3,
+   "user_id": "230648",
+   "room_id": "DB",
+   "start_time": "07:30",
+   "end_time": "09:10"
+  },
+  {
+   "course_id": "INF006202672",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 4,
+   "user_id": "720302",
+   "room_id": "DB",
+   "start_time": "12:30",
+   "end_time": "14:10"
+  },
+  {
+   "course_id": "INF006202672",
+   "class_code": "B",
+   "type": 0,
+   "day_of_week": 3,
+   "user_id": "720303",
+   "room_id": "ADV2",
+   "start_time": "09:30",
+   "end_time": "11:10"
+  },
+  {
+   "course_id": "INF006202672",
+   "class_code": "AB",
+   "type": 0,
+   "day_of_week": 4,
+   "user_id": "310719",
+   "room_id": "MMD",
+   "start_time": "08:00",
+   "end_time": "09:40",
+   "meetings": [
+    2,
+    6
+   ]
+  },
+  {
+   "course_id": "IN220",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 2,
+   "user_id": "720140",
+   "room_id": "ADV4",
+   "start_time": "09:30",
+   "end_time": "11:10"
+  },
+  {
+   "course_id": "IN220",
+   "class_code": "A1",
+   "type": 1,
+   "day_of_week": 4,
+   "user_id": "720319",
+   "room_id": "ADV3",
+   "start_time": "09:30",
+   "end_time": "11:30"
+  },
+  {
+   "course_id": "IN220",
+   "class_code": "A2",
+   "type": 1,
+   "day_of_week": 4,
+   "user_id": "720319",
+   "room_id": "ADV3",
+   "start_time": "12:30",
+   "end_time": "14:30"
+  },
+  {
+   "course_id": "IN230",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 3,
+   "user_id": "720302",
+   "room_id": "ADV1",
+   "start_time": "15:00",
+   "end_time": "17:30"
+  },
+  {
+   "course_id": "IN230",
+   "class_code": "B",
+   "type": 0,
+   "day_of_week": 4,
+   "user_id": "720302",
+   "room_id": "DB",
+   "start_time": "15:00",
+   "end_time": "17:30"
+  },
+  {
+   "course_id": "IN231",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 2,
+   "user_id": "720247",
+   "room_id": "ADV3",
+   "start_time": "07:00",
+   "end_time": "08:40"
+  },
+  {
+   "course_id": "IN231",
+   "class_code": "B",
+   "type": 0,
+   "day_of_week": 2,
+   "user_id": "720247",
+   "room_id": "ADV3",
+   "start_time": "09:30",
+   "end_time": "11:10"
+  },
+  {
+   "course_id": "IN232",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 4,
+   "user_id": "720282",
+   "room_id": "INT1",
+   "start_time": "07:00",
+   "end_time": "09:30"
+  },
+  {
+   "course_id": "IN232",
+   "class_code": "B",
+   "type": 0,
+   "day_of_week": 4,
+   "user_id": "720282",
+   "room_id": "ADV2",
+   "start_time": "15:00",
+   "end_time": "17:30"
+  },
+  {
+   "course_id": "IN233",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 2,
+   "user_id": "720309",
+   "room_id": "ADV1",
+   "start_time": "15:00",
+   "end_time": "17:30"
+  },
+  {
+   "course_id": "IN233",
+   "class_code": "A",
+   "type": 1,
+   "day_of_week": 2,
+   "user_id": "720309",
+   "room_id": "ADV1",
+   "start_time": "17:30",
+   "end_time": "19:30"
+  },
+  {
+   "course_id": "IN233",
+   "class_code": "B",
+   "type": 0,
+   "day_of_week": 2,
+   "user_id": "720303",
+   "room_id": "ADV3",
+   "start_time": "15:00",
+   "end_time": "17:30"
+  },
+  {
+   "course_id": "IN233",
+   "class_code": "B",
+   "type": 1,
+   "day_of_week": 3,
+   "user_id": "720303",
+   "room_id": "ADV2",
+   "start_time": "07:30",
+   "end_time": "09:30"
+  },
+  {
+   "course_id": "IN233",
+   "class_code": "C",
+   "type": 0,
+   "day_of_week": 4,
+   "user_id": "720303",
+   "room_id": "ADV2",
+   "start_time": "09:30",
+   "end_time": "12:00"
+  },
+  {
+   "course_id": "IN233",
+   "class_code": "C",
+   "type": 1,
+   "day_of_week": 4,
+   "user_id": "720303",
+   "room_id": "ADV2",
+   "start_time": "13:00",
+   "end_time": "15:00"
+  },
+  {
+   "course_id": "IN234",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 1,
+   "user_id": "720307",
+   "room_id": "ADV1",
+   "start_time": "09:30",
+   "end_time": "12:00"
+  },
+  {
+   "course_id": "IN234",
+   "class_code": "A",
+   "type": 1,
+   "day_of_week": 1,
+   "user_id": "720307",
+   "room_id": "ADV1",
+   "start_time": "12:30",
+   "end_time": "14:30"
+  },
+  {
+   "course_id": "IN234",
+   "class_code": "B",
+   "type": 0,
+   "day_of_week": 2,
+   "user_id": "720307",
+   "room_id": "ADV1",
+   "start_time": "09:30",
+   "end_time": "12:00"
+  },
+  {
+   "course_id": "IN234",
+   "class_code": "B",
+   "type": 1,
+   "day_of_week": 2,
+   "user_id": "720307",
+   "room_id": "ADV1",
+   "start_time": "12:30",
+   "end_time": "14:30"
+  },
+  {
+   "course_id": "IN234",
+   "class_code": "C",
+   "type": 0,
+   "day_of_week": 3,
+   "user_id": "720307",
+   "room_id": "ADV1",
+   "start_time": "09:30",
+   "end_time": "12:00"
+  },
+  {
+   "course_id": "IN041",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 3,
+   "user_id": "720307",
+   "room_id": "ADV1",
+   "start_time": "09:30",
+   "end_time": "12:00"
+  },
+  {
+   "course_id": "IN234",
+   "class_code": "C",
+   "type": 1,
+   "day_of_week": 3,
+   "user_id": "720307",
+   "room_id": "ADV1",
+   "start_time": "12:30",
+   "end_time": "14:30"
+  },
+  {
+   "course_id": "IN041",
+   "class_code": "A",
+   "type": 1,
+   "day_of_week": 3,
+   "user_id": "720307",
+   "room_id": "ADV1",
+   "start_time": "12:30",
+   "end_time": "14:30"
+  },
+  {
+   "course_id": "IN237",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 1,
+   "user_id": "720004",
+   "room_id": "ADV3",
+   "start_time": "09:30",
+   "end_time": "11:10"
+  },
+  {
+   "course_id": "IN237",
+   "class_code": "A",
+   "type": 1,
+   "day_of_week": 1,
+   "user_id": "720004",
+   "room_id": "ADV3",
+   "start_time": "12:30",
+   "end_time": "14:30"
+  },
+  {
+   "course_id": "IN237",
+   "class_code": "B",
+   "type": 0,
+   "day_of_week": 3,
+   "user_id": "720004",
+   "room_id": "ADV4",
+   "start_time": "09:30",
+   "end_time": "11:10"
+  },
+  {
+   "course_id": "IN237",
+   "class_code": "B",
+   "type": 1,
+   "day_of_week": 3,
+   "user_id": "720004",
+   "room_id": "ADV4",
+   "start_time": "12:30",
+   "end_time": "14:30"
+  },
+  {
+   "course_id": "IN243",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 5,
+   "user_id": "710003",
+   "room_id": "ADV2",
+   "start_time": "13:00",
+   "end_time": "14:40"
+  },
+  {
+   "course_id": "IN243",
+   "class_code": "B",
+   "type": 0,
+   "day_of_week": 5,
+   "user_id": "710003",
+   "room_id": "ADV2",
+   "start_time": "15:00",
+   "end_time": "16:40"
+  },
+  {
+   "course_id": "IN236",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 3,
+   "user_id": "720319",
+   "room_id": "ADV3",
+   "start_time": "12:30",
+   "end_time": "14:10"
+  },
+  {
+   "course_id": "IN236",
+   "class_code": "A",
+   "type": 1,
+   "day_of_week": 5,
+   "user_id": "720319",
+   "room_id": "ADV1",
+   "start_time": "13:00",
+   "end_time": "15:00"
+  },
+  {
+   "course_id": "IN236",
+   "class_code": "B",
+   "type": 0,
+   "day_of_week": 4,
+   "user_id": "720319",
+   "room_id": "ADV3",
+   "start_time": "15:00",
+   "end_time": "16:40"
+  },
+  {
+   "course_id": "IN051",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 4,
+   "user_id": "720319",
+   "room_id": "ADV3",
+   "start_time": "15:00",
+   "end_time": "16:40"
+  },
+  {
+   "course_id": "IN236",
+   "class_code": "B",
+   "type": 1,
+   "day_of_week": 5,
+   "user_id": "720319",
+   "room_id": "ADV1",
+   "start_time": "15:00",
+   "end_time": "17:00"
+  },
+  {
+   "course_id": "IN051",
+   "class_code": "A",
+   "type": 1,
+   "day_of_week": 5,
+   "user_id": "720319",
+   "room_id": "ADV1",
+   "start_time": "15:00",
+   "end_time": "17:00"
+  },
+  {
+   "course_id": "IN250",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 3,
+   "user_id": "720319",
+   "room_id": "ADV3",
+   "start_time": "07:00",
+   "end_time": "09:30"
+  },
+  {
+   "course_id": "IN250",
+   "class_code": "B",
+   "type": 0,
+   "day_of_week": 3,
+   "user_id": "710003",
+   "room_id": "ADV3",
+   "start_time": "09:30",
+   "end_time": "12:00"
+  },
+  {
+   "course_id": "IN253",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 2,
+   "user_id": "710096",
+   "room_id": "ADV2",
+   "start_time": "07:00",
+   "end_time": "08:40"
+  },
+  {
+   "course_id": "IN063",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 2,
+   "user_id": "710096",
+   "room_id": "ADV2",
+   "start_time": "07:00",
+   "end_time": "08:40"
+  },
+  {
+   "course_id": "IN253",
+   "class_code": "A",
+   "type": 1,
+   "day_of_week": 2,
+   "user_id": "710096",
+   "room_id": "ADV2",
+   "start_time": "09:30",
+   "end_time": "11:30"
+  },
+  {
+   "course_id": "IN063",
+   "class_code": "A",
+   "type": 1,
+   "day_of_week": 2,
+   "user_id": "710096",
+   "room_id": "ADV2",
+   "start_time": "09:30",
+   "end_time": "11:30"
+  },
+  {
+   "course_id": "IN253",
+   "class_code": "B",
+   "type": 0,
+   "day_of_week": 2,
+   "user_id": "710096",
+   "room_id": "ADV2",
+   "start_time": "12:30",
+   "end_time": "14:10"
+  },
+  {
+   "course_id": "IN253",
+   "class_code": "B",
+   "type": 1,
+   "day_of_week": 2,
+   "user_id": "710096",
+   "room_id": "ADV2",
+   "start_time": "15:00",
+   "end_time": "17:00"
+  },
+  {
+   "course_id": "IN254",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 3,
+   "user_id": "720309",
+   "room_id": "INT2",
+   "start_time": "15:00",
+   "end_time": "17:30"
+  },
+  {
+   "course_id": "IN255",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 3,
+   "user_id": "720225",
+   "room_id": "MMD",
+   "start_time": "07:00",
+   "end_time": "09:30"
+  },
+  {
+   "course_id": "IN255",
+   "class_code": "B",
+   "type": 0,
+   "day_of_week": 3,
+   "user_id": "720225",
+   "room_id": "MMD",
+   "start_time": "09:30",
+   "end_time": "12:00"
+  },
+  {
+   "course_id": "IN270",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 5,
+   "user_id": "710096",
+   "room_id": "DB",
+   "start_time": "07:00",
+   "end_time": "09:30"
+  },
+  {
+   "course_id": "IN280",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 2,
+   "user_id": "720246",
+   "room_id": "INT1",
+   "start_time": "17:30",
+   "end_time": "19:30"
+  },
+  {
+   "course_id": "IN070",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 2,
+   "user_id": "720246",
+   "room_id": "INT1",
+   "start_time": "17:30",
+   "end_time": "19:30"
+  },
+  {
+   "course_id": "IN281",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 3,
+   "user_id": "720246",
+   "room_id": "INT1",
+   "start_time": "17:30",
+   "end_time": "19:30"
+  },
+  {
+   "course_id": "IN080",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 3,
+   "user_id": "720246",
+   "room_id": "INT1",
+   "start_time": "17:30",
+   "end_time": "19:30"
+  },
+  {
+   "course_id": "IN262",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 4,
+   "user_id": "720307",
+   "room_id": "ADV1",
+   "start_time": "09:30",
+   "end_time": "12:00"
+  },
+  {
+   "course_id": "IN262",
+   "class_code": "A",
+   "type": 1,
+   "day_of_week": 4,
+   "user_id": "720307",
+   "room_id": "ADV1",
+   "start_time": "12:30",
+   "end_time": "14:30"
+  },
+  {
+   "course_id": "IN264",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 1,
+   "user_id": "720062",
+   "room_id": "ADV4",
+   "start_time": "07:00",
+   "end_time": "09:30"
+  },
+  {
+   "course_id": "IN264",
+   "class_code": "A",
+   "type": 1,
+   "day_of_week": 1,
+   "user_id": "720062",
+   "room_id": "ADV4",
+   "start_time": "09:30",
+   "end_time": "11:30"
+  },
+  {
+   "course_id": "IN264",
+   "class_code": "B",
+   "type": 0,
+   "day_of_week": 1,
+   "user_id": "720062",
+   "room_id": "ADV4",
+   "start_time": "12:30",
+   "end_time": "15:00"
+  },
+  {
+   "course_id": "IN264",
+   "class_code": "B",
+   "type": 1,
+   "day_of_week": 1,
+   "user_id": "720062",
+   "room_id": "ADV4",
+   "start_time": "15:00",
+   "end_time": "17:00"
+  },
+  {
+   "course_id": "IN267",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 2,
+   "user_id": "720246",
+   "room_id": "INT1",
+   "start_time": "13:00",
+   "end_time": "15:30"
+  },
+  {
+   "course_id": "IN267",
+   "class_code": "A",
+   "type": 1,
+   "day_of_week": 2,
+   "user_id": "720246",
+   "room_id": "INT1",
+   "start_time": "15:30",
+   "end_time": "17:30"
+  },
+  {
+   "course_id": "IN267",
+   "class_code": "B",
+   "type": 0,
+   "day_of_week": 4,
+   "user_id": "710003",
+   "room_id": "INT1",
+   "start_time": "09:30",
+   "end_time": "12:00"
+  },
+  {
+   "course_id": "IN267",
+   "class_code": "B",
+   "type": 1,
+   "day_of_week": 4,
+   "user_id": "710003",
+   "room_id": "INT1",
+   "start_time": "12:30",
+   "end_time": "14:30"
+  },
+  {
+   "course_id": "IN271",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 2,
+   "user_id": "720062",
+   "room_id": "INT1",
+   "start_time": "07:00",
+   "end_time": "09:30"
+  },
+  {
+   "course_id": "IN271",
+   "class_code": "A",
+   "type": 1,
+   "day_of_week": 2,
+   "user_id": "720062",
+   "room_id": "INT1",
+   "start_time": "09:30",
+   "end_time": "11:30"
+  },
+  {
+   "course_id": "IN285",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 1,
+   "user_id": "720247",
+   "room_id": "ADV2",
+   "start_time": "07:00",
+   "end_time": "09:30"
+  },
+  {
+   "course_id": "IN285",
+   "class_code": "A",
+   "type": 1,
+   "day_of_week": 1,
+   "user_id": "720247",
+   "room_id": "ADV2",
+   "start_time": "09:30",
+   "end_time": "11:30"
+  },
+  {
+   "course_id": "IN286",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 1,
+   "user_id": "710004",
+   "room_id": "INT1",
+   "start_time": "12:30",
+   "end_time": "15:00"
+  },
+  {
+   "course_id": "IN286",
+   "class_code": "A",
+   "type": 1,
+   "day_of_week": 1,
+   "user_id": "710004",
+   "room_id": "INT1",
+   "start_time": "15:00",
+   "end_time": "17:00"
+  },
+  {
+   "course_id": "IN261",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 2,
+   "user_id": "720211",
+   "room_id": "PROG1",
+   "start_time": "12:30",
+   "end_time": "15:00"
+  },
+  {
+   "course_id": "IN260",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 4,
+   "user_id": "720140",
+   "room_id": "ADV4",
+   "start_time": "09:30",
+   "end_time": "12:00"
+  },
+  {
+   "course_id": "IN252",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 5,
+   "user_id": "730015",
+   "room_id": "PROG1",
+   "start_time": "10:00",
+   "end_time": "11:40"
+  },
+  {
+   "course_id": "IN061",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 5,
+   "user_id": "730015",
+   "room_id": "PROG1",
+   "start_time": "10:00",
+   "end_time": "11:40"
+  },
+  {
+   "course_id": "IN062",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 4,
+   "user_id": "720140",
+   "room_id": "ADV4",
+   "start_time": "09:30",
+   "end_time": "12:00"
+  },
+  {
+   "course_id": "INF28T202472",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 1,
+   "user_id": "730049",
+   "room_id": "MMD",
+   "start_time": "12:30",
+   "end_time": "15:00"
+  },
+  {
+   "course_id": "SIB001202373",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 1,
+   "user_id": "710071",
+   "room_id": "PROG2",
+   "start_time": "07:00",
+   "end_time": "09:30"
+  },
+  {
+   "course_id": "SIB002202373",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 4,
+   "user_id": "720309",
+   "room_id": "PROG2",
+   "start_time": "07:00",
+   "end_time": "09:30"
+  },
+  {
+   "course_id": "SIB002202373",
+   "class_code": "A",
+   "type": 1,
+   "day_of_week": 5,
+   "user_id": "720309",
+   "room_id": "PROG2",
+   "start_time": "07:00",
+   "end_time": "09:00"
+  },
+  {
+   "course_id": "SIB003202373",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 3,
+   "user_id": "230406",
+   "room_id": "Network",
+   "start_time": "07:30",
+   "end_time": "10:00"
+  },
+  {
+   "course_id": "SIB004202373",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 1,
+   "user_id": "730049",
+   "room_id": "PROG2",
+   "start_time": "09:30",
+   "end_time": "12:00"
+  },
+  {
+   "course_id": "SIB005202373",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 3,
+   "user_id": "720211",
+   "room_id": "PROG2",
+   "start_time": "12:30",
+   "end_time": "15:00"
+  },
+  {
+   "course_id": "SIB012202373",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 5,
+   "user_id": "710004",
+   "room_id": "MMD",
+   "start_time": "13:00",
+   "end_time": "15:30"
+  },
+  {
+   "course_id": "SIB013202373",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 2,
+   "user_id": "710096",
+   "room_id": "PROG1",
+   "start_time": "15:00",
+   "end_time": "17:30"
+  },
+  {
+   "course_id": "SIB013202373",
+   "class_code": "B",
+   "type": 0,
+   "day_of_week": 4,
+   "user_id": "710096",
+   "room_id": "PROG1",
+   "start_time": "15:00",
+   "end_time": "17:30"
+  },
+  {
+   "course_id": "SIB014202373",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 2,
+   "user_id": "720211",
+   "room_id": "PROG1",
+   "start_time": "12:30",
+   "end_time": "15:00"
+  },
+  {
+   "course_id": "SIB014202373",
+   "class_code": "B",
+   "type": 0,
+   "day_of_week": 5,
+   "user_id": "730015",
+   "room_id": "PROG1",
+   "start_time": "07:30",
+   "end_time": "10:00"
+  },
+  {
+   "course_id": "SIB015202373",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 3,
+   "user_id": "730001",
+   "room_id": "PROG1",
+   "start_time": "09:30",
+   "end_time": "12:00"
+  },
+  {
+   "course_id": "SIB015202373",
+   "class_code": "B",
+   "type": 0,
+   "day_of_week": 3,
+   "user_id": "730001",
+   "room_id": "PROG1",
+   "start_time": "12:30",
+   "end_time": "15:00"
+  },
+  {
+   "course_id": "SIB016202373",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 4,
+   "user_id": "720211",
+   "room_id": "PROG1",
+   "start_time": "09:30",
+   "end_time": "11:10"
+  },
+  {
+   "course_id": "SIB016202373",
+   "class_code": "B",
+   "type": 0,
+   "day_of_week": 5,
+   "user_id": "730015",
+   "room_id": "PROG1",
+   "start_time": "10:00",
+   "end_time": "11:40"
+  },
+  {
+   "course_id": "SIB017202373",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 1,
+   "user_id": "730049",
+   "room_id": "MMD",
+   "start_time": "12:30",
+   "end_time": "15:00"
+  },
+  {
+   "course_id": "SIB025202373",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 3,
+   "user_id": "730049",
+   "room_id": "PROG2",
+   "start_time": "09:30",
+   "end_time": "12:00"
+  },
+  {
+   "course_id": "SIB026202373",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 3,
+   "user_id": "720302",
+   "room_id": "PROG1",
+   "start_time": "07:00",
+   "end_time": "09:30"
+  },
+  {
+   "course_id": "SIB026202373",
+   "class_code": "B",
+   "type": 0,
+   "day_of_week": 3,
+   "user_id": "730062",
+   "room_id": "PROG2",
+   "start_time": "07:00",
+   "end_time": "09:30"
+  },
+  {
+   "course_id": "SIB027202373",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 1,
+   "user_id": "210292",
+   "room_id": "PROG1",
+   "start_time": "15:00",
+   "end_time": "16:40"
+  },
+  {
+   "course_id": "SIB028202373",
+   "class_code": "B",
+   "type": 0,
+   "day_of_week": 4,
+   "user_id": "99000723",
+   "room_id": "Network",
+   "start_time": "09:00",
+   "end_time": "11:40"
+  },
+  {
+   "course_id": "SIB028202373",
+   "class_code": "B",
+   "type": 1,
+   "day_of_week": 4,
+   "user_id": "99000723",
+   "room_id": "Network",
+   "start_time": "11:40",
+   "end_time": "12:40"
+  },
+  {
+   "course_id": "SIB028202373",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 4,
+   "user_id": "720246",
+   "room_id": "Network",
+   "start_time": "13:00",
+   "end_time": "14:40"
+  },
+  {
+   "course_id": "SIB028202373",
+   "class_code": "A",
+   "type": 1,
+   "day_of_week": 4,
+   "user_id": "720246",
+   "room_id": "Network",
+   "start_time": "14:40",
+   "end_time": "16:40"
+  },
+  {
+   "course_id": "SIB029202373",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 5,
+   "user_id": "720225",
+   "room_id": "MMD",
+   "start_time": "08:30",
+   "end_time": "11:00"
+  },
+  {
+   "course_id": "SIB030202373",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 4,
+   "user_id": "730049",
+   "room_id": "ADV4",
+   "start_time": "13:00",
+   "end_time": "15:30"
+  },
+  {
+   "course_id": "SIB030202373",
+   "class_code": "B",
+   "type": 0,
+   "day_of_week": 4,
+   "user_id": "720080",
+   "room_id": "PROG2",
+   "start_time": "09:30",
+   "end_time": "12:00"
+  },
+  {
+   "course_id": "SIB031202373",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 2,
+   "user_id": "730001",
+   "room_id": "PROG1",
+   "start_time": "09:30",
+   "end_time": "12:00"
+  },
+  {
+   "course_id": "SIB031202373",
+   "class_code": "B",
+   "type": 0,
+   "day_of_week": 1,
+   "user_id": "730001",
+   "room_id": "PROG1",
+   "start_time": "12:30",
+   "end_time": "15:00"
+  },
+  {
+   "course_id": "SIB039202373",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 1,
+   "user_id": "720211",
+   "room_id": "PROG1",
+   "start_time": "09:30",
+   "end_time": "12:00"
+  },
+  {
+   "course_id": "SIB040202373",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 2,
+   "user_id": "720080",
+   "room_id": "Network",
+   "start_time": "12:30",
+   "end_time": "14:10"
+  },
+  {
+   "course_id": "SIB040202373",
+   "class_code": "A",
+   "type": 1,
+   "day_of_week": 2,
+   "user_id": "720080",
+   "room_id": "Network",
+   "start_time": "14:10",
+   "end_time": "16:10"
+  },
+  {
+   "course_id": "SIB040202373",
+   "class_code": "B",
+   "type": 0,
+   "day_of_week": 4,
+   "user_id": "720080",
+   "room_id": "PROG2",
+   "start_time": "12:30",
+   "end_time": "14:10"
+  },
+  {
+   "course_id": "SIB040202373",
+   "class_code": "B",
+   "type": 1,
+   "day_of_week": 4,
+   "user_id": "720080",
+   "room_id": "PROG2",
+   "start_time": "14:10",
+   "end_time": "16:10"
+  },
+  {
+   "course_id": "SIB041202373",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 4,
+   "user_id": "720140",
+   "room_id": "ADV4",
+   "start_time": "09:30",
+   "end_time": "12:00"
+  },
+  {
+   "course_id": "SIB042202373",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 1,
+   "user_id": "720211",
+   "room_id": "PROG2",
+   "start_time": "12:30",
+   "end_time": "15:00"
+  },
+  {
+   "course_id": "SIB042202373",
+   "class_code": "B",
+   "type": 0,
+   "day_of_week": 1,
+   "user_id": "730062",
+   "room_id": "Network",
+   "start_time": "12:30",
+   "end_time": "15:00"
+  },
+  {
+   "course_id": "SIB043202373",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 3,
+   "user_id": "730062",
+   "room_id": "Network",
+   "start_time": "15:00",
+   "end_time": "17:30"
+  },
+  {
+   "course_id": "SIB044202373",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 3,
+   "user_id": "730062",
+   "room_id": "Network",
+   "start_time": "12:30",
+   "end_time": "15:00"
+  },
+  {
+   "course_id": "SIB045202373",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 5,
+   "user_id": "730049",
+   "room_id": "INT1",
+   "start_time": "08:30",
+   "end_time": "11:00"
+  },
+  {
+   "course_id": "BIH01",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 5,
+   "user_id": "730049",
+   "room_id": "INT1",
+   "start_time": "08:30",
+   "end_time": "11:00"
+  },
+  {
+   "course_id": "SIB046202373",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 3,
+   "user_id": "730049",
+   "room_id": "PROG2",
+   "start_time": "09:30",
+   "end_time": "12:00"
+  },
+  {
+   "course_id": "SIB039202373",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 3,
+   "user_id": "730049",
+   "room_id": "PROG2",
+   "start_time": "09:30",
+   "end_time": "12:00"
+  },
+  {
+   "course_id": "SIB047202373",
+   "class_code": "A",
+   "type": 0,
+   "day_of_week": 5,
+   "user_id": "730049",
+   "room_id": "INT1",
+   "start_time": "08:30",
+   "end_time": "11:00"
+  }
+ ]
+}

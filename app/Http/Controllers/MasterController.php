@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ActivityLog;
 use App\Models\Course;
 use App\Models\Period;
 use App\Models\Room;
 use App\Models\StudyProgram;
-use App\Services\ActivityLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class MasterController extends Controller
@@ -17,33 +18,30 @@ class MasterController extends Controller
         'study-programs' => [
             'model' => StudyProgram::class,
             'label' => 'Program Studi',
-            'fields' => ['code' => 'Kode', 'name' => 'Nama', 'color_hex' => 'Warna Kalender', 'active' => 'Aktif'],
-            'rules' => ['code' => 'required|max:10|unique:study_program,code', 'name' => 'required|max:255', 'color_hex' => 'required|regex:/^#[0-9A-Fa-f]{6}$/', 'active' => 'boolean'],
+            'pk_field' => 'id',
+            'pk_label' => 'Kode Prodi (72/73/79)',
         ],
         'rooms' => [
             'model' => Room::class,
-            'label' => 'Ruangan',
-            'fields' => ['code' => 'Kode', 'name' => 'Nama', 'capacity' => 'Kapasitas', 'active' => 'Aktif'],
-            'rules' => ['code' => 'required|max:20|unique:room,code', 'name' => 'nullable|max:100', 'capacity' => 'nullable|integer|min:1', 'active' => 'boolean'],
+            'label' => 'Ruangan Lab',
+            'pk_field' => 'id',
+            'pk_label' => 'Kode Ruang (ADV1, PROG1, dst)',
         ],
         'courses' => [
             'model' => Course::class,
             'label' => 'Mata Kuliah',
-            'fields' => ['study_program_id' => 'Program Studi', 'code' => 'Kode', 'name' => 'Nama', 'active' => 'Aktif'],
-            'rules' => ['study_program_id' => 'required|exists:study_program,id', 'code' => 'required|max:30|unique:course,code', 'name' => 'required|max:255', 'active' => 'boolean'],
-        ],
-        'periods' => [
-            'model' => Period::class,
-            'label' => 'Periode',
-            'fields' => ['name' => 'Nama', 'start_date' => 'Mulai', 'end_date' => 'Selesai', 'uts_start' => 'UTS Mulai', 'uts_end' => 'UTS Selesai', 'uas_start' => 'UAS Mulai', 'uas_end' => 'UAS Selesai', 'is_active' => 'Aktif'],
-            'rules' => ['name' => 'required|max:50|unique:period,name', 'start_date' => 'required|date', 'end_date' => 'required|date|after:start_date', 'uts_start' => 'nullable|date', 'uts_end' => 'nullable|date|after:uts_start', 'uas_start' => 'nullable|date', 'uas_end' => 'nullable|date|after:uas_start', 'is_active' => 'boolean'],
+            'pk_field' => 'id',
+            'pk_label' => 'Kode MK (maks 15 karakter)',
         ],
     ];
 
     public function index(string $type): View
     {
         $config = $this->config($type);
-        $records = $config['model']::query()->latest()->paginate(15);
+        $records = $config['model']::query()
+            ->when($type === 'courses', fn ($q) => $q->with('studyProgram'))
+            ->orderBy('id')
+            ->paginate(20);
 
         return view('master.index', compact('type', 'config', 'records'));
     }
@@ -51,63 +49,141 @@ class MasterController extends Controller
     public function create(string $type): View
     {
         $config = $this->config($type);
-        $studyPrograms = StudyProgram::where('active', true)->get();
+        $studyPrograms = StudyProgram::where('is_active', true)->orderBy('id')->get();
 
         return view('master.create', compact('type', 'config', 'studyPrograms'));
     }
 
-    public function store(Request $request, string $type, ActivityLogger $logger): RedirectResponse
+    public function store(Request $request, string $type): RedirectResponse
     {
         $config = $this->config($type);
-        $data = $request->validate($config['rules']);
-        $record = $config['model']::query()->create($data);
 
-        $logger->log($request->user()->id, 'create', $record->getTable(), (string) $record->getKey(), "Menambah data {$config['label']}.");
+        $rules = match ($type) {
+            'study-programs' => [
+                'id' => ['required', 'string', 'max:5', 'unique:study_program,id'],
+                'name' => ['required', 'string', 'max:100', 'unique:study_program,name'],
+                'color_hex' => ['required', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+                'is_active' => ['nullable', 'boolean'],
+            ],
+            'rooms' => [
+                'id' => ['required', 'string', 'max:10', 'unique:room,id'],
+                'name' => ['required', 'string', 'max:50'],
+                'capacity' => ['nullable', 'integer', 'min:1', 'max:200'],
+                'is_active' => ['nullable', 'boolean'],
+            ],
+            'courses' => [
+                'id' => ['required', 'string', 'max:15', 'unique:course,id'],
+                'study_program_id' => ['required', 'exists:study_program,id'],
+                'name' => ['required', 'string', 'max:100'],
+                'is_active' => ['nullable', 'boolean'],
+            ],
+        };
 
-        return redirect()->route('master.index', $type)->with('success', 'Data berhasil ditambahkan.');
+        $validated = $request->validate($rules);
+        $validated['is_active'] = $request->boolean('is_active', true);
+
+        $record = $config['model']::create($validated);
+
+        ActivityLog::record(
+            $request->user()->id,
+            'create',
+            $record->getTable(),
+            (string) $record->id,
+            "Menambahkan master data {$config['label']}: {$record->id} - {$record->name}.",
+            $request->ip()
+        );
+
+        return redirect()->route('master.index', $type)->with('success', "Data {$config['label']} berhasil ditambahkan.");
     }
 
     public function edit(string $type, string $id): View
     {
         $config = $this->config($type);
-        $record = $config['model']::query()->findOrFail($id);
-        $studyPrograms = StudyProgram::where('active', true)->get();
+        $record = $config['model']::findOrFail($id);
+        $studyPrograms = StudyProgram::where('is_active', true)->orderBy('id')->get();
 
         return view('master.edit', compact('type', 'config', 'record', 'studyPrograms'));
     }
 
-    public function update(Request $request, string $type, string $id, ActivityLogger $logger): RedirectResponse
+    public function update(Request $request, string $type, string $id): RedirectResponse
     {
         $config = $this->config($type);
-        $record = $config['model']::query()->findOrFail($id);
+        $record = $config['model']::findOrFail($id);
 
-        $rules = collect($config['rules'])->map(function ($rule, $field) use ($config, $record) {
-            $tableName = $config['model']::query()->getModel()->getTable();
-            return str_replace(",{$tableName},{$field}", ",{$tableName},{$field},{$record->getKey()}", $rule);
-        })->all();
+        $rules = match ($type) {
+            'study-programs' => [
+                'name' => ['required', 'string', 'max:100', Rule::unique('study_program', 'name')->ignore($record->id, 'id')],
+                'color_hex' => ['required', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+                'is_active' => ['nullable', 'boolean'],
+            ],
+            'rooms' => [
+                'name' => ['required', 'string', 'max:50'],
+                'capacity' => ['nullable', 'integer', 'min:1', 'max:200'],
+                'is_active' => ['nullable', 'boolean'],
+            ],
+            'courses' => [
+                'study_program_id' => ['required', 'exists:study_program,id'],
+                'name' => ['required', 'string', 'max:100'],
+                'is_active' => ['nullable', 'boolean'],
+            ],
+        };
 
-        $data = $request->validate($rules);
-        if ($type === 'rooms') {
-            unset($data['code']);
-        }
+        $validated = $request->validate($rules);
+        $validated['is_active'] = $request->boolean('is_active', true);
 
-        $record->update($data);
-        $logger->log($request->user()->id, 'update', $record->getTable(), (string) $record->getKey(), "Memperbarui data {$config['label']}.");
+        $record->update($validated);
 
-        return redirect()->route('master.index', $type)->with('success', 'Data berhasil diperbarui.');
+        ActivityLog::record(
+            $request->user()->id,
+            'update',
+            $record->getTable(),
+            (string) $record->id,
+            "Memperbarui master data {$config['label']}: {$record->id}.",
+            $request->ip()
+        );
+
+        return redirect()->route('master.index', $type)->with('success', "Data {$config['label']} berhasil diperbarui.");
     }
 
-    public function destroy(Request $request, string $type, string $id, ActivityLogger $logger): RedirectResponse
+    public function destroy(Request $request, string $type, string $id): RedirectResponse
     {
         $config = $this->config($type);
-        $record = $config['model']::query()->findOrFail($id);
-        $key = (string) $record->getKey();
-        $table = $record->getTable();
-        $record->delete();
+        $record = $config['model']::findOrFail($id);
 
-        $logger->log($request->user()->id, 'delete', $table, $key, "Menghapus data {$config['label']}.");
+        // Aturan: data master dinonaktifkan (is_active), bukan dihapus
+        $record->update(['is_active' => false]);
 
-        return back()->with('success', 'Data berhasil dihapus.');
+        ActivityLog::record(
+            $request->user()->id,
+            'deactivate',
+            $record->getTable(),
+            (string) $record->id,
+            "Menonaktifkan master data {$config['label']}: {$record->id}.",
+            $request->ip()
+        );
+
+        return back()->with('success', "Data {$config['label']} berhasil dinonaktifkan.");
+    }
+
+    public function toggle(Request $request, string $type, string $id): RedirectResponse
+    {
+        $config = $this->config($type);
+        $record = $config['model']::findOrFail($id);
+
+        $record->update(['is_active' => ! $record->is_active]);
+
+        $statusStr = $record->is_active ? 'mengaktifkan' : 'menonaktifkan';
+
+        ActivityLog::record(
+            $request->user()->id,
+            'toggle_active',
+            $record->getTable(),
+            (string) $record->id,
+            "Tindakan {$statusStr} master data {$config['label']}: {$record->id}.",
+            $request->ip()
+        );
+
+        return back()->with('success', "Status aktif data {$config['label']} berhasil diubah.");
     }
 
     private function config(string $type): array

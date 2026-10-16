@@ -2,8 +2,7 @@
 
 namespace App\Models;
 
-use App\Constants\BookingStatus;
-use App\Constants\BookingType;
+use App\Enums\BookingStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -14,55 +13,49 @@ class Booking extends Model
 
     protected $fillable = [
         'user_id',
-        'parent_booking_id',
-        'requester_name',
+        'created_by',
+        'pic_name',
+        'pic_phone',
         'purpose',
-        'type',
         'status',
-        'notes',
-        'submitted_at',
+        'decision_note',
     ];
 
     protected function casts(): array
     {
         return [
-            'type' => 'integer',
-            'status' => 'integer',
-            'submitted_at' => 'datetime',
+            'status' => BookingStatus::class,
         ];
     }
 
-    /* ── Relationships ── */
-
-    public function requester(): BelongsTo
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    public function parent(): BelongsTo
+    public function createdBy(): BelongsTo
     {
-        return $this->belongsTo(self::class, 'parent_booking_id');
-    }
-
-    public function children(): HasMany
-    {
-        return $this->hasMany(self::class, 'parent_booking_id');
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     public function details(): HasMany
     {
-        return $this->hasMany(BookingDetail::class);
+        return $this->hasMany(BookingDetail::class, 'booking_id');
     }
 
-    /* ── Accessors ── */
+    public function attachments(): HasMany
+    {
+        return $this->hasMany(BookingAttachment::class, 'booking_id');
+    }
 
     public function getStatusLabelAttribute(): string
     {
-        return BookingStatus::label($this->status);
+        return $this->status?->label() ?? 'Tidak Diketahui';
     }
 
-    public function getTypeLabelAttribute(): string
+    /** Backward compatibility alias for requester_name */
+    public function getRequesterNameAttribute(): string
     {
-        return BookingType::label($this->type);
+        return $this->pic_name ?? $this->user?->name ?? '-';
     }
 }

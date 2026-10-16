@@ -33,8 +33,18 @@ class Period extends Model
         ];
     }
 
-    public function sections(): HasMany
+    public function holidays(): HasMany
     {
-        return $this->hasMany(Section::class);
+        return $this->hasMany(PeriodHoliday::class, 'period_id');
+    }
+
+    public function schedules(): HasMany
+    {
+        return $this->hasMany(Schedule::class, 'period_id');
+    }
+
+    public function userRoles(): HasMany
+    {
+        return $this->hasMany(UserRole::class, 'period_id');
     }
 }

@@ -10,14 +10,14 @@
 <body class="bg-body-tertiary d-flex flex-column min-vh-100">
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
         <div class="container">
-            <a class="navbar-brand fw-bold" href="{{ route('home') }}">Peminjaman Ruangan Lab GWM</a>
+            <a class="navbar-brand fw-bold" href="{{ route('home') }}">Lab GWM Lt. 8</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navMenu">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     <li class="nav-item">
-                        <a class="nav-link active" href="{{ route('home') }}">Jadwal & Denah</a>
+                        <a class="nav-link {{ request()->routeIs('home*') ? 'active' : '' }}" href="{{ route('home') }}">Jadwal & Denah</a>
                     </li>
                     @auth
                         <li class="nav-item">
@@ -31,12 +31,15 @@
                                 <a class="nav-link text-white" href="{{ route('staff-bookings.create') }}">Input Dosen</a>
                             </li>
                         @endif
-                        @if(auth()->user()->hasRole('Staf_Lab', 'Kepala_Prodi', 'Kepala_Lab'))
+                        @if(auth()->user()->hasRole('Kepala_Lab', 'Admin'))
                             <li class="nav-item">
-                                <a class="nav-link text-white" href="{{ route('sections.index') }}">Jadwal Kuliah</a>
+                                <a class="nav-link text-white" href="{{ route('admin.period-roles.index') }}">Peran Staf</a>
                             </li>
                         @endif
                         @if(auth()->user()->hasRole('Admin'))
+                            <li class="nav-item">
+                                <a class="nav-link text-white {{ request()->routeIs('admin.settings.*') ? 'active fw-bold' : '' }}" href="{{ route('admin.settings.index') }}">Pengaturan</a>
+                            </li>
                             <li class="nav-item">
                                 <a class="nav-link text-white" href="{{ route('admin.users.index') }}">Kelola Pengguna</a>
                             </li>
@@ -45,10 +48,9 @@
                                     Master Data
                                 </a>
                                 <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="{{ route('master.index', 'rooms') }}">Ruangan</a></li>
+                                    <li><a class="dropdown-item" href="{{ route('master.index', 'rooms') }}">Ruangan Lab</a></li>
                                     <li><a class="dropdown-item" href="{{ route('master.index', 'courses') }}">Mata Kuliah</a></li>
                                     <li><a class="dropdown-item" href="{{ route('master.index', 'study-programs') }}">Program Studi</a></li>
-                                    <li><a class="dropdown-item" href="{{ route('master.index', 'periods') }}">Periode Semester</a></li>
                                 </ul>
                             </li>
                         @endif
@@ -69,11 +71,21 @@
                         @php
                             $activeRoleNames = auth()->user()->activeRoles()->pluck('name')->map(fn($n) => str_replace('_', ' ', $n))->join(', ') ?: 'Visitor';
                         @endphp
-                        <span class="badge text-bg-light">{{ auth()->user()->name }} ({{ $activeRoleNames }})</span>
-                        <form method="post" action="{{ route('logout') }}" class="d-inline">
-                            @csrf
-                            <button type="submit" class="btn btn-sm btn-outline-light">Keluar</button>
-                        </form>
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                {{ auth()->user()->name }} ({{ $activeRoleNames }})
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="{{ route('password.change') }}">Ganti Kata Sandi</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form method="post" action="{{ route('logout') }}" class="d-inline">
+                                        @csrf
+                                        <button type="submit" class="dropdown-item text-danger">Keluar</button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
                     @else
                         <a class="btn btn-sm btn-outline-light" href="{{ route('login') }}">Masuk</a>
                         <a class="btn btn-sm btn-light" href="{{ route('register') }}">Daftar Visitor</a>
@@ -85,20 +97,26 @@
 
     <main class="container py-4 flex-grow-1">
         @if(session('success'))
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
                 {{ session('success') }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         @endif
+        @if(session('warning'))
+            <div class="alert alert-warning alert-dismissible fade show shadow-sm" role="alert">
+                {{ session('warning') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
         @if(session('error'))
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
                 {{ session('error') }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         @endif
         @if($errors->any())
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <div class="fw-bold mb-1">Periksa kembali data Anda:</div>
+            <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+                <div class="fw-bold mb-1">Terdapat kesalahan pada isian Anda:</div>
                 <ul class="mb-0">
                     @foreach($errors->all() as $error)
                         <li>{{ $error }}</li>
@@ -113,7 +131,7 @@
 
     <footer class="border-top bg-white py-3 mt-auto">
         <div class="container text-center text-secondary small">
-            Sistem Informasi Monitoring & Peminjaman Ruangan Lab Komputer — Gedung Kuliah Bersama (GWM) Lantai 8
+            Sistem Informasi Monitoring & Peminjaman Ruangan Lab Komputer, Gedung Widya Maranatha (GWM) Lantai 8
         </div>
     </footer>
 

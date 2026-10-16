@@ -11,6 +11,13 @@
             <a class="btn btn-outline-secondary" href="{{ route('bookings.index') }}">Kembali</a>
         </div>
 
+        @if(isset($isConfigured) && !$isConfigured)
+            <div class="alert alert-danger shadow-sm mb-4">
+                <strong><i class="bi bi-exclamation-triangle"></i> Peminjaman Belum Dibuka:</strong>
+                Pengaturan jam operasional laboratorium dan batas pemesanan belum ditentukan oleh Administrator. Harap hubungi admin laboratorium.
+            </div>
+        @endif
+
         <form method="post" action="{{ route('bookings.store') }}" id="bookingForm">
             @csrf
             <input type="hidden" name="type" value="new">
@@ -21,9 +28,13 @@
                 </div>
                 <div class="card-body">
                     <div class="row g-3">
-                        <div class="col-12">
-                            <label class="form-label fw-semibold">Nama Peminjam / Penanggung Jawab / Instansi <span class="text-danger">*</span></label>
-                            <input class="form-control" name="requester_name" value="{{ old('requester_name', auth()->user()->name) }}" placeholder="Contoh: Valentino Hose / Himpunan IF" required>
+                        <div class="col-md-8">
+                            <label class="form-label fw-semibold">Nama Peminjam / Penanggung Jawab / Instansi (PIC) <span class="text-danger">*</span></label>
+                            <input class="form-control" name="pic_name" value="{{ old('pic_name', old('requester_name', auth()->user()->name)) }}" placeholder="Contoh: Valentino Hose / Himpunan IF" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Nomor Telepon / WhatsApp PIC</label>
+                            <input class="form-control" name="pic_phone" value="{{ old('pic_phone', auth()->user()->phone) }}" placeholder="08xxxxxxxxxx">
                         </div>
                         <div class="col-12">
                             <label class="form-label fw-semibold">Tujuan Kegiatan <span class="text-danger">*</span></label>
@@ -35,7 +46,7 @@
 
             <div class="card shadow-sm border-0 mb-4">
                 <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                    <h2 class="h5 fw-bold mb-0">2. Pemilihan Ruangan & Waktu</h2>
+                    <h2 class="h5 fw-bold mb-0">2. Pemilihan Ruangan & Waktu (Senin s/d Sabtu)</h2>
                     <button type="button" class="btn btn-sm btn-outline-primary" id="btnAddSlot">Tambah Ruangan Lain</button>
                 </div>
                 <div class="card-body">
@@ -51,12 +62,12 @@
                                     <select class="form-select room-select" name="slots[0][room_id]" required>
                                         <option value="">-- Pilih Ruangan --</option>
                                         @foreach($rooms as $room)
-                                            <option value="{{ $room->id }}" data-code="{{ $room->code }}">{{ $room->code }} (Kapasitas: {{ $room->capacity ?? '-' }})</option>
+                                            <option value="{{ $room->id }}" data-code="{{ $room->id }}">{{ $room->id }} (Kapasitas: {{ $room->capacity ?? '-' }})</option>
                                         @endforeach
                                     </select>
                                 </div>
                                 <div class="col-md-4">
-                                    <label class="form-label fw-semibold">Hari & Tanggal <span class="text-danger">*</span></label>
+                                    <label class="form-label fw-semibold">Hari & Tanggal (Senin - Sabtu) <span class="text-danger">*</span></label>
                                     <input class="form-control date-input" type="date" name="slots[0][date]" min="{{ now()->toDateString() }}" required>
                                 </div>
                                 <div class="col-md-2">

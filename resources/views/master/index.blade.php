@@ -3,15 +3,15 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h1 class="h3 fw-bold mb-1">Pengelolaan Data Master</h1>
-        <p class="text-secondary mb-0">Kelola master data pendukung sistem peminjaman laboratorium.</p>
+        <h1 class="h3 fw-bold mb-1">Pengelolaan Data Master: {{ $config['label'] }}</h1>
+        <p class="text-secondary mb-0">Kelola master data pendukung sistem. Sesuai ketentuan, data tidak dihapus melainkan dinonaktifkan.</p>
     </div>
-    <a class="btn btn-primary" href="{{ route('master.create', $type) }}">Tambah Data {{ $config['label'] }}</a>
+    <a class="btn btn-primary" href="{{ route('master.create', $type) }}">+ Tambah {{ $config['label'] }}</a>
 </div>
 
 <ul class="nav nav-pills mb-4 bg-white p-2 rounded shadow-sm border">
     <li class="nav-item">
-        <a class="nav-link {{ $type === 'rooms' ? 'active' : '' }}" href="{{ route('master.index', 'rooms') }}">Ruangan</a>
+        <a class="nav-link {{ $type === 'rooms' ? 'active' : '' }}" href="{{ route('master.index', 'rooms') }}">Ruangan Lab</a>
     </li>
     <li class="nav-item">
         <a class="nav-link {{ $type === 'courses' ? 'active' : '' }}" href="{{ route('master.index', 'courses') }}">Mata Kuliah</a>
@@ -19,63 +19,60 @@
     <li class="nav-item">
         <a class="nav-link {{ $type === 'study-programs' ? 'active' : '' }}" href="{{ route('master.index', 'study-programs') }}">Program Studi</a>
     </li>
-    <li class="nav-item">
-        <a class="nav-link {{ $type === 'periods' ? 'active' : '' }}" href="{{ route('master.index', 'periods') }}">Periode Semester</a>
-    </li>
 </ul>
 
 <div class="card shadow-sm border-0">
     <div class="card-header bg-white py-3">
-        <h2 class="h5 fw-bold mb-0">Daftar {{ $config['label'] }}</h2>
+        <h2 class="h5 fw-bold mb-0">Daftar {{ $config['label'] }} (Total: {{ $records->total() }})</h2>
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
                     <tr>
-                        @foreach($config['fields'] as $key => $label)
-                            <th>{{ $label }}</th>
-                        @endforeach
-                        <th class="text-end">Aksi</th>
+                        <th style="width: 160px;">{{ $config['pk_label'] }}</th>
+                        <th>Nama</th>
+                        @if($type === 'rooms')
+                            <th>Kapasitas</th>
+                        @elseif($type === 'courses')
+                            <th>Program Studi</th>
+                        @endif
+                        <th>Status</th>
+                        <th class="text-end" style="width: 200px;">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($records as $record)
-                        <tr>
-                            @foreach(array_keys($config['fields']) as $field)
-                                <td>
-                                    @if($field === 'color_hex')
-                                        <span class="d-inline-flex align-items-center gap-2">
-                                            <span class="d-inline-block border rounded" style="width: 20px; height: 20px; background-color: {{ $record->$field }};"></span>
-                                            <code>{{ $record->$field }}</code>
-                                        </span>
-                                    @elseif($field === 'active' || $field === 'is_active')
-                                        @if($record->$field)
-                                            <span class="badge text-bg-success">Aktif</span>
-                                        @else
-                                            <span class="badge text-bg-secondary">Nonaktif</span>
-                                        @endif
-                                    @elseif($field === 'study_program_id')
-                                        <span class="fw-semibold">{{ $record->studyProgram->name ?? $record->$field }}</span>
-                                    @else
-                                        {{ $record->$field ?? '-' }}
-                                    @endif
-                                </td>
-                            @endforeach
+                        <tr class="{{ !$record->is_active ? 'table-light text-muted' : '' }}">
+                            <td class="fw-bold font-monospace text-primary">{{ $record->id }}</td>
+                            <td class="fw-semibold">{{ $record->name }}</td>
+                            @if($type === 'rooms')
+                                <td>{{ $record->capacity ? $record->capacity . ' orang' : '-' }}</td>
+                            @elseif($type === 'courses')
+                                <td>{{ $record->studyProgram->name ?? $record->study_program_id }}</td>
+                            @endif
+                            <td>
+                                @if($record->is_active)
+                                    <span class="badge bg-success">Aktif</span>
+                                @else
+                                    <span class="badge bg-secondary">Nonaktif</span>
+                                @endif
+                            </td>
                             <td class="text-end">
                                 <div class="btn-group btn-group-sm">
-                                    <a class="btn btn-outline-primary" href="{{ route('master.edit', [$type, $record->getKey()]) }}">Ubah</a>
-                                    <form method="post" action="{{ route('master.destroy', [$type, $record->getKey()]) }}" class="d-inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data ini?')">
+                                    <a class="btn btn-outline-secondary" href="{{ route('master.edit', [$type, $record->id]) }}">Ubah</a>
+                                    <form method="post" action="{{ route('master.toggle', [$type, $record->id]) }}" class="d-inline">
                                         @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-outline-danger">Hapus</button>
+                                        <button type="submit" class="btn {{ $record->is_active ? 'btn-outline-warning' : 'btn-outline-success' }}">
+                                            {{ $record->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
+                                        </button>
                                     </form>
                                 </div>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="{{ count($config['fields']) + 1 }}" class="text-center py-4 text-muted">Belum ada data {{ $config['label'] }}.</td>
+                            <td colspan="5" class="text-center py-4 text-muted">Belum ada data {{ $config['label'] }}.</td>
                         </tr>
                     @endforelse
                 </tbody>

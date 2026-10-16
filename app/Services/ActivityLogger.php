@@ -14,13 +14,18 @@ class ActivityLogger
         ?string $description = null,
         ?array $data = null,
     ): ActivityLog {
-        return ActivityLog::query()->create([
-            'user_id' => $userId,
-            'action' => $action,
-            'entity_type' => $entityType,
-            'entity_id' => (string) $entityId,
-            'data' => $data ?? ($description ? ['description' => $description] : null),
-            'created_at' => now(),
-        ]);
+        // Jika ada data array dan belum ada description, format jadi text ringkas
+        if ($description === null && !empty($data)) {
+            $description = json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        }
+
+        return ActivityLog::record(
+            $userId,
+            $action,
+            $entityType,
+            $entityId,
+            $description,
+            request()?->ip()
+        );
     }
 }

@@ -2,43 +2,94 @@
 
 namespace App\Services;
 
-use App\Constants\BookingDetailStatus;
-use App\Constants\ScheduleType;
+use App\Enums\BookingDetailStatus;
 use App\Models\BookingDetail;
 use App\Models\Period;
-use App\Models\Section;
+use App\Models\Schedule;
+use App\Models\ScheduleSession;
+use App\Models\Setting;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 
 class BookingService
 {
+    /**
+     * Membulatkan jam selesai ke atas ke blok menit terdekat (misal :00 atau :30).
+     * Contoh: 08:40 -> 09:00, 14:10 -> 14:30 pada blok 30 menit.
+     */
+    public static function roundUpToBlock(string $timeStr, int $blockMinutes = 30): string
+    {
+        [$hour, $minute] = explode(':', substr($timeStr, 0, 5));
+        $totalMinutes = (int) $hour * 60 + (int) $minute;
+        $remainder = $totalMinutes % $blockMinutes;
+
+        if ($remainder > 0) {
+            $totalMinutes += ($blockMinutes - $remainder);
+        }
+
+        $newHour = (int) floor($totalMinutes / 60);
+        $newMinute = $totalMinutes % 60;
+
+        return sprintf('%02d:%02d', min(23, $newHour), $newMinute);
+    }
+
     public function timeSlots(): array
     {
-        return collect(range(0, 30))->map(fn ($i) => Carbon::createFromFormat('H:i', '07:00')->addMinutes($i * 30)->format('H:i'))->all();
+        $block = (int) Setting::get('booking_block_minutes', 30);
+        $labOpen = Setting::get('lab_open_time', '07:00');
+        $labClose = Setting::get('lab_close_time', '21:00');
+
+        $slots = [];
+        $start = Carbon::createFromFormat('H:i', substr($labOpen, 0, 5));
+        $end = Carbon::createFromFormat('H:i', substr($labClose, 0, 5));
+
+        for ($curr = $start->copy(); $curr->lt($end); $curr->addMinutes($block)) {
+            $slots[] = $curr->format('H:i');
+        }
+
+        return $slots;
     }
 
     public function startSlots(): array
     {
-        return collect(range(0, 29))->map(fn ($i) => Carbon::createFromFormat('H:i', '07:00')->addMinutes($i * 30)->format('H:i'))->all();
+        return $this->timeSlots();
     }
 
     public function endSlots(): array
     {
-        return collect(range(1, 30))->map(fn ($i) => Carbon::createFromFormat('H:i', '07:00')->addMinutes($i * 30)->format('H:i'))->all();
+        $block = (int) Setting::get('booking_block_minutes', 30);
+        $labOpen = Setting::get('lab_open_time', '07:00');
+        $labClose = Setting::get('lab_close_time', '21:00');
+
+        $slots = [];
+        $start = Carbon::createFromFormat('H:i', substr($labOpen, 0, 5))->addMinutes($block);
+        $end = Carbon::createFromFormat('H:i', substr($labClose, 0, 5));
+
+        for ($curr = $start->copy(); $curr->lte($end); $curr->addMinutes($block)) {
+            $slots[] = $curr->format('H:i');
+        }
+
+        return $slots;
     }
 
-    public function isAvailable(int $roomId, Carbon $start, Carbon $end, ?int $excludeBookingId = null): bool
+    public function isAvailable(string|int $roomId, Carbon $start, Carbon $end, ?int $excludeBookingId = null): bool
     {
-        if ($this->isExamPeriodWithoutSchedule($start, $roomId)) {
+        $dateStr = $start->toDateString();
+        $startTimeStr = $start->format('H:i:s');
+        $endTimeStr = $end->format('H:i:s');
+
+        // Hari Minggu ditolak
+        if ($start->isSunday()) {
             return false;
         }
 
-        // Check against approved booking details (status = APPROVED / 1)
+        // Cek konflik dengan booking_detail yang disetujui (APPROVED)
         $bookingConflictQuery = BookingDetail::query()
-            ->where('room_id', $roomId)
+            ->where('room_id', (string) $roomId)
+            ->where('booking_date', $dateStr)
             ->where('status', BookingDetailStatus::APPROVED)
-            ->where('start_datetime', '<', $end)
-            ->where('end_datetime', '>', $start);
+            ->where('start_time', '<', $endTimeStr)
+            ->where('end_time', '>', $startTimeStr);
 
         if ($excludeBookingId !== null) {
             $bookingConflictQuery->where('booking_id', '!=', $excludeBookingId);
@@ -48,142 +99,119 @@ class BookingService
             return false;
         }
 
-        // Check against active regular sections
-        $period = Period::whereDate('start_date', '<=', $start)->whereDate('end_date', '>=', $start)->first();
-        if ($period) {
-            $isExamDate = $this->isExamDate($period, $start);
+        // Cek bentrok dengan jadwal kuliah aktif (schedule_session & schedule)
+        // Kuliah hanya hari 1..5 (Senin..Jumat)
+        $dayOfWeek = $start->dayOfWeekIso;
+        if ($dayOfWeek >= 1 && $dayOfWeek <= 5) {
+            $blockMinutes = (int) Setting::get('booking_block_minutes', 30);
 
-            $sectionQuery = Section::where([
-                'period_id' => $period->id,
-                'room_id' => $roomId,
-                'day_of_week' => $start->dayOfWeekIso,
-            ])
-            ->where('start_time', '<', $end->format('H:i:s'))
-            ->where('end_time', '>', $start->format('H:i:s'));
+            // Cek dari schedule_session yang aktif di tanggal ini
+            $activeSessions = ScheduleSession::with('schedule')
+                ->where('session_date', $dateStr)
+                ->where('is_active', true)
+                ->where(function ($q) use ($roomId) {
+                    $q->where('room_id', (string) $roomId)
+                      ->orWhere(function ($sub) use ($roomId) {
+                          $sub->whereNull('room_id')
+                              ->whereHas('schedule', fn ($sc) => $sc->where('room_id', (string) $roomId));
+                      });
+                })
+                ->get();
 
-            if ($isExamDate) {
-                // If it is an exam date, sections that conflict are exam sections
-                $sectionQuery->where('schedule_type', ScheduleType::EXAM);
-            } else {
-                $sectionQuery->where('schedule_type', ScheduleType::REGULAR);
-            }
+            foreach ($activeSessions as $session) {
+                $sessionStart = $session->effectiveStartTime();
+                $sessionRawEnd = $session->effectiveEndTime();
+                // Blokir diperpanjang dengan pembulatan ke atas ke kelipatan blok menit (:00 / :30)
+                $sessionBlockedEnd = self::roundUpToBlock($sessionRawEnd, $blockMinutes) . ':00';
 
-            if ($sectionQuery->exists()) {
-                return false;
+                // Irisan waktu
+                if ($sessionStart < $endTimeStr && $sessionBlockedEnd > $startTimeStr) {
+                    return false;
+                }
             }
         }
 
         return true;
     }
 
-    public function isExamDate(?Period $period, Carbon $date): bool
+    public function unavailableRanges(string|int $roomId, Carbon $date): Collection
     {
-        if (! $period) {
-            return false;
+        $dateStr = $date->toDateString();
+        $ranges = collect();
+
+        if ($date->isSunday()) {
+            return $ranges->push(['start' => '00:00', 'end' => '23:59', 'type' => 'holiday']);
         }
 
-        $inUts = $period->uts_start && $period->uts_end && $date->betweenIncluded($period->uts_start, $period->uts_end);
-        $inUas = $period->uas_start && $period->uas_end && $date->betweenIncluded($period->uas_start, $period->uas_end);
+        $blockMinutes = (int) Setting::get('booking_block_minutes', 30);
 
-        return (bool) ($inUts || $inUas);
-    }
+        // 1. Dari jadwal kuliah
+        if ($date->dayOfWeekIso <= 5) {
+            $activeSessions = ScheduleSession::with('schedule')
+                ->where('session_date', $dateStr)
+                ->where('is_active', true)
+                ->where(function ($q) use ($roomId) {
+                    $q->where('room_id', (string) $roomId)
+                      ->orWhere(function ($sub) use ($roomId) {
+                          $sub->whereNull('room_id')
+                              ->whereHas('schedule', fn ($sc) => $sc->where('room_id', (string) $roomId));
+                      });
+                })
+                ->get();
 
-    public function isExamPeriodWithoutSchedule(Carbon $date, ?int $roomId = null): bool
-    {
-        $period = Period::whereDate('start_date', '<=', $date)->whereDate('end_date', '>=', $date)->first();
-        if (! $period) {
-            return false;
-        }
+            foreach ($activeSessions as $session) {
+                $sessionStart = substr($session->effectiveStartTime(), 0, 5);
+                $sessionBlockedEnd = self::roundUpToBlock($session->effectiveEndTime(), $blockMinutes);
 
-        if ($this->isExamDate($period, $date)) {
-            $query = Section::where('period_id', $period->id)
-                ->where('schedule_type', ScheduleType::EXAM)
-                ->where('day_of_week', $date->dayOfWeekIso);
-
-            if ($roomId !== null) {
-                $query->where('room_id', $roomId);
+                $ranges->push([
+                    'start' => $sessionStart,
+                    'end' => $sessionBlockedEnd,
+                    'type' => 'section',
+                ]);
             }
-
-            return ! $query->exists();
         }
 
-        return false;
-    }
-
-    public function unavailableRanges(int $roomId, Carbon $date): Collection
-    {
-        $period = Period::whereDate('start_date', '<=', $date)->whereDate('end_date', '>=', $date)->first();
-        $isExam = $period && $this->isExamDate($period, $date);
-
-        $sections = collect();
-        if ($period && ! $isExam) {
-            $sections = Section::where([
-                'period_id' => $period->id,
-                'room_id' => $roomId,
-                'day_of_week' => $date->dayOfWeekIso,
-                'schedule_type' => ScheduleType::REGULAR,
-            ])->get(['start_time', 'end_time']);
-        } elseif ($period && $isExam) {
-            $sections = Section::where([
-                'period_id' => $period->id,
-                'room_id' => $roomId,
-                'day_of_week' => $date->dayOfWeekIso,
-                'schedule_type' => ScheduleType::EXAM,
-            ])->get(['start_time', 'end_time']);
-        }
-
-        $approvedBookings = BookingDetail::where('room_id', $roomId)
-            ->whereDate('start_datetime', $date)
+        // 2. Dari booking yang disetujui
+        $approvedBookings = BookingDetail::where('room_id', (string) $roomId)
+            ->where('booking_date', $dateStr)
             ->where('status', BookingDetailStatus::APPROVED)
             ->get();
 
-        return $sections->map(fn ($s) => [
-            'start' => substr($s->start_time, 0, 5),
-            'end' => substr($s->end_time, 0, 5),
-            'type' => 'section',
-        ])->merge($approvedBookings->map(fn ($b) => [
-            'start' => $b->start_datetime->format('H:i'),
-            'end' => $b->end_datetime->format('H:i'),
-            'type' => 'approved_booking',
-        ]));
+        foreach ($approvedBookings as $b) {
+            $ranges->push([
+                'start' => substr($b->start_time, 0, 5),
+                'end' => substr($b->end_time, 0, 5),
+                'type' => 'approved_booking',
+            ]);
+        }
+
+        return $ranges;
     }
 
-    public function pendingRanges(int $roomId, Carbon $date): Collection
+    public function pendingRanges(string|int $roomId, Carbon $date): Collection
     {
-        $pendingBookings = BookingDetail::where('room_id', $roomId)
-            ->whereDate('start_datetime', $date)
+        $pendingBookings = BookingDetail::where('room_id', (string) $roomId)
+            ->where('booking_date', $date->toDateString())
             ->where('status', BookingDetailStatus::PENDING)
             ->get();
 
         return $pendingBookings->map(fn ($b) => [
-            'start' => $b->start_datetime->format('H:i'),
-            'end' => $b->end_datetime->format('H:i'),
+            'start' => substr($b->start_time, 0, 5),
+            'end' => substr($b->end_time, 0, 5),
             'type' => 'pending_booking',
         ]);
     }
 
     public function pendingQueuePosition(BookingDetail $bookingDetail): int
     {
-        $booking = $bookingDetail->booking;
-        if (! $booking) {
-            return 1;
-        }
-
-        // Jumlah detail berstatus 0 di ruangan yang sama dengan waktu tumpang tindih dan submitted_at lebih awal, + 1
         $earlierCount = BookingDetail::query()
             ->where('room_id', $bookingDetail->room_id)
+            ->where('booking_date', $bookingDetail->booking_date->toDateString())
             ->where('status', BookingDetailStatus::PENDING)
-            ->where('id', '!=', $bookingDetail->id)
-            ->where('start_datetime', '<', $bookingDetail->end_datetime)
-            ->where('end_datetime', '>', $bookingDetail->start_datetime)
-            ->whereHas('booking', function ($query) use ($booking) {
-                $query->where(function ($sub) use ($booking) {
-                    $sub->where('submitted_at', '<', $booking->submitted_at)
-                        ->orWhere(function ($sub2) use ($booking) {
-                            $sub2->where('submitted_at', '=', $booking->submitted_at)
-                                ->where('id', '<', $booking->id);
-                        });
-                });
+            ->where('start_time', '<', $bookingDetail->end_time)
+            ->where('end_time', '>', $bookingDetail->start_time)
+            ->where(function ($q) use ($bookingDetail) {
+                $q->where('booking_id', '<', $bookingDetail->booking_id);
             })
             ->count();
 

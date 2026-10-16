@@ -12,7 +12,11 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        $middleware->alias(['role' => EnsureRole::class]);
+        $middleware->alias([
+            'role' => EnsureRole::class,
+            'password.changed' => \App\Http\Middleware\EnsurePasswordChanged::class,
+        ]);
+        $middleware->appendToGroup('web', \App\Http\Middleware\EnsurePasswordChanged::class);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

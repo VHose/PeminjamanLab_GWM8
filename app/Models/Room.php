@@ -9,20 +9,32 @@ class Room extends Model
 {
     protected $table = 'room';
 
-    protected $fillable = ['code', 'name', 'capacity', 'active'];
+    public $incrementing = false;
+
+    protected $keyType = 'string';
+
+    protected $fillable = ['id', 'name', 'capacity', 'is_active'];
 
     protected function casts(): array
     {
-        return ['active' => 'boolean'];
+        return [
+            'capacity' => 'integer',
+            'is_active' => 'boolean',
+        ];
     }
 
-    public function sections(): HasMany
+    public function schedules(): HasMany
     {
-        return $this->hasMany(Section::class);
+        return $this->hasMany(Schedule::class, 'room_id');
+    }
+
+    public function scheduleSessions(): HasMany
+    {
+        return $this->hasMany(ScheduleSession::class, 'room_id');
     }
 
     public function bookingDetails(): HasMany
     {
-        return $this->hasMany(BookingDetail::class);
+        return $this->hasMany(BookingDetail::class, 'room_id');
     }
 }
