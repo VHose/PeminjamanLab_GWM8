@@ -50,6 +50,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/gwm-lantai8/peminjaman', [BookingController::class, 'create'])->name('bookings.create.alias');
     Route::post('/bookings', [BookingController::class, 'store'])->name('bookings.store');
     Route::get('/bookings/{booking}', [BookingController::class, 'show'])->name('bookings.show');
+    Route::get('/bookings/{booking}/attachments/{attachment}', [BookingController::class, 'showAttachment'])->name('bookings.attachments.show');
     Route::get('/bookings/{booking}/change', [BookingController::class, 'change'])->name('bookings.change');
     Route::post('/bookings/{booking}/cancel', [BookingController::class, 'cancel'])->name('bookings.cancel');
 

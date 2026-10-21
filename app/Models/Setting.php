@@ -54,15 +54,13 @@ class Setting extends Model
 
     /**
      * Memeriksa apakah parameter booking wajib sudah diisi oleh admin:
-     * lab_open_time, lab_close_time, booking_max_days_ahead, booking_max_duration_hours.
+     * lab_open_time, lab_close_time.
      */
     public static function isBookingConfigured(): bool
     {
         $requiredKeys = [
             'lab_open_time',
             'lab_close_time',
-            'booking_max_days_ahead',
-            'booking_max_duration_hours',
         ];
 
         $settings = static::getAll();

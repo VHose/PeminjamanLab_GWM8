@@ -19,8 +19,6 @@ class UpdateSettingsRequest extends FormRequest
             'lab_close_time' => ['required', 'date_format:H:i', 'after:lab_open_time'],
             'lab_open_time_saturday' => ['nullable', 'date_format:H:i'],
             'lab_close_time_saturday' => ['nullable', 'date_format:H:i', 'required_with:lab_open_time_saturday'],
-            'booking_max_days_ahead' => ['required', 'integer', 'min:1', 'max:180'],
-            'booking_max_duration_hours' => ['required', 'integer', 'min:1', 'max:12'],
         ];
     }
 
@@ -43,8 +41,6 @@ class UpdateSettingsRequest extends FormRequest
             'lab_open_time.required' => 'Jam buka lab (Senin-Jumat) wajib ditentukan.',
             'lab_close_time.required' => 'Jam tutup lab (Senin-Jumat) wajib ditentukan.',
             'lab_close_time.after' => 'Jam tutup lab harus setelah jam buka lab.',
-            'booking_max_days_ahead.required' => 'Batas maksimal pemesanan hari ke depan wajib diisi.',
-            'booking_max_duration_hours.required' => 'Durasi maksimal peminjaman (jam) wajib diisi.',
         ];
     }
 }

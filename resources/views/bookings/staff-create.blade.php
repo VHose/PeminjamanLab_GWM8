@@ -11,7 +11,7 @@
             <a class="btn btn-outline-secondary" href="{{ route('bookings.index') }}">Kembali</a>
         </div>
 
-        <form method="post" action="{{ route('staff-bookings.store') }}" id="staffBookingForm">
+        <form method="post" action="{{ route('staff-bookings.store') }}" id="staffBookingForm" enctype="multipart/form-data">
             @csrf
 
             <div class="card shadow-sm border-0 mb-4">
@@ -34,7 +34,25 @@
 
             <div class="card shadow-sm border-0 mb-4">
                 <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                    <h2 class="h5 fw-bold mb-0">2. Pemilihan Ruangan & Waktu</h2>
+                    <h2 class="h5 fw-bold mb-0">2. Berkas Pendukung Kegiatan <span class="badge text-bg-light border text-secondary fw-normal fs-6">Opsional</span></h2>
+                </div>
+                <div class="card-body">
+                    <div class="mb-2">
+                        <label class="form-label fw-semibold" for="attachments">
+                            Unggah Surat Pengantar / Poster / Dokumen Kegiatan
+                        </label>
+                        <input class="form-control" type="file" name="attachments[]" id="attachments" multiple accept=".pdf,.jpg,.jpeg,.png,.doc,.docx">
+                        <div class="form-text mt-2">
+                            <i class="bi bi-info-circle text-primary me-1"></i>
+                            <strong>Opsional</strong> (tidak wajib). Format didukung: PDF, JPG, JPEG, PNG, DOC, DOCX (Maks. 5 MB).
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h2 class="h5 fw-bold mb-0">3. Pemilihan Ruangan & Waktu</h2>
                     <button type="button" class="btn btn-sm btn-outline-primary" id="btnAddSlot">Tambah Ruangan Lain</button>
                 </div>
                 <div class="card-body">
@@ -50,13 +68,13 @@
                                     <select class="form-select room-select" name="slots[0][room_id]" required>
                                         <option value="">-- Pilih Ruangan --</option>
                                         @foreach($rooms as $room)
-                                            <option value="{{ $room->id }}" data-code="{{ $room->code }}">{{ $room->code }} (Kapasitas: {{ $room->capacity ?? '-' }})</option>
+                                            <option value="{{ $room->id }}" data-code="{{ $room->id }}" @selected(old('slots.0.room_id', request('room_id')) === $room->id)>{{ $room->id }} (Kapasitas: {{ $room->capacity ?? '-' }})</option>
                                         @endforeach
                                     </select>
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label fw-semibold">Hari & Tanggal <span class="text-danger">*</span></label>
-                                    <input class="form-control date-input" type="date" name="slots[0][date]" min="{{ now()->toDateString() }}" required>
+                                    <input class="form-control date-input" type="date" name="slots[0][date]" value="{{ old('slots.0.date', request('date')) }}" min="{{ now()->toDateString() }}" required>
                                 </div>
                                 <div class="col-md-2">
                                     <label class="form-label fw-semibold">Jam Mulai <span class="text-danger">*</span></label>

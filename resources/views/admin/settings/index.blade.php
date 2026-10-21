@@ -74,8 +74,8 @@
 
                         <div class="col-lg-6">
                             <div class="p-3 bg-light rounded border h-100">
-                                <h2 class="h6 fw-bold text-primary mb-3">2. Aturan Blok Waktu & Batas Booking</h2>
-                                <p class="text-secondary small mb-3">Parameter ini menentukan pembulatan pemblokiran waktu kelas dan batasan bagi pemohon.</p>
+                                <h2 class="h6 fw-bold text-primary mb-3">2. Aturan Blok Waktu Peminjaman</h2>
+                                <p class="text-secondary small mb-3">Parameter ini menentukan pembulatan pemblokiran waktu kelas di grid jadwal.</p>
 
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold">Blok Menit Peminjaman (booking_block_minutes) <span class="text-danger">*</span></label>
@@ -85,23 +85,6 @@
                                         <option value="60" @selected(old('booking_block_minutes', $settings['booking_block_minutes'] ?? '') == '60')>60 Menit</option>
                                     </select>
                                     <div class="form-text">Kelas yang selesai pada menit ganjil (misal 08:40) akan memblokir ruangan ke atas hingga kelipatan blok berikutnya (09:00).</div>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label class="form-label fw-semibold">Maksimal Pemesanan ke Depan (booking_max_days_ahead) <span class="text-danger">*</span></label>
-                                    <div class="input-group">
-                                        <input type="number" name="booking_max_days_ahead" class="form-control" min="1" max="180" value="{{ old('booking_max_days_ahead', $settings['booking_max_days_ahead'] ?? '') }}" required placeholder="Contoh: 30">
-                                        <span class="input-group-text">Hari ke depan</span>
-                                    </div>
-                                    <div class="form-text">Pemohon tidak dapat mengajukan peminjaman melebihi rentang hari ini.</div>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label class="form-label fw-semibold">Maksimal Durasi per Peminjaman (booking_max_duration_hours) <span class="text-danger">*</span></label>
-                                    <div class="input-group">
-                                        <input type="number" name="booking_max_duration_hours" class="form-control" min="1" max="12" value="{{ old('booking_max_duration_hours', $settings['booking_max_duration_hours'] ?? '') }}" required placeholder="Contoh: 4">
-                                        <span class="input-group-text">Jam per sesi</span>
-                                    </div>
                                 </div>
                             </div>
                         </div>

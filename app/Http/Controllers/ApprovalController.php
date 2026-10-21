@@ -24,7 +24,7 @@ class ApprovalController extends Controller
         $isKaprodi = $user->hasRole('Kepala_Prodi');
         $isKalab = $user->hasRole('Kepala_Lab');
 
-        $pendingBookings = Booking::with(['details.room', 'requester'])
+        $pendingBookings = Booking::with(['details.room', 'requester', 'attachments'])
             ->where(function ($q) use ($isKaprodi, $isKalab) {
                 if ($isKaprodi && $isKalab) {
                     $q->whereIn('status', [BookingStatus::PENDING_KAPRODI, BookingStatus::PENDING_KALAB]);
@@ -39,7 +39,7 @@ class ApprovalController extends Controller
             ->latest('submitted_at')
             ->paginate(15);
 
-        $recentDecisions = Booking::with(['details.room', 'requester'])
+        $recentDecisions = Booking::with(['details.room', 'requester', 'attachments'])
             ->whereIn('status', [BookingStatus::APPROVED, BookingStatus::REJECTED])
             ->latest('updated_at')
             ->take(10)

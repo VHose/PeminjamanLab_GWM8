@@ -6,6 +6,7 @@ use App\Enums\BookingDetailStatus;
 use App\Enums\BookingStatus;
 use App\Models\ActivityLog;
 use App\Models\Booking;
+use App\Models\BookingAttachment;
 use App\Models\BookingDetail;
 use App\Models\Room;
 use App\Models\Setting;
@@ -15,6 +16,7 @@ use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
@@ -42,7 +44,7 @@ class BookingController extends Controller
         $isConfigured = Setting::isBookingConfigured();
         $rooms = Room::where('is_active', true)->orderBy('id')->get();
 
-        return view('bookings.staff_create', compact('rooms', 'isConfigured'));
+        return view('bookings.staff-create', compact('rooms', 'isConfigured'));
     }
 
     public function show(Booking $booking): View
@@ -81,7 +83,7 @@ class BookingController extends Controller
     ): RedirectResponse {
         if (! Setting::isBookingConfigured()) {
             throw ValidationException::withMessages([
-                'slots' => 'Peminjaman belum dibuka karena jam operasional lab dan aturan pemesanan belum ditentukan oleh Administrator.',
+                'slots' => 'Peminjaman belum dibuka karena jam operasional lab belum ditentukan oleh Administrator.',
             ]);
         }
 
@@ -94,10 +96,11 @@ class BookingController extends Controller
             'slots.*.date' => ['required', 'date'],
             'slots.*.start' => ['required', 'date_format:H:i'],
             'slots.*.end' => ['required', 'date_format:H:i', 'after:slots.*.start'],
+            'attachments' => ['nullable', 'array', 'max:5'],
+            'attachments.*' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png,doc,docx', 'max:5120'],
+            'attachment' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png,doc,docx', 'max:5120'],
         ]);
 
-        $maxDaysAhead = (int) Setting::get('booking_max_days_ahead', 30);
-        $maxDurationHours = (int) Setting::get('booking_max_duration_hours', 4);
         $minAllowedStart = now()->addDays(2);
 
         foreach ($data['slots'] as $slot) {
@@ -117,21 +120,6 @@ class BookingController extends Controller
             if ($start->lt($minAllowedStart)) {
                 throw ValidationException::withMessages([
                     'slots' => 'Waktu mulai peminjaman minimal 2 hari dari sekarang (H+2).',
-                ]);
-            }
-
-            // Batas hari ke depan
-            if ($start->gt(now()->addDays($maxDaysAhead))) {
-                throw ValidationException::withMessages([
-                    'slots' => "Peminjaman maksimal dapat dipesan {$maxDaysAhead} hari ke depan.",
-                ]);
-            }
-
-            // Durasi maksimal
-            $durationHours = $end->diffInMinutes($start) / 60;
-            if ($durationHours > $maxDurationHours) {
-                throw ValidationException::withMessages([
-                    'slots' => "Durasi peminjaman per sesi tidak boleh melebihi {$maxDurationHours} jam.",
                 ]);
             }
 
@@ -180,12 +168,38 @@ class BookingController extends Controller
                 ]);
             }
 
+            // Upload berkas pendukung (surat/poster/proposal) jika ada (opsional)
+            $uploadedFiles = [];
+            if ($request->hasFile('attachments')) {
+                $rawFiles = $request->file('attachments');
+                $uploadedFiles = is_array($rawFiles) ? $rawFiles : [$rawFiles];
+            } elseif ($request->hasFile('attachment')) {
+                $uploadedFiles = [$request->file('attachment')];
+            }
+
+            foreach ($uploadedFiles as $file) {
+                if ($file && $file->isValid()) {
+                    $storedPath = $file->store('booking_attachments', 'local');
+                    BookingAttachment::create([
+                        'booking_id' => $booking->id,
+                        'original_name' => mb_substr($file->getClientOriginalName(), 0, 150),
+                        'path' => $storedPath,
+                        'mime_type' => $file->getClientMimeType() ?: 'application/octet-stream',
+                        'size' => $file->getSize() ?: 0,
+                        'created_at' => now(),
+                    ]);
+                }
+            }
+
+            $attCount = count($uploadedFiles);
+            $attNote = $attCount > 0 ? " dengan {$attCount} berkas lampiran." : ".";
+
             ActivityLog::record(
                 $user->id,
                 'create',
                 'booking',
                 $booking->id,
-                "Mengajukan peminjaman ruangan #{$booking->id} untuk kegiatan: {$booking->purpose}.",
+                "Mengajukan peminjaman ruangan #{$booking->id} untuk kegiatan: {$booking->purpose}{$attNote}",
                 $request->ip()
             );
 
@@ -219,5 +233,122 @@ class BookingController extends Controller
         );
 
         return back()->with('success', 'Peminjaman berhasil dibatalkan.');
+    }
+
+    /**
+     * Unduh atau buka berkas lampiran pendukung peminjaman secara aman.
+     */
+    public function showAttachment(Request $request, Booking $booking, BookingAttachment $attachment)
+    {
+        $user = $request->user();
+        if ($booking->user_id !== $user->id && ! $user->isInternal()) {
+            abort(403, 'Anda tidak memiliki hak akses untuk melihat berkas ini.');
+        }
+
+        if ($attachment->booking_id !== $booking->id) {
+            abort(404);
+        }
+
+        if (! Storage::disk('local')->exists($attachment->path)) {
+            abort(404, 'Berkas fisik tidak ditemukan di server.');
+        }
+
+        if ($request->boolean('download')) {
+            return Storage::disk('local')->download($attachment->path, $attachment->original_name);
+        }
+
+        return Storage::disk('local')->response($attachment->path, $attachment->original_name);
+    }
+
+    /**
+     * Staf Lab: Input peminjaman atas nama dosen (langsung disetujui).
+     */
+    public function staffStore(
+        Request $request,
+        BookingService $service
+    ): RedirectResponse {
+        abort_unless($request->user()->hasRole('Staf_Lab'), 403);
+
+        $data = $request->validate([
+            'requester_name' => ['required', 'string', 'max:100'],
+            'purpose' => ['required', 'string', 'max:500'],
+            'slots' => ['required', 'array', 'min:1'],
+            'slots.*.room_id' => ['required', 'exists:room,id'],
+            'slots.*.date' => ['required', 'date'],
+            'slots.*.start' => ['required', 'date_format:H:i'],
+            'slots.*.end' => ['required', 'date_format:H:i', 'after:slots.*.start'],
+            'attachments' => ['nullable', 'array', 'max:5'],
+            'attachments.*' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png,doc,docx', 'max:5120'],
+            'attachment' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png,doc,docx', 'max:5120'],
+        ]);
+
+        foreach ($data['slots'] as $slot) {
+            $start = Carbon::parse("{$slot['date']} {$slot['start']}");
+            $end = Carbon::parse("{$slot['date']} {$slot['end']}");
+
+            if (! $service->isAvailable($slot['room_id'], $start, $end)) {
+                throw ValidationException::withMessages([
+                    'slots' => "Ruangan {$slot['room_id']} pada tanggal {$slot['date']} ({$slot['start']} - {$slot['end']}) sudah terisi.",
+                ]);
+            }
+        }
+
+        $booking = DB::transaction(function () use ($request, $data) {
+            $user = $request->user();
+
+            $booking = Booking::create([
+                'user_id' => $user->id,
+                'created_by' => $user->id,
+                'pic_name' => $data['requester_name'],
+                'purpose' => $data['purpose'],
+                'status' => BookingStatus::APPROVED,
+            ]);
+
+            foreach ($data['slots'] as $slot) {
+                BookingDetail::create([
+                    'booking_id' => $booking->id,
+                    'room_id' => $slot['room_id'],
+                    'booking_date' => $slot['date'],
+                    'start_time' => $slot['start'] . ':00',
+                    'end_time' => $slot['end'] . ':00',
+                    'status' => BookingDetailStatus::APPROVED,
+                ]);
+            }
+
+            $uploadedFiles = [];
+            if ($request->hasFile('attachments')) {
+                $rawFiles = $request->file('attachments');
+                $uploadedFiles = is_array($rawFiles) ? $rawFiles : [$rawFiles];
+            } elseif ($request->hasFile('attachment')) {
+                $uploadedFiles = [$request->file('attachment')];
+            }
+
+            foreach ($uploadedFiles as $file) {
+                if ($file && $file->isValid()) {
+                    $storedPath = $file->store('booking_attachments', 'local');
+                    BookingAttachment::create([
+                        'booking_id' => $booking->id,
+                        'original_name' => mb_substr($file->getClientOriginalName(), 0, 150),
+                        'path' => $storedPath,
+                        'mime_type' => $file->getClientMimeType() ?: 'application/octet-stream',
+                        'size' => $file->getSize() ?: 0,
+                        'created_at' => now(),
+                    ]);
+                }
+            }
+
+            ActivityLog::record(
+                $user->id,
+                'create',
+                'booking',
+                $booking->id,
+                "Staf Lab menginput peminjaman langsung #{$booking->id} atas nama {$booking->pic_name}.",
+                $request->ip()
+            );
+
+            return $booking;
+        });
+
+        return redirect()->route('bookings.show', $booking)->with('success', 'Peminjaman atas nama dosen berhasil disimpan.');
     }
 }

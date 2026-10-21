@@ -34,8 +34,6 @@ class SettingController extends Controller
             'lab_close_time',
             'lab_open_time_saturday',
             'lab_close_time_saturday',
-            'booking_max_days_ahead',
-            'booking_max_duration_hours',
         ];
 
         foreach ($keysToSave as $key) {

@@ -18,7 +18,7 @@
             </div>
         @endif
 
-        <form method="post" action="{{ route('bookings.store') }}" id="bookingForm">
+        <form method="post" action="{{ route('bookings.store') }}" id="bookingForm" enctype="multipart/form-data">
             @csrf
             <input type="hidden" name="type" value="new">
 
@@ -46,7 +46,26 @@
 
             <div class="card shadow-sm border-0 mb-4">
                 <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                    <h2 class="h5 fw-bold mb-0">2. Pemilihan Ruangan & Waktu (Senin s/d Sabtu)</h2>
+                    <h2 class="h5 fw-bold mb-0">2. Berkas Pendukung Kegiatan <span class="badge text-bg-light border text-secondary fw-normal fs-6">Opsional</span></h2>
+                </div>
+                <div class="card-body">
+                    <div class="mb-2">
+                        <label class="form-label fw-semibold" for="attachments">
+                            Unggah Surat Izin / Poster Acara / Dokumen Kegiatan
+                        </label>
+                        <input class="form-control" type="file" name="attachments[]" id="attachments" multiple accept=".pdf,.jpg,.jpeg,.png,.doc,.docx">
+                        <div class="form-text mt-2">
+                            <i class="bi bi-info-circle text-primary me-1"></i>
+                            <strong>Sifatnya opsional</strong> (tidak wajib diisi). Apabila kegiatan membutuhkan berkas persyaratan (seperti surat permohonan/pengantar izin dekanat/himpunan atau poster seminar/lomba), Anda dapat mengunggahnya di sini.<br>
+                            <span class="text-secondary">Format yang diperbolehkan: <strong>PDF, JPG, JPEG, PNG, DOC, DOCX</strong>. Maksimal <strong>5 MB</strong> per berkas (dapat memilih lebih dari 1 berkas sekaligus).</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h2 class="h5 fw-bold mb-0">3. Pemilihan Ruangan & Waktu (Senin s/d Sabtu)</h2>
                     <button type="button" class="btn btn-sm btn-outline-primary" id="btnAddSlot">Tambah Ruangan Lain</button>
                 </div>
                 <div class="card-body">
@@ -62,13 +81,13 @@
                                     <select class="form-select room-select" name="slots[0][room_id]" required>
                                         <option value="">-- Pilih Ruangan --</option>
                                         @foreach($rooms as $room)
-                                            <option value="{{ $room->id }}" data-code="{{ $room->id }}">{{ $room->id }} (Kapasitas: {{ $room->capacity ?? '-' }})</option>
+                                            <option value="{{ $room->id }}" data-code="{{ $room->id }}" @selected(old('slots.0.room_id', request('room_id')) === $room->id)>{{ $room->id }} (Kapasitas: {{ $room->capacity ?? '-' }})</option>
                                         @endforeach
                                     </select>
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label fw-semibold">Hari & Tanggal (Senin - Sabtu) <span class="text-danger">*</span></label>
-                                    <input class="form-control date-input" type="date" name="slots[0][date]" min="{{ now()->toDateString() }}" required>
+                                    <input class="form-control date-input" type="date" name="slots[0][date]" value="{{ old('slots.0.date', request('date')) }}" min="{{ now()->toDateString() }}" required>
                                 </div>
                                 <div class="col-md-2">
                                     <label class="form-label fw-semibold">Jam Mulai <span class="text-danger">*</span></label>
@@ -91,7 +110,7 @@
 
             <div class="card shadow-sm border-0 mb-4" id="previewSection">
                 <div class="card-header bg-white py-3">
-                    <h2 class="h5 fw-bold mb-0">3. Pratinjau Jadwal Sebelum Diajukan</h2>
+                    <h2 class="h5 fw-bold mb-0">4. Pratinjau Jadwal Sebelum Diajukan</h2>
                 </div>
                 <div class="card-body">
                     <p class="text-secondary small mb-3">Berikut adalah pratinjau tabel jadwal peminjaman yang akan Anda ajukan. Pastikan ruangan dan waktu sudah sesuai.</p>

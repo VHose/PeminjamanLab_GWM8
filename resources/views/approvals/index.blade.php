@@ -63,11 +63,25 @@
                                 @if($booking->type === \App\Constants\BookingType::RESCHEDULE && $booking->notes)
                                     <div class="small text-danger mt-1">Alasan: {{ $booking->notes }}</div>
                                 @endif
+                                @if($booking->attachments && $booking->attachments->isNotEmpty())
+                                    <div class="mt-2 pt-2 border-top">
+                                        <div class="small fw-semibold text-secondary mb-1">
+                                            <i class="bi bi-paperclip"></i> Berkas Lampiran ({{ $booking->attachments->count() }}):
+                                        </div>
+                                        @foreach($booking->attachments as $att)
+                                            <a href="{{ route('bookings.attachments.show', [$booking, $att]) }}" target="_blank" class="d-inline-flex align-items-center gap-1 small text-decoration-none badge text-bg-light border text-dark me-1 mb-1 p-1 px-2" title="Buka {{ $att->original_name }}">
+                                                <i class="bi {{ $att->icon_class }}"></i>
+                                                <span class="text-truncate" style="max-width: 140px;">{{ $att->original_name }}</span>
+                                                <span class="text-muted">({{ $att->formatted_size }})</span>
+                                            </a>
+                                        @endforeach
+                                    </div>
+                                @endif
                             </td>
                             <td>
                                 @foreach($booking->details as $dt)
                                     <div class="small mb-1 p-1 rounded bg-light border">
-                                        <span class="badge bg-dark">{{ $dt->room->code ?? '-' }}</span>
+                                        <span class="badge bg-dark">{{ $dt->room->id ?? '-' }}</span>
                                         {{ $dt->start_datetime->format('d/m/Y') }}:
                                         {{ $dt->start_datetime->format('H:i') }} - {{ $dt->end_datetime->format('H:i') }}
                                         <div>

@@ -33,6 +33,11 @@ class ActivityLog extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
+    public function getCreatedAtAttribute($value)
+    {
+        return $value ? Carbon::parse($value) : null;
+    }
+
     /**
      * Helper untuk mencatat log aktivitas dengan presisi mikrodetik pada PK created_at.
      */

@@ -23,12 +23,138 @@
     </div>
 </div>
 
+@php
+    $bookingDate = ($date->isPast() && !$date->isToday()) ? now()->toDateString() : $date->toDateString();
+
+    $labRooms = [
+        [
+            'id' => 'PROG2',
+            'name' => 'Programming Lab 2',
+            'x' => 24, 'y' => 95, 'w' => 98, 'h' => 166,
+            'color' => '#0d6efd',
+            'bg' => 'rgba(13, 110, 253, 0.38)',
+        ],
+        [
+            'id' => 'PROG1',
+            'name' => 'Programming Lab 1',
+            'x' => 122, 'y' => 75, 'w' => 94, 'h' => 169,
+            'color' => '#0d6efd',
+            'bg' => 'rgba(13, 110, 253, 0.38)',
+        ],
+        [
+            'id' => 'Network',
+            'name' => 'Computer Network Lab',
+            'x' => 216, 'y' => 88, 'w' => 92, 'h' => 156,
+            'color' => '#0dcaf0',
+            'bg' => 'rgba(13, 202, 240, 0.40)',
+        ],
+        [
+            'id' => 'INT2',
+            'name' => 'Internet Lab 2',
+            'x' => 173, 'y' => 296, 'w' => 136, 'h' => 143,
+            'color' => '#20c997',
+            'bg' => 'rgba(32, 201, 151, 0.38)',
+        ],
+        [
+            'id' => 'INT1',
+            'name' => 'Internet Lab 1',
+            'x' => 309, 'y' => 297, 'w' => 94, 'h' => 142,
+            'color' => '#20c997',
+            'bg' => 'rgba(32, 201, 151, 0.38)',
+        ],
+        [
+            'id' => 'ADV4',
+            'name' => 'Advance Programming Lab 4',
+            'x' => 403, 'y' => 297, 'w' => 95, 'h' => 143,
+            'color' => '#6610f2',
+            'bg' => 'rgba(102, 16, 242, 0.38)',
+        ],
+        [
+            'id' => 'ADV3',
+            'name' => 'Advance Programming Lab 3',
+            'x' => 498, 'y' => 297, 'w' => 88, 'h' => 146,
+            'color' => '#6610f2',
+            'bg' => 'rgba(102, 16, 242, 0.38)',
+        ],
+        [
+            'id' => 'DB',
+            'name' => 'Database Lab',
+            'x' => 778, 'y' => 299, 'w' => 92, 'h' => 145,
+            'color' => '#fd7e14',
+            'bg' => 'rgba(253, 126, 20, 0.40)',
+        ],
+        [
+            'id' => 'MMD',
+            'name' => 'Multimedia Lab',
+            'x' => 870, 'y' => 279, 'w' => 107, 'h' => 219,
+            'color' => '#d63384',
+            'bg' => 'rgba(214, 51, 132, 0.38)',
+        ],
+        [
+            'id' => 'ENT1',
+            'name' => 'Enterprise Lab 1',
+            'x' => 28, 'y' => 487, 'w' => 99, 'h' => 90,
+            'color' => '#198754',
+            'bg' => 'rgba(25, 135, 84, 0.38)',
+        ],
+        [
+            'id' => 'ENT2',
+            'name' => 'Enterprise Lab 2',
+            'x' => 127, 'y' => 488, 'w' => 88, 'h' => 122,
+            'color' => '#198754',
+            'bg' => 'rgba(25, 135, 84, 0.38)',
+        ],
+        [
+            'id' => 'ADV1',
+            'name' => 'Advance Programming Lab 1',
+            'x' => 313, 'y' => 490, 'w' => 89, 'h' => 139,
+            'color' => '#6610f2',
+            'bg' => 'rgba(102, 16, 242, 0.38)',
+        ],
+        [
+            'id' => 'ADV2',
+            'name' => 'Advance Programming Lab 2',
+            'x' => 402, 'y' => 490, 'w' => 92, 'h' => 140,
+            'color' => '#6610f2',
+            'bg' => 'rgba(102, 16, 242, 0.38)',
+        ],
+    ];
+@endphp
+
 <div class="card mb-4 shadow-sm border-0">
-    <div class="card-header bg-white py-3">
-        <h2 class="h5 mb-0 fw-bold">Denah Laboratorium Komputer GWM Lantai 8</h2>
+    <div class="card-header bg-white py-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <div>
+            <h2 class="h5 mb-1 fw-bold">Denah Laboratorium Komputer GWM Lantai 8</h2>
+            <div class="small text-muted">
+                Arahkan kursor ke ruangan <span class="badge bg-primary-subtle text-primary border border-primary-subtle">Lab</span> untuk melihat nama ruangan, lalu klik untuk langsung mengajukan peminjaman.
+            </div>
+        </div>
+        <a href="{{ asset('images/denah-lantai-8.png') }}" target="_blank" class="btn btn-sm btn-outline-primary">
+            Lihat Ukuran Penuh
+        </a>
     </div>
     <div class="card-body p-3 text-center bg-light">
-        <img src="{{ asset('images/denah-lantai-8.svg') }}" alt="Denah Lab Komputer GWM Lantai 8" class="img-fluid rounded border" style="max-height: 380px;">
+        <div class="denah-interactive-wrapper shadow-sm rounded border bg-white">
+            <svg viewBox="0 0 1024 765" class="denah-svg" preserveAspectRatio="xMidYMid meet">
+                <!-- Gambar Denah Asli -->
+                <image href="{{ asset('images/denah-lantai-8.png') }}" width="1024" height="765" />
+
+                <!-- Area Interaktif Setiap Ruangan Lab -->
+                @foreach($labRooms as $lab)
+                    <a href="{{ route('bookings.create', ['room_id' => $lab['id'], 'date' => $bookingDate]) }}"
+                       class="denah-lab-link"
+                       style="--lab-hover-bg: {{ $lab['bg'] }}; --lab-hover-stroke: {{ $lab['color'] }};"
+                       data-room-id="{{ $lab['id'] }}"
+                       data-room-name="{{ $lab['name'] }}"
+                       aria-label="Ajukan Peminjaman {{ $lab['name'] }} ({{ $lab['id'] }})">
+                        <rect x="{{ $lab['x'] }}" y="{{ $lab['y'] }}" width="{{ $lab['w'] }}" height="{{ $lab['h'] }}" rx="4" class="denah-room-overlay" />
+                    </a>
+                @endforeach
+            </svg>
+
+            <!-- Floating Tooltip -->
+            <div id="denahTooltip" class="denah-tooltip" role="tooltip"></div>
+        </div>
     </div>
 </div>
 
@@ -220,3 +346,104 @@
     </div>
 </div>
 @endsection
+
+@push('styles')
+<style>
+.denah-interactive-wrapper {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+    max-width: 960px;
+    margin: 0 auto;
+    overflow: visible;
+}
+.denah-svg {
+    width: 100%;
+    height: auto;
+    display: block;
+    background: #ffffff;
+    border-radius: 0.375rem;
+}
+.denah-lab-link {
+    cursor: pointer;
+    outline: none;
+}
+.denah-room-overlay {
+    fill: transparent;
+    stroke: transparent;
+    stroke-width: 3.5;
+    transition: fill 0.18s ease-in-out, stroke 0.18s ease-in-out, filter 0.18s ease-in-out;
+}
+.denah-lab-link:hover .denah-room-overlay,
+.denah-lab-link:focus .denah-room-overlay {
+    fill: var(--lab-hover-bg, rgba(13, 110, 253, 0.38));
+    stroke: var(--lab-hover-stroke, #0d6efd);
+    filter: drop-shadow(0 0 8px var(--lab-hover-stroke, #0d6efd));
+}
+.denah-tooltip {
+    position: absolute;
+    pointer-events: none;
+    background: rgba(18, 22, 31, 0.94);
+    color: #ffffff;
+    padding: 7px 14px;
+    border-radius: 6px;
+    font-size: 0.82rem;
+    line-height: 1.35;
+    z-index: 1050;
+    transform: translate(-50%, -125%);
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.15s ease-in-out;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+.denah-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: rgba(18, 22, 31, 0.94) transparent transparent transparent;
+}
+.denah-tooltip .tooltip-action {
+    display: block;
+    font-size: 0.72rem;
+    color: #9ec5fe;
+    margin-top: 2px;
+}
+</style>
+@endpush
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const wrapper = document.querySelector('.denah-interactive-wrapper');
+    const tooltip = document.getElementById('denahTooltip');
+    if (!wrapper || !tooltip) return;
+
+    const links = wrapper.querySelectorAll('.denah-lab-link');
+    links.forEach(link => {
+        link.addEventListener('mouseenter', () => {
+            const name = link.getAttribute('data-room-name');
+            const code = link.getAttribute('data-room-id');
+            tooltip.innerHTML = `<strong>${name} (${code})</strong><span class="tooltip-action">Klik untuk meminjam ruangan</span>`;
+            tooltip.style.opacity = '1';
+        });
+
+        link.addEventListener('mousemove', (e) => {
+            const rect = wrapper.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            tooltip.style.left = `${x}px`;
+            tooltip.style.top = `${y}px`;
+        });
+
+        link.addEventListener('mouseleave', () => {
+            tooltip.style.opacity = '0';
+        });
+    });
+});
+</script>
+@endpush

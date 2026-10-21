@@ -28,11 +28,11 @@
                 <tbody>
                     @forelse($logs as $log)
                         <tr>
-                            <td class="small text-secondary">{{ $log->created_at->format('d/m/Y H:i:s') }}</td>
+                            <td class="small text-secondary">{{ \Carbon\Carbon::parse($log->created_at)->format('d/m/Y H:i:s') }}</td>
                             <td>
                                 @if($log->user)
                                     <span class="fw-semibold">{{ $log->user->name }}</span>
-                                    <span class="badge text-bg-light border">{{ str_replace('_', ' ', $log->user->role?->name ?? 'User') }}</span>
+                                    <span class="badge text-bg-light border">{{ str_replace('_', ' ', $log->user->roles->first()?->name ?? 'User') }}</span>
                                 @else
                                     <span class="badge text-bg-secondary">Sistem Otomatis</span>
                                 @endif

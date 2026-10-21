@@ -125,8 +125,6 @@ class AdminSettingsTest extends TestCase
                 'lab_close_time' => '21:00',
                 'lab_open_time_saturday' => '08:00',
                 'lab_close_time_saturday' => '17:00',
-                'booking_max_days_ahead' => 30,
-                'booking_max_duration_hours' => 4,
             ]);
 
         $updateResponse->assertRedirect(route('admin.settings.index', ['tab' => 'general']));
@@ -136,8 +134,6 @@ class AdminSettingsTest extends TestCase
         $this->assertSame('21:00', Setting::get('lab_close_time'));
         $this->assertSame('08:00', Setting::get('lab_open_time_saturday'));
         $this->assertSame('17:00', Setting::get('lab_close_time_saturday'));
-        $this->assertSame('30', Setting::get('booking_max_days_ahead'));
-        $this->assertSame('4', Setting::get('booking_max_duration_hours'));
         $this->assertTrue(Setting::isBookingConfigured());
 
         // Pastikan tercatat di activity_log
