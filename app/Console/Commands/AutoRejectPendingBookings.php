@@ -2,8 +2,8 @@
 
 namespace App\Console\Commands;
 
-use App\Constants\BookingDetailStatus;
-use App\Constants\BookingStatus;
+use App\Enums\BookingDetailStatus;
+use App\Enums\BookingStatus;
 use App\Models\Booking;
 use App\Services\ActivityLogger;
 use App\Services\NotificationService;
@@ -21,13 +21,17 @@ class AutoRejectPendingBookings extends Command
 
         Booking::query()
             ->whereIn('status', [BookingStatus::PENDING_KAPRODI, BookingStatus::PENDING_KALAB])
-            ->withMin('details', 'start_datetime')
+            ->with('details')
             ->get()
             ->filter(function (Booking $booking) {
-                if (! $booking->details_min_start_datetime) {
+                $earliestSlot = $booking->details
+                    ->map(fn ($d) => $d->start_datetime)
+                    ->sort()
+                    ->first();
+
+                if (! $earliestSlot) {
                     return false;
                 }
-                $earliestSlot = now()->parse($booking->details_min_start_datetime);
                 // Batas H-2: jika now() >= earliestSlot - 2 hari
                 return now()->gte($earliestSlot->copy()->subDays(2));
             })
@@ -41,7 +45,6 @@ class AutoRejectPendingBookings extends Command
                     ->where('status', BookingDetailStatus::PENDING)
                     ->update([
                         'status' => BookingDetailStatus::REJECTED,
-                        'notes' => $reason,
                     ]);
 
                 $logger->log(null, 'auto_reject', 'booking', (string) $booking->id, $reason);

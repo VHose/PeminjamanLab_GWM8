@@ -19,7 +19,7 @@ class StorePeriodHolidayRequest extends FormRequest
             'period_id' => ['required', 'exists:period,id'],
             'start_date' => ['required', 'date'],
             'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
-            'note' => ['nullable', 'string', 'max:100'],
+            'note' => ['nullable', 'string', 'max:60'],
         ];
     }
 

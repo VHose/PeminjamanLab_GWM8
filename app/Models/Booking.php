@@ -15,11 +15,28 @@ class Booking extends Model
         'user_id',
         'created_by',
         'pic_name',
+        'requester_name',
         'pic_phone',
         'purpose',
         'status',
         'decision_note',
+        'notes',
     ];
+
+    public function setRequesterNameAttribute($value): void
+    {
+        $this->attributes['pic_name'] = $value;
+    }
+
+    public function setNotesAttribute($value): void
+    {
+        $this->attributes['decision_note'] = $value;
+    }
+
+    public function getNotesAttribute(): ?string
+    {
+        return $this->decision_note;
+    }
 
     protected function casts(): array
     {
@@ -29,6 +46,11 @@ class Booking extends Model
     }
 
     public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function requester(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
     }

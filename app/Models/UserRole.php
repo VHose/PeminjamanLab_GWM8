@@ -38,6 +38,32 @@ class UserRole extends Model
         return $query;
     }
 
+    public function fresh($with = [])
+    {
+        if (! $this->exists) {
+            return null;
+        }
+
+        $query = static::newModelQuery()->with(is_string($with) ? func_get_args() : $with);
+
+        return $this->setKeysForSaveQuery($query)->first();
+    }
+
+    public function refresh()
+    {
+        if (! $this->exists) {
+            return $this;
+        }
+
+        $fresh = $this->fresh();
+        if ($fresh) {
+            $this->setRawAttributes($fresh->getAttributes(), true);
+            $this->setRelations($fresh->getRelations());
+        }
+
+        return $this;
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');

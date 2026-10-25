@@ -160,15 +160,15 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Nama Lengkap <span class="text-danger">*</span></label>
-                        <input type="text" name="name" class="form-control" placeholder="Nama administrator" required maxlength="100">
+                        <input type="text" name="name" class="form-control" placeholder="Nama administrator" required maxlength="80">
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Alamat Email <span class="text-danger">*</span></label>
-                        <input type="email" name="email" class="form-control" placeholder="admin@maranatha.edu" required maxlength="100">
+                        <input type="email" name="email" class="form-control" placeholder="admin@maranatha.edu" required maxlength="70">
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-semibold">No. Telepon</label>
-                        <input type="text" name="phone" class="form-control" placeholder="08xxxxxxxxxx" maxlength="20">
+                        <input type="text" name="phone" class="form-control" placeholder="08xxxxxxxxxx" maxlength="15">
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Kata Sandi Awal <span class="text-danger">*</span></label>

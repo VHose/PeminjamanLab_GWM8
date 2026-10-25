@@ -46,10 +46,10 @@ class AuthController extends Controller
     public function registerStore(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'name' => ['required', 'string', 'max:100'],
-            'email' => ['required', 'email', 'max:100', 'unique:user,email'],
+            'name' => ['required', 'string', 'max:80'],
+            'email' => ['required', 'email', 'max:70', 'unique:user,email'],
             'password' => ['required', 'confirmed', PasswordRule::min(8)],
-            'phone' => ['nullable', 'string', 'max:20'],
+            'phone' => ['nullable', 'string', 'max:15'],
         ]);
 
         $visitorRole = Role::query()->firstOrCreate(['name' => 'Visitor']);

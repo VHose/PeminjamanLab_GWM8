@@ -19,13 +19,12 @@ class NotificationService
     public function notifyNewBooking(Booking $booking): void
     {
         try {
-            $today = now()->toDateString();
-            $kaprodis = User::whereHas('roles', function ($q) use ($today) {
-                $q->where('name', 'Kepala_Prodi')
-                  ->where('start_date', '<=', $today)
-                  ->where(function ($sub) use ($today) {
-                      $sub->whereNull('end_date')->orWhere('end_date', '>=', $today);
-                  });
+            $activePeriodId = \App\Models\Period::where('is_active', true)->value('id');
+            $kaprodis = User::whereHas('roles', function ($q) use ($activePeriodId) {
+                $q->where('name', 'Kepala_Prodi');
+                if ($activePeriodId) {
+                    $q->where('user_role.period_id', $activePeriodId);
+                }
             })->get();
 
             foreach ($kaprodis as $kaprodi) {
@@ -48,13 +47,12 @@ class NotificationService
     public function notifyKaprodiApproved(Booking $booking): void
     {
         try {
-            $today = now()->toDateString();
-            $kalabs = User::whereHas('roles', function ($q) use ($today) {
-                $q->where('name', 'Kepala_Lab')
-                  ->where('start_date', '<=', $today)
-                  ->where(function ($sub) use ($today) {
-                      $sub->whereNull('end_date')->orWhere('end_date', '>=', $today);
-                  });
+            $activePeriodId = \App\Models\Period::where('is_active', true)->value('id');
+            $kalabs = User::whereHas('roles', function ($q) use ($activePeriodId) {
+                $q->where('name', 'Kepala_Lab');
+                if ($activePeriodId) {
+                    $q->where('user_role.period_id', $activePeriodId);
+                }
             })->get();
 
             foreach ($kalabs as $kalab) {
@@ -71,13 +69,12 @@ class NotificationService
     public function notifyRescheduleSubmitted(Booking $booking): void
     {
         try {
-            $today = now()->toDateString();
-            $kalabs = User::whereHas('roles', function ($q) use ($today) {
-                $q->where('name', 'Kepala_Lab')
-                  ->where('start_date', '<=', $today)
-                  ->where(function ($sub) use ($today) {
-                      $sub->whereNull('end_date')->orWhere('end_date', '>=', $today);
-                  });
+            $activePeriodId = \App\Models\Period::where('is_active', true)->value('id');
+            $kalabs = User::whereHas('roles', function ($q) use ($activePeriodId) {
+                $q->where('name', 'Kepala_Lab');
+                if ($activePeriodId) {
+                    $q->where('user_role.period_id', $activePeriodId);
+                }
             })->get();
 
             foreach ($kalabs as $kalab) {

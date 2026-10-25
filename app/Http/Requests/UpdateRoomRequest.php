@@ -14,7 +14,7 @@ class UpdateRoomRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:50'],
+            'name' => ['required', 'string', 'max:25'],
             'capacity' => ['nullable', 'integer', 'min:1', 'max:200'],
             'is_active' => ['nullable', 'boolean'],
         ];

@@ -83,11 +83,11 @@
             </div>
             <div class="col-md-3">
                 <label class="form-label small fw-semibold">Nama Lengkap (Jika Baru)</label>
-                <input type="text" name="name" class="form-control form-control-sm" placeholder="Nama dosen / staf">
+                <input type="text" name="name" class="form-control form-control-sm" placeholder="Nama dosen / staf" maxlength="80">
             </div>
             <div class="col-md-3">
                 <label class="form-label small fw-semibold">Email Asli</label>
-                <input type="email" name="email" class="form-control form-control-sm" placeholder="nama@maranatha.edu">
+                <input type="email" name="email" class="form-control form-control-sm" placeholder="nama@maranatha.edu" maxlength="70">
             </div>
             <div class="col-md-2">
                 <label class="form-label small fw-semibold">Peran (Role)</label>

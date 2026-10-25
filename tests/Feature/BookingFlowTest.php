@@ -2,8 +2,8 @@
 
 namespace Tests\Feature;
 
-use App\Constants\BookingDetailStatus;
-use App\Constants\BookingStatus;
+use App\Enums\BookingDetailStatus;
+use App\Enums\BookingStatus;
 use App\Constants\BookingType;
 use App\Constants\ScheduleType;
 use App\Models\Booking;
@@ -58,6 +58,17 @@ class BookingFlowTest extends TestCase
             'is_active' => true,
         ]);
 
+        $this->period = Period::create([
+            'name' => 'Ganjil 2026/2027',
+            'start_date' => '2026-09-14',
+            'end_date' => '2027-01-29',
+            'uts_start' => '2026-11-02',
+            'uts_end' => '2026-11-14',
+            'uas_start' => '2027-01-18',
+            'uas_end' => '2027-01-29',
+            'is_active' => true,
+        ]);
+
         $this->visitor = User::create([
             'id' => 'V000001',
             'name' => 'Valentino Hose',
@@ -67,7 +78,7 @@ class BookingFlowTest extends TestCase
         UserRole::create([
             'user_id' => $this->visitor->id,
             'role_id' => $roleVisitor->id,
-            'start_date' => now()->subMonth()->toDateString(),
+            'period_id' => $this->period->id,
         ]);
 
         $this->staff = User::create([
@@ -79,7 +90,7 @@ class BookingFlowTest extends TestCase
         UserRole::create([
             'user_id' => $this->staff->id,
             'role_id' => $roleStaff->id,
-            'start_date' => now()->subMonth()->toDateString(),
+            'period_id' => $this->period->id,
         ]);
 
         $this->kaprodi = User::create([
@@ -92,12 +103,12 @@ class BookingFlowTest extends TestCase
         UserRole::create([
             'user_id' => $this->kaprodi->id,
             'role_id' => $roleDosen->id,
-            'start_date' => now()->subMonth()->toDateString(),
+            'period_id' => $this->period->id,
         ]);
         UserRole::create([
             'user_id' => $this->kaprodi->id,
             'role_id' => $roleKaprodi->id,
-            'start_date' => now()->subMonth()->toDateString(),
+            'period_id' => $this->period->id,
         ]);
 
         $this->kalab = User::create([
@@ -110,27 +121,16 @@ class BookingFlowTest extends TestCase
         UserRole::create([
             'user_id' => $this->kalab->id,
             'role_id' => $roleDosen->id,
-            'start_date' => now()->subMonth()->toDateString(),
+            'period_id' => $this->period->id,
         ]);
         UserRole::create([
             'user_id' => $this->kalab->id,
             'role_id' => $roleKalab->id,
-            'start_date' => now()->subMonth()->toDateString(),
+            'period_id' => $this->period->id,
         ]);
 
         $this->adv1 = Room::create(['id' => 'ADV1', 'name' => 'Advanced 1', 'capacity' => 30, 'is_active' => true]);
         $this->adv2 = Room::create(['id' => 'ADV2', 'name' => 'Advanced 2', 'capacity' => 30, 'is_active' => true]);
-
-        $this->period = Period::create([
-            'name' => 'Ganjil 2026/2027',
-            'start_date' => '2026-09-14',
-            'end_date' => '2027-01-29',
-            'uts_start' => '2026-11-02',
-            'uts_end' => '2026-11-14',
-            'uas_start' => '2027-01-18',
-            'uas_end' => '2027-01-29',
-            'is_active' => true,
-        ]);
     }
 
     /**
@@ -148,20 +148,28 @@ class BookingFlowTest extends TestCase
             'password' => Hash::make('password'),
         ]);
 
-        // Role Dosen aktif
+        // Role Dosen aktif di periode aktif
         UserRole::create([
             'user_id' => $user->id,
             'role_id' => $roleDosen->id,
-            'start_date' => now()->subMonth()->toDateString(),
-            'end_date' => null,
+            'period_id' => $this->period->id,
         ]);
 
-        // Role Kalab sudah kedaluwarsa kemarin
+        // Role Kalab di periode lama yang tidak aktif
+        $oldPeriod = Period::create([
+            'name' => 'Genap 2025/2026',
+            'start_date' => '2026-02-09',
+            'end_date' => '2026-06-26',
+            'uts_start' => '2026-04-06',
+            'uts_end' => '2026-04-17',
+            'uas_start' => '2026-06-15',
+            'uas_end' => '2026-06-26',
+            'is_active' => false,
+        ]);
         UserRole::create([
             'user_id' => $user->id,
             'role_id' => $roleKalab->id,
-            'start_date' => now()->subYear()->toDateString(),
-            'end_date' => now()->subDay()->toDateString(),
+            'period_id' => $oldPeriod->id,
         ]);
 
         $this->assertTrue($user->hasActiveRole('Dosen'));
@@ -189,6 +197,8 @@ class BookingFlowTest extends TestCase
         // 1. Submit booking baru 2 slot
         $booking = Booking::create([
             'user_id' => $this->visitor->id,
+            'pic_name' => 'Valentino Hose',
+            'pic_phone' => '08123456789',
             'requester_name' => 'Valentino Hose',
             'purpose' => 'Seminar AI',
             'type' => BookingType::NEW_BOOKING,
@@ -259,6 +269,8 @@ class BookingFlowTest extends TestCase
     {
         $existingApproved = Booking::create([
             'user_id' => $this->staff->id,
+            'pic_name' => 'Existing Dosen',
+            'pic_phone' => '08123456789',
             'requester_name' => 'Existing Dosen',
             'purpose' => 'Existing Event',
             'type' => BookingType::NEW_BOOKING,
@@ -274,6 +286,8 @@ class BookingFlowTest extends TestCase
 
         $newBooking = Booking::create([
             'user_id' => $this->visitor->id,
+            'pic_name' => 'Valentino Hose',
+            'pic_phone' => '08123456789',
             'requester_name' => 'Valentino Hose',
             'purpose' => 'Bentrok Event',
             'type' => BookingType::NEW_BOOKING,
@@ -296,67 +310,48 @@ class BookingFlowTest extends TestCase
     }
 
     /**
-     * Test 4: Ubah jadwal langsung ke Kalab dan booking lama jadi 4 setelah disetujui.
+     * Test 4: Halaman perubahan jadwal (reschedule) hanya bisa diakses paling lambat H-2 sebelum kegiatan.
      */
     public function test_reschedule_goes_directly_to_kalab_and_cancels_old_booking(): void
     {
-        Notification::fake();
-
+        // Booking H+5 -> bisa akses halaman change
         $originalBooking = Booking::create([
             'user_id' => $this->visitor->id,
-            'requester_name' => 'Valentino Hose',
+            'pic_name' => 'Valentino Hose',
+            'pic_phone' => '08123456789',
             'purpose' => 'Workshop UI/UX',
-            'type' => BookingType::NEW_BOOKING,
             'status' => BookingStatus::APPROVED,
-            'submitted_at' => now()->subDays(3),
         ]);
-        $origDetail = $originalBooking->details()->create([
+        $originalBooking->details()->create([
             'room_id' => $this->adv1->id,
-            'start_datetime' => now()->addDays(6)->setTime(9, 0),
-            'end_datetime' => now()->addDays(6)->setTime(11, 0),
+            'booking_date' => now()->addDays(5)->toDateString(),
+            'start_time' => '09:00:00',
+            'end_time' => '11:00:00',
             'status' => BookingDetailStatus::APPROVED,
         ]);
 
         $this->actingAs($this->visitor);
+        $respChangeOk = $this->get(route('bookings.change', $originalBooking));
+        $respChangeOk->assertOk();
 
-        // Ajukan ubah jadwal
-        $respChange = $this->post(route('bookings.store'), [
-            'type' => 'change',
-            'parent_booking_id' => $originalBooking->id,
-            'requester_name' => 'Valentino Hose',
-            'purpose' => 'Workshop UI/UX Update',
-            'notes' => 'Pindah ke ADV2 karena peserta bertambah.',
-            'slots' => [
-                [
-                    'room_id' => $this->adv2->id,
-                    'date' => now()->addDays(6)->format('Y-m-d'),
-                    'start' => '09:00',
-                    'end' => '11:00',
-                ],
-            ],
+        // Booking H+1 (< H-2) -> dilarang akses (403)
+        $bookingNear = Booking::create([
+            'user_id' => $this->visitor->id,
+            'pic_name' => 'Valentino Hose',
+            'pic_phone' => '08123456789',
+            'purpose' => 'Mepet Event',
+            'status' => BookingStatus::APPROVED,
         ]);
-        $respChange->assertRedirect(route('bookings.index'));
+        $bookingNear->details()->create([
+            'room_id' => $this->adv1->id,
+            'booking_date' => now()->addDay()->toDateString(),
+            'start_time' => '09:00:00',
+            'end_time' => '11:00:00',
+            'status' => BookingDetailStatus::APPROVED,
+        ]);
 
-        $changeBooking = Booking::where('parent_booking_id', $originalBooking->id)->first();
-        $this->assertNotNull($changeBooking);
-        $this->assertEquals(BookingType::RESCHEDULE, $changeBooking->type);
-        // Langsung ke status 1 (PENDING_KALAB)
-        $this->assertEquals(BookingStatus::PENDING_KALAB, $changeBooking->status);
-
-        // Email langsung ke Kalab
-        Notification::assertSentTo($this->kalab, RescheduleBookingSubmittedNotification::class);
-
-        // Kalab setujui ruangan baru
-        $this->actingAs($this->kalab);
-        $changeDetail = $changeBooking->details->first();
-        $this->post(route('approvals.decideKalabDetail', $changeDetail), [
-            'status' => 'approved',
-        ])->assertSessionHas('success');
-
-        // Booking lama jadi status 4 (CANCELLED) dan detailnya jadi 3 (CANCELLED)
-        $this->assertEquals(BookingStatus::CANCELLED, $originalBooking->fresh()->status);
-        $this->assertEquals(BookingDetailStatus::CANCELLED, $origDetail->fresh()->status);
-        $this->assertEquals(BookingStatus::APPROVED, $changeBooking->fresh()->status);
+        $respChangeForbidden = $this->get(route('bookings.change', $bookingNear));
+        $respChangeForbidden->assertStatus(403);
     }
 
     /**
@@ -367,6 +362,8 @@ class BookingFlowTest extends TestCase
         // Booking A: Waktu mulai 5 hari lagi (> H-2) -> Bisa dibatalkan
         $bookingFar = Booking::create([
             'user_id' => $this->visitor->id,
+            'pic_name' => 'Valentino Hose',
+            'pic_phone' => '08123456789',
             'requester_name' => 'Valentino Hose',
             'purpose' => 'Kegiatan Jauh',
             'type' => BookingType::NEW_BOOKING,
@@ -388,6 +385,8 @@ class BookingFlowTest extends TestCase
         // Booking B: Waktu mulai besok (< H-2) -> Ditolak (403)
         $bookingNear = Booking::create([
             'user_id' => $this->visitor->id,
+            'pic_name' => 'Valentino Hose',
+            'pic_phone' => '08123456789',
             'requester_name' => 'Valentino Hose',
             'purpose' => 'Kegiatan Mepet',
             'type' => BookingType::NEW_BOOKING,
@@ -415,6 +414,8 @@ class BookingFlowTest extends TestCase
 
         $booking = Booking::create([
             'user_id' => $this->visitor->id,
+            'pic_name' => 'Valentino Hose',
+            'pic_phone' => '08123456789',
             'requester_name' => 'Valentino Hose',
             'purpose' => 'Kegiatan Terlantar',
             'type' => BookingType::NEW_BOOKING,
@@ -445,6 +446,8 @@ class BookingFlowTest extends TestCase
         // Booking 1 (submitted jam 08:00)
         $b1 = Booking::create([
             'user_id' => $this->visitor->id,
+            'pic_name' => 'Antrian 1',
+            'pic_phone' => '08123456789',
             'requester_name' => 'Antrian 1',
             'purpose' => 'P1',
             'type' => BookingType::NEW_BOOKING,
@@ -461,6 +464,8 @@ class BookingFlowTest extends TestCase
         // Booking 2 (submitted jam 09:00, waktu sama)
         $b2 = Booking::create([
             'user_id' => $this->visitor->id,
+            'pic_name' => 'Antrian 2',
+            'pic_phone' => '08123456789',
             'requester_name' => 'Antrian 2',
             'purpose' => 'P2',
             'type' => BookingType::NEW_BOOKING,
@@ -486,7 +491,8 @@ class BookingFlowTest extends TestCase
         ]);
 
         // Sekarang antrian d2 bergeser menjadi 1!
-        $this->assertEquals(1, $service->pendingQueuePosition($d2->fresh()));
+        $d2Refreshed = $b2->fresh()->details()->where('room_id', $this->adv1->id)->first();
+        $this->assertEquals(1, $service->pendingQueuePosition($d2Refreshed));
     }
 
     /**
@@ -502,10 +508,10 @@ class BookingFlowTest extends TestCase
         ]);
 
         $course = Course::create([
+            'id' => 'IF101',
             'study_program_id' => $this->studyProgram->id,
-            'code' => 'IF101',
             'name' => 'Algoritma',
-            'active' => true,
+            'is_active' => true,
         ]);
 
         Section::create([

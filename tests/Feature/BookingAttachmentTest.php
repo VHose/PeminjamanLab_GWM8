@@ -228,4 +228,73 @@ class BookingAttachmentTest extends TestCase
         $responseUnauthorized = $this->actingAs($this->otherUser)->get(route('bookings.attachments.show', [$booking, $attachment]));
         $responseUnauthorized->assertForbidden();
     }
+
+    public function test_booking_purpose_max_length_validation_with_custom_message(): void
+    {
+        $targetDate = now()->addDays(3);
+        if ($targetDate->isSunday()) {
+            $targetDate->addDay();
+        }
+
+        // Teks purpose sepanjang 256 karakter (melebihi batas kolom 255)
+        $longPurpose = str_repeat('A', 256);
+
+        $response = $this->actingAs($this->user)->post(route('bookings.store'), [
+            'pic_name' => 'Valentino Hose',
+            'pic_phone' => '08123456789',
+            'purpose' => $longPurpose,
+            'slots' => [
+                [
+                    'room_id' => 'ADV1',
+                    'date' => $targetDate->toDateString(),
+                    'start' => '09:00',
+                    'end' => '11:00',
+                ],
+            ],
+        ]);
+
+        $response->assertSessionHasErrors([
+            'purpose' => 'Informasi terlalu panjang. Jika memerlukan deskripsi yang lebih panjang, mohon lampirkan melalui berkas pendukung (file).',
+        ]);
+    }
+
+    public function test_booking_pic_name_and_phone_max_length_validation(): void
+    {
+        $targetDate = now()->addDays(3);
+        if ($targetDate->isSunday()) {
+            $targetDate->addDay();
+        }
+
+        $response = $this->actingAs($this->user)->post(route('bookings.store'), [
+            'pic_name' => str_repeat('A', 71), // batas 70
+            'pic_phone' => str_repeat('1', 16), // batas 15
+            'purpose' => 'Kegiatan Normal',
+            'slots' => [
+                [
+                    'room_id' => 'ADV1',
+                    'date' => $targetDate->toDateString(),
+                    'start' => '09:00',
+                    'end' => '11:00',
+                ],
+            ],
+        ]);
+
+        $response->assertSessionHasErrors(['pic_name', 'pic_phone']);
+    }
+
+    public function test_booking_form_view_has_maxlength_and_no_static_character_notes(): void
+    {
+        $response = $this->actingAs($this->user)->get(route('bookings.create'));
+        $response->assertOk();
+
+        // Memastikan atribut pembatas HTML terpasang
+        $response->assertSee('name="pic_name" maxlength="70"', false);
+        $response->assertSee('name="pic_phone" maxlength="15"', false);
+        $response->assertSee('name="purpose" maxlength="255"', false);
+
+        // Memastikan tidak ada teks statis batasan karakter yang mengotori UI
+        $response->assertDontSee('Maksimal 255 karakter');
+        $response->assertDontSee('Maksimal 70 karakter');
+        $response->assertDontSee('Maksimal 15 karakter');
+    }
 }

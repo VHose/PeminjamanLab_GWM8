@@ -25,7 +25,10 @@
 
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Nama {{ $config['label'] }} <span class="text-danger">*</span></label>
-                        <input type="text" name="name" class="form-control" value="{{ old('name', $record->name) }}" required maxlength="100">
+                        <input type="text" name="name" class="form-control @error('name') is-invalid @enderror" value="{{ old('name', $record->name) }}" required maxlength="{{ $type === 'courses' ? 60 : ($type === 'rooms' ? 25 : 50) }}">
+                        @error('name')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
 
                     @if($type === 'study-programs')

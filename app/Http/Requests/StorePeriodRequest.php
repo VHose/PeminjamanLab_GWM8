@@ -15,7 +15,7 @@ class StorePeriodRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:30', 'unique:period,name'],
+            'name' => ['required', 'string', 'max:20', 'unique:period,name'],
             'start_date' => ['required', 'date'],
             'end_date' => ['required', 'date', 'after:start_date'],
             'uts_start' => ['nullable', 'date'],

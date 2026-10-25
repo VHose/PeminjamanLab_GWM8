@@ -15,7 +15,7 @@ class UpdateCourseRequest extends FormRequest
     {
         return [
             'study_program_id' => ['required', 'exists:study_program,id'],
-            'name' => ['required', 'string', 'max:100'],
+            'name' => ['required', 'string', 'max:60'],
             'is_active' => ['nullable', 'boolean'],
         ];
     }

@@ -23,15 +23,24 @@
                     <div class="row g-3">
                         <div class="col-md-8">
                             <label class="form-label fw-semibold">Nama Peminjam / Penanggung Jawab / Instansi (PIC) <span class="text-danger">*</span></label>
-                            <input class="form-control" name="pic_name" value="{{ old('pic_name', old('requester_name', auth()->user()->name)) }}" placeholder="Contoh: Valentino Hose / Himpunan IF" required>
+                            <input class="form-control @error('pic_name') is-invalid @enderror" name="pic_name" maxlength="70" value="{{ old('pic_name', old('requester_name', auth()->user()->name)) }}" placeholder="Contoh: Valentino Hose / Himpunan IF" required>
+                            @error('pic_name')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
                         <div class="col-md-4">
                             <label class="form-label fw-semibold">Nomor Telepon / WhatsApp PIC</label>
-                            <input class="form-control" name="pic_phone" value="{{ old('pic_phone', auth()->user()->phone) }}" placeholder="08xxxxxxxxxx">
+                            <input class="form-control @error('pic_phone') is-invalid @enderror" name="pic_phone" maxlength="15" value="{{ old('pic_phone', auth()->user()->phone) }}" placeholder="08xxxxxxxxxx">
+                            @error('pic_phone')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
                         <div class="col-12">
                             <label class="form-label fw-semibold">Tujuan Kegiatan <span class="text-danger">*</span></label>
-                            <textarea class="form-control" name="purpose" rows="3" placeholder="Jelaskan agenda dan tujuan peminjaman laboratorium..." required>{{ old('purpose') }}</textarea>
+                            <textarea class="form-control @error('purpose') is-invalid @enderror" name="purpose" maxlength="255" rows="3" placeholder="Jelaskan agenda dan tujuan peminjaman laboratorium..." required>{{ old('purpose') }}</textarea>
+                            @error('purpose')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
                     </div>
                 </div>

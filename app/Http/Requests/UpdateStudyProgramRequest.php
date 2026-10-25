@@ -17,7 +17,8 @@ class UpdateStudyProgramRequest extends FormRequest
         $id = $this->route('study_program')?->id ?? $this->route('id');
 
         return [
-            'name' => ['required', 'string', 'max:100', Rule::unique('study_program', 'name')->ignore($id, 'id')],
+            'name' => ['required', 'string', 'max:50', Rule::unique('study_program', 'name')->ignore($id, 'id')],
+            'color_hex' => ['nullable', 'string', 'max:7', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'is_active' => ['nullable', 'boolean'],
         ];
     }

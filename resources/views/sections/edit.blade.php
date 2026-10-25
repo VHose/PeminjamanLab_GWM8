@@ -62,7 +62,10 @@
                         </div>
                         <div class="col-md-4">
                             <label class="form-label fw-semibold">Kode Kelas <span class="text-danger">*</span></label>
-                            <input class="form-control" name="class_code" value="{{ old('class_code', $section->class_code) }}" placeholder="Contoh: A / B / C" required>
+                            <input class="form-control @error('class_code') is-invalid @enderror" name="class_code" maxlength="3" value="{{ old('class_code', $section->class_code) }}" placeholder="Contoh: A / B / C" required>
+                            @error('class_code')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
                         <div class="col-md-4">
                             <label class="form-label fw-semibold">Tipe Jadwal <span class="text-danger">*</span></label>

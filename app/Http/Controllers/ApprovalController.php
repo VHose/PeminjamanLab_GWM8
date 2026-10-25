@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Constants\BookingDetailStatus;
-use App\Constants\BookingStatus;
+use App\Enums\BookingDetailStatus;
+use App\Enums\BookingStatus;
 use App\Constants\BookingType;
 use App\Models\Booking;
 use App\Models\BookingDetail;
@@ -62,7 +62,7 @@ class ApprovalController extends Controller
 
         $data = $request->validate([
             'status' => 'required|in:approved,rejected',
-            'notes' => 'nullable|required_if:status,rejected|string',
+            'notes' => 'nullable|required_if:status,rejected|string|max:150',
         ]);
 
         DB::transaction(function () use ($data, $request, $booking, $logger) {
@@ -87,7 +87,6 @@ class ApprovalController extends Controller
                 // Semua detail ditolak
                 $booking->details()->update([
                     'status' => BookingDetailStatus::REJECTED,
-                    'notes' => $data['notes'],
                 ]);
 
                 $logger->log(
@@ -126,7 +125,7 @@ class ApprovalController extends Controller
 
         $data = $request->validate([
             'status' => 'required|in:approved,rejected',
-            'notes' => 'nullable|required_if:status,rejected|string',
+            'notes' => 'nullable|required_if:status,rejected|string|max:150',
         ]);
 
         // Cek bentrok jika hendak disetujui
@@ -142,15 +141,18 @@ class ApprovalController extends Controller
         DB::transaction(function () use ($data, $request, $detail, $booking, $logger) {
             $detail->update([
                 'status' => $data['status'] === 'approved' ? BookingDetailStatus::APPROVED : BookingDetailStatus::REJECTED,
-                'notes' => $data['notes'] ?? null,
             ]);
+
+            if (! empty($data['notes'])) {
+                $booking->update(['decision_note' => $data['notes']]);
+            }
 
             $logger->log(
                 $request->user()->id,
                 $data['status'] === 'approved' ? 'approve' : 'reject',
                 'booking_detail',
-                (string) $detail->id,
-                ($data['status'] === 'approved' ? 'Disetujui' : 'Ditolak') . " per ruangan {$detail->room->code} oleh Kalab." . (! empty($data['notes']) ? " Alasan: {$data['notes']}" : '')
+                $detail->getRouteKey(),
+                ($data['status'] === 'approved' ? 'Disetujui' : 'Ditolak') . " per ruangan {$detail->room_id} oleh Kalab." . (! empty($data['notes']) ? " Alasan: {$data['notes']}" : '')
             );
 
             // Cek apakah semua detail untuk booking ini sudah diputuskan

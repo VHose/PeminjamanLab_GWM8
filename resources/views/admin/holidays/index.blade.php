@@ -38,7 +38,10 @@
 
                     <div class="mb-4">
                         <label class="form-label fw-semibold">Keterangan / Catatan Hari Libur</label>
-                        <input type="text" name="note" class="form-control" value="{{ old('note') }}" placeholder="Contoh: NATARU (Natal dan Tahun Baru), Isra' Mi'raj" maxlength="100">
+                        <input type="text" name="note" class="form-control @error('note') is-invalid @enderror" value="{{ old('note') }}" placeholder="Contoh: NATARU (Natal dan Tahun Baru), Isra' Mi'raj" maxlength="60">
+                        @error('note')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
 
                     <button type="submit" class="btn btn-primary w-100">

@@ -29,6 +29,10 @@ class ScheduleSessionController extends Controller
         $dateFormatted = $session->session_date->format('d/m/Y');
 
         if ($session->is_active) {
+            $request->validate([
+                'note' => ['nullable', 'string', 'max:100'],
+            ]);
+
             // Aksi: Batalkan / Liburkan pertemuan kuliah
             $note = $request->input('note') ?: 'Kuliah diliburkan.';
 

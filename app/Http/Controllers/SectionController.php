@@ -92,7 +92,7 @@ class SectionController extends Controller
             'period_id' => 'required|exists:period,id',
             'room_id' => 'required|exists:room,id',
             'lecturer_nik' => 'nullable|exists:user,id',
-            'class_code' => 'required|string|max:10',
+            'class_code' => 'required|string|max:3',
             'day_of_week' => 'required|integer|between:1,7',
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after:start_time',

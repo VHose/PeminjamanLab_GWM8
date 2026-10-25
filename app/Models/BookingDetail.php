@@ -24,7 +24,73 @@ class BookingDetail extends Model
         'start_time',
         'end_time',
         'status',
+        'start_datetime',
+        'end_datetime',
     ];
+
+    public function setStartDatetimeAttribute($value): void
+    {
+        $dt = Carbon::parse($value);
+        $this->attributes['booking_date'] = $dt->toDateString();
+        $this->attributes['start_time'] = $dt->format('H:i:s');
+    }
+
+    public function setEndDatetimeAttribute($value): void
+    {
+        $dt = Carbon::parse($value);
+        $this->attributes['end_time'] = $dt->format('H:i:s');
+    }
+
+    public function fresh($with = [])
+    {
+        if (! $this->exists) {
+            return null;
+        }
+
+        $query = static::newModelQuery()->with(is_string($with) ? func_get_args() : $with);
+
+        return $this->setKeysForSaveQuery($query)->first();
+    }
+
+    public function refresh()
+    {
+        if (! $this->exists) {
+            return $this;
+        }
+
+        $fresh = $this->fresh();
+        if ($fresh) {
+            $this->setRawAttributes($fresh->getAttributes(), true);
+            $this->setRelations($fresh->getRelations());
+        }
+
+        return $this;
+    }
+
+    public function getRouteKey(): string
+    {
+        $dateStr = $this->booking_date instanceof \DateTimeInterface 
+            ? $this->booking_date->format('Y-m-d') 
+            : (string) $this->booking_date;
+
+        return "{$this->booking_id}_{$this->room_id}_{$dateStr}_{$this->start_time}";
+    }
+
+    public function resolveRouteBinding($value, $field = null): ?self
+    {
+        if (is_string($value) && str_contains($value, '_')) {
+            $parts = explode('_', $value, 4);
+            if (count($parts) === 4) {
+                return $this->where('booking_id', $parts[0])
+                    ->where('room_id', $parts[1])
+                    ->where('booking_date', $parts[2])
+                    ->where('start_time', $parts[3])
+                    ->first();
+            }
+        }
+
+        return $this->where('booking_id', $value)->first();
+    }
 
     protected function casts(): array
     {

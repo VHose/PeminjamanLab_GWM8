@@ -78,9 +78,9 @@ class BookingController extends Controller
         NotificationService $notifications
     ): RedirectResponse {
         $data = $request->validate([
-            'pic_name' => ['required', 'string', 'max:100'],
-            'pic_phone' => ['required', 'string', 'max:20'],
-            'purpose' => ['required', 'string', 'max:500'],
+            'pic_name' => ['required', 'string', 'max:70'],
+            'pic_phone' => ['required', 'string', 'max:15'],
+            'purpose' => ['required', 'string', 'max:255'],
             'slots' => ['required', 'array', 'min:1'],
             'slots.*.room_id' => ['required', 'exists:room,id'],
             'slots.*.date' => ['required', 'date'],
@@ -89,6 +89,10 @@ class BookingController extends Controller
             'attachments' => ['nullable', 'array', 'max:5'],
             'attachments.*' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png,doc,docx', 'max:5120'],
             'attachment' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png,doc,docx', 'max:5120'],
+        ], [
+            'purpose.max' => 'Informasi terlalu panjang. Jika memerlukan deskripsi yang lebih panjang, mohon lampirkan melalui berkas pendukung (file).',
+            'pic_name.max' => 'Nama peminjam / PIC tidak boleh lebih dari :max karakter.',
+            'pic_phone.max' => 'Nomor telepon PIC tidak boleh lebih dari :max karakter.',
         ]);
 
         $minAllowedStart = now()->addDays(2);
@@ -202,6 +206,18 @@ class BookingController extends Controller
             abort(403);
         }
 
+        $firstDetail = $booking->details()->orderBy('booking_date')->orderBy('start_time')->first();
+        if ($firstDetail && ! $user->isInternal()) {
+            $firstStart = Carbon::parse($firstDetail->booking_date->toDateString() . ' ' . $firstDetail->start_time);
+            if ($firstStart->lt(now()->addDays(2))) {
+                abort(403, 'Pembatalan mandiri oleh peminjam hanya diperbolehkan paling lambat H-2.');
+            }
+        }
+
+        $request->validate([
+            'reason' => ['nullable', 'string', 'max:150'],
+        ]);
+
         $booking->update([
             'status' => BookingStatus::CANCELLED,
             'decision_note' => $request->input('reason', 'Dibatalkan oleh peminjam.'),
@@ -256,8 +272,9 @@ class BookingController extends Controller
         abort_unless($request->user()->hasRole('Staf_Lab'), 403);
 
         $data = $request->validate([
-            'requester_name' => ['required', 'string', 'max:100'],
-            'purpose' => ['required', 'string', 'max:500'],
+            'requester_name' => ['required', 'string', 'max:70'],
+            'pic_phone' => ['nullable', 'string', 'max:15'],
+            'purpose' => ['required', 'string', 'max:255'],
             'slots' => ['required', 'array', 'min:1'],
             'slots.*.room_id' => ['required', 'exists:room,id'],
             'slots.*.date' => ['required', 'date'],
@@ -266,6 +283,10 @@ class BookingController extends Controller
             'attachments' => ['nullable', 'array', 'max:5'],
             'attachments.*' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png,doc,docx', 'max:5120'],
             'attachment' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png,doc,docx', 'max:5120'],
+        ], [
+            'purpose.max' => 'Informasi terlalu panjang. Jika memerlukan deskripsi yang lebih panjang, mohon lampirkan melalui berkas pendukung (file).',
+            'requester_name.max' => 'Nama dosen / pemohon tidak boleh lebih dari :max karakter.',
+            'pic_phone.max' => 'Nomor telepon tidak boleh lebih dari :max karakter.',
         ]);
 
         foreach ($data['slots'] as $slot) {

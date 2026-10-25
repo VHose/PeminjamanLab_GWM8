@@ -15,12 +15,18 @@
 
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Nama Lengkap</label>
-                        <input class="form-control" name="name" type="text" value="{{ old('name') }}" placeholder="Masukkan nama lengkap Anda..." required autofocus>
+                        <input class="form-control @error('name') is-invalid @enderror" name="name" type="text" value="{{ old('name') }}" placeholder="Masukkan nama lengkap Anda..." required autofocus maxlength="80">
+                        @error('name')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Alamat Email</label>
-                        <input class="form-control" name="email" type="email" value="{{ old('email') }}" placeholder="nama@example.com" required>
+                        <input class="form-control @error('email') is-invalid @enderror" name="email" type="email" value="{{ old('email') }}" placeholder="nama@example.com" required maxlength="70">
+                        @error('email')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
 
                     <div class="mb-3">

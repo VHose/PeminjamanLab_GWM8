@@ -31,7 +31,7 @@ class MasterController extends Controller
             'model' => Course::class,
             'label' => 'Mata Kuliah',
             'pk_field' => 'id',
-            'pk_label' => 'Kode MK (maks 15 karakter)',
+            'pk_label' => 'Kode MK',
         ],
     ];
 
@@ -61,20 +61,20 @@ class MasterController extends Controller
         $rules = match ($type) {
             'study-programs' => [
                 'id' => ['required', 'string', 'max:5', 'unique:study_program,id'],
-                'name' => ['required', 'string', 'max:100', 'unique:study_program,name'],
+                'name' => ['required', 'string', 'max:50', 'unique:study_program,name'],
                 'color_hex' => ['required', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
                 'is_active' => ['nullable', 'boolean'],
             ],
             'rooms' => [
-                'id' => ['required', 'string', 'max:10', 'unique:room,id'],
-                'name' => ['required', 'string', 'max:50'],
+                'id' => ['required', 'string', 'max:8', 'unique:room,id'],
+                'name' => ['required', 'string', 'max:25'],
                 'capacity' => ['nullable', 'integer', 'min:1', 'max:200'],
                 'is_active' => ['nullable', 'boolean'],
             ],
             'courses' => [
-                'id' => ['required', 'string', 'max:15', 'unique:course,id'],
+                'id' => ['required', 'string', 'max:12', 'unique:course,id'],
                 'study_program_id' => ['required', 'exists:study_program,id'],
-                'name' => ['required', 'string', 'max:100'],
+                'name' => ['required', 'string', 'max:60'],
                 'is_active' => ['nullable', 'boolean'],
             ],
         };
@@ -112,18 +112,18 @@ class MasterController extends Controller
 
         $rules = match ($type) {
             'study-programs' => [
-                'name' => ['required', 'string', 'max:100', Rule::unique('study_program', 'name')->ignore($record->id, 'id')],
+                'name' => ['required', 'string', 'max:50', Rule::unique('study_program', 'name')->ignore($record->id, 'id')],
                 'color_hex' => ['required', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
                 'is_active' => ['nullable', 'boolean'],
             ],
             'rooms' => [
-                'name' => ['required', 'string', 'max:50'],
+                'name' => ['required', 'string', 'max:25'],
                 'capacity' => ['nullable', 'integer', 'min:1', 'max:200'],
                 'is_active' => ['nullable', 'boolean'],
             ],
             'courses' => [
                 'study_program_id' => ['required', 'exists:study_program,id'],
-                'name' => ['required', 'string', 'max:100'],
+                'name' => ['required', 'string', 'max:60'],
                 'is_active' => ['nullable', 'boolean'],
             ],
         };

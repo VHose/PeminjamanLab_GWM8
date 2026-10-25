@@ -11,6 +11,9 @@ enum BookingStatus: int
     case CANCELLED = 4;
     case CHANGE_REQUESTED = 5;
 
+    public const PENDING_KAPRODI = self::PENDING_PRODI;
+    public const PENDING_KALAB = self::PENDING_LAB;
+
     public function label(): string
     {
         return match ($this) {

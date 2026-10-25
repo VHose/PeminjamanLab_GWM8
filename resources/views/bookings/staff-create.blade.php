@@ -22,11 +22,17 @@
                     <div class="row g-3">
                         <div class="col-12">
                             <label class="form-label fw-semibold">Nama Dosen Pemohon <span class="text-danger">*</span></label>
-                            <input class="form-control" name="requester_name" value="{{ old('requester_name') }}" placeholder="Contoh: Dr. Andi Pratama / Bu Rossevine" required>
+                            <input class="form-control @error('requester_name') is-invalid @enderror" name="requester_name" maxlength="70" value="{{ old('requester_name') }}" placeholder="Contoh: Dr. Andi Pratama / Bu Rossevine" required>
+                            @error('requester_name')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
                         <div class="col-12">
                             <label class="form-label fw-semibold">Tujuan Kegiatan / Perkuliahan Tambahan <span class="text-danger">*</span></label>
-                            <textarea class="form-control" name="purpose" rows="3" placeholder="Contoh: Kuliah Pengganti Pemrograman Dasar / Ujian Susulan..." required>{{ old('purpose') }}</textarea>
+                            <textarea class="form-control @error('purpose') is-invalid @enderror" name="purpose" maxlength="255" rows="3" placeholder="Contoh: Kuliah Pengganti Pemrograman Dasar / Ujian Susulan..." required>{{ old('purpose') }}</textarea>
+                            @error('purpose')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
                     </div>
                 </div>

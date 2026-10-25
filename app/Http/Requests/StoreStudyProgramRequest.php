@@ -15,7 +15,8 @@ class StoreStudyProgramRequest extends FormRequest
     {
         return [
             'id' => ['required', 'string', 'max:5', 'unique:study_program,id'],
-            'name' => ['required', 'string', 'max:100', 'unique:study_program,name'],
+            'name' => ['required', 'string', 'max:50', 'unique:study_program,name'],
+            'color_hex' => ['nullable', 'string', 'max:7', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'is_active' => ['nullable', 'boolean'],
         ];
     }

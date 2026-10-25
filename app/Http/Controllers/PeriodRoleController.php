@@ -196,8 +196,8 @@ class PeriodRoleController extends Controller
         $validated = $request->validate([
             'period_id' => ['required', 'exists:period,id'],
             'user_id' => ['required', 'string', 'max:10'],
-            'name' => ['nullable', 'string', 'max:100'],
-            'email' => ['nullable', 'email', 'max:100'],
+            'name' => ['nullable', 'string', 'max:80'],
+            'email' => ['nullable', 'email', 'max:70'],
             'role_id' => ['required', 'exists:role,id'],
             'study_program_id' => ['nullable', 'exists:study_program,id'],
         ]);
