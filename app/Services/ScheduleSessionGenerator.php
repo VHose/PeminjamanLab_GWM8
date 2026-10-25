@@ -20,8 +20,7 @@ class ScheduleSessionGenerator
      * 1. Hanya minggu KULIAH yang dapat baris, UTS/UAS/LIBUR dikosongkan.
      * 2. Regenerate TIDAK boleh menimpa baris yang sudah ada/diubah manual (is_active, override ruang/jam, note),
      *    hanya menambah baris yang belum ada.
-     * 3. Jadwal dengan meeting_from / meeting_to hanya dibuat pada rentang pertemuan tersebut.
-     * 4. Hari libur sebagian di minggu kuliah menghasilkan sesi dengan is_active = false dan note libur.
+     * 3. Hari libur sebagian di minggu kuliah menghasilkan sesi dengan is_active = false dan note libur.
      *
      * @return array [created => int, skipped => int]
      */
@@ -56,15 +55,8 @@ class ScheduleSessionGenerator
         $batch = [];
 
         foreach ($schedules as $schedule) {
-            $from = $schedule->meeting_from ?? 1;
-            $to = $schedule->meeting_to ?? 255;
-
             foreach ($kuliahWeeks as $week) {
                 $meetingNo = $week['meeting_no'];
-
-                if ($meetingNo < $from || $meetingNo > $to) {
-                    continue;
-                }
 
                 $key = "{$schedule->id}_{$meetingNo}";
 
@@ -95,6 +87,8 @@ class ScheduleSessionGenerator
                     'start_time' => null,
                     'end_time' => null,
                     'note' => $note,
+                    'created_at' => now(),
+                    'updated_at' => now(),
                 ];
 
                 $createdCount++;

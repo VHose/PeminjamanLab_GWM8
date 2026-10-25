@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('room', function (Blueprint $table) {
             $table->string('id', 10)->primary(); // kode ruangan: ADV1, PROG1, DB, Network, dst
             $table->string('name', 50);
-            $table->unsignedSmallInteger('capacity')->nullable();
+            $table->unsignedSmallInteger('capacity');
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });

@@ -9,8 +9,8 @@
             Hari libur yang menutup Senin s/d Jumat penuh akan membuat minggu tersebut dilewati dari penomoran kuliah.
         </p>
     </div>
-    <a href="{{ route('admin.settings.index', ['tab' => 'periods']) }}" class="btn btn-outline-secondary">
-        &larr; Kembali ke Pengaturan
+    <a href="{{ route('admin.periods.index') }}" class="btn btn-outline-secondary">
+        &larr; Kembali ke Periode Semester
     </a>
 </div>
 

@@ -21,8 +21,6 @@ class Schedule extends Model
         'room_id',
         'start_time',
         'end_time',
-        'meeting_from',
-        'meeting_to',
     ];
 
     protected function casts(): array
@@ -30,8 +28,6 @@ class Schedule extends Model
         return [
             'type' => ScheduleType::class,
             'day_of_week' => 'integer',
-            'meeting_from' => 'integer',
-            'meeting_to' => 'integer',
         ];
     }
 

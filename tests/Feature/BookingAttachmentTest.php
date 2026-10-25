@@ -10,7 +10,6 @@ use App\Models\BookingDetail;
 use App\Models\Period;
 use App\Models\Role;
 use App\Models\Room;
-use App\Models\Setting;
 use App\Models\StudyProgram;
 use App\Models\User;
 use App\Models\UserRole;
@@ -37,18 +36,14 @@ class BookingAttachmentTest extends TestCase
 
         Storage::fake('local');
 
-        Setting::set('booking_block_minutes', '30');
-        Setting::set('lab_open_time', '07:00');
-        Setting::set('lab_close_time', '22:00');
-        Setting::set('lab_open_time_saturday', '08:00');
-        Setting::set('lab_close_time_saturday', '17:00');
-        Setting::set('booking_max_days_ahead', '30');
-        Setting::set('booking_max_duration_hours', '4');
-
         $this->period = Period::create([
             'name' => '2026/2027 Ganjil',
             'start_date' => '2026-09-14',
             'end_date' => '2027-01-29',
+            'uts_start' => '2026-11-02',
+            'uts_end' => '2026-11-13',
+            'uas_start' => '2027-01-18',
+            'uas_end' => '2027-01-29',
             'is_active' => true,
         ]);
 
@@ -201,6 +196,7 @@ class BookingAttachmentTest extends TestCase
 
         $this->actingAs($this->user)->post(route('bookings.store'), [
             'pic_name' => 'Valentino Hose',
+            'pic_phone' => '08123456789',
             'purpose' => 'Kegiatan Khusus Mahasiswa',
             'slots' => [
                 [

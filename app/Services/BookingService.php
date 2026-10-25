@@ -7,7 +7,6 @@ use App\Models\BookingDetail;
 use App\Models\Period;
 use App\Models\Schedule;
 use App\Models\ScheduleSession;
-use App\Models\Setting;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 
@@ -35,9 +34,9 @@ class BookingService
 
     public function timeSlots(): array
     {
-        $block = (int) Setting::get('booking_block_minutes', 30);
-        $labOpen = Setting::get('lab_open_time', '07:00');
-        $labClose = Setting::get('lab_close_time', '21:00');
+        $block = 30; // booking_block_minutes hard‑coded
+        $labOpen = '07:00'; // lab_open_time hard‑coded
+        $labClose = '22:00'; // lab_close_time hard‑coded
 
         $slots = [];
         $start = Carbon::createFromFormat('H:i', substr($labOpen, 0, 5));
@@ -57,9 +56,9 @@ class BookingService
 
     public function endSlots(): array
     {
-        $block = (int) Setting::get('booking_block_minutes', 30);
-        $labOpen = Setting::get('lab_open_time', '07:00');
-        $labClose = Setting::get('lab_close_time', '21:00');
+        $block = 30; // booking_block_minutes hard‑coded
+        $labOpen = '07:00'; // lab_open_time hard‑coded
+        $labClose = '22:00'; // lab_close_time hard‑coded
 
         $slots = [];
         $start = Carbon::createFromFormat('H:i', substr($labOpen, 0, 5))->addMinutes($block);
@@ -103,7 +102,7 @@ class BookingService
         // Kuliah hanya hari 1..5 (Senin..Jumat)
         $dayOfWeek = $start->dayOfWeekIso;
         if ($dayOfWeek >= 1 && $dayOfWeek <= 5) {
-            $blockMinutes = (int) Setting::get('booking_block_minutes', 30);
+            $blockMinutes = 30;
 
             // Cek dari schedule_session yang aktif di tanggal ini
             $activeSessions = ScheduleSession::with('schedule')
@@ -143,7 +142,7 @@ class BookingService
             return $ranges->push(['start' => '00:00', 'end' => '23:59', 'type' => 'holiday']);
         }
 
-        $blockMinutes = (int) Setting::get('booking_block_minutes', 30);
+        $blockMinutes = 30;
 
         // 1. Dari jadwal kuliah
         if ($date->dayOfWeekIso <= 5) {
@@ -216,5 +215,75 @@ class BookingService
             ->count();
 
         return $earlierCount + 1;
+    }
+
+    /**
+     * Memeriksa apakah suatu sesi pertemuan bentrok dengan peminjaman approved
+     * atau pertemuan kuliah aktif lainnya pada ruangan, tanggal, dan jam target.
+     * Mengembalikan pesan error jika bentrok, atau null jika aman.
+     */
+    public function checkSessionConflict(
+        ScheduleSession $session,
+        ?string $targetRoomId = null,
+        ?string $targetDate = null,
+        ?string $targetStartTime = null,
+        ?string $targetEndTime = null
+    ): ?string {
+        $roomId = (string) ($targetRoomId ?? $session->effectiveRoomId());
+        $dateStr = $targetDate ?? $session->session_date->toDateString();
+
+        $rawStart = $targetStartTime ?? $session->effectiveStartTime();
+        $rawEnd = $targetEndTime ?? $session->effectiveEndTime();
+
+        $startTimeStr = strlen($rawStart) === 5 ? $rawStart . ':00' : $rawStart;
+        $endTimeStr = strlen($rawEnd) === 5 ? $rawEnd . ':00' : $rawEnd;
+
+        // 1. Cek bentrok dengan peminjaman yang sudah disetujui (APPROVED)
+        $approvedConflict = BookingDetail::with('booking')
+            ->where('room_id', $roomId)
+            ->whereDate('booking_date', $dateStr)
+            ->where('status', BookingDetailStatus::APPROVED)
+            ->where('start_time', '<', $endTimeStr)
+            ->where('end_time', '>', $startTimeStr)
+            ->first();
+
+        if ($approvedConflict) {
+            $pic = $approvedConflict->booking?->pic_name ?? 'Peminjam';
+            $bId = $approvedConflict->booking_id;
+            $timeSpan = substr($approvedConflict->start_time, 0, 5) . ' - ' . substr($approvedConflict->end_time, 0, 5);
+            return "Bentrok dengan peminjaman ruangan yang telah disetujui (#{$bId} oleh {$pic} jam {$timeSpan}).";
+        }
+
+        // 2. Cek bentrok dengan jadwal kuliah aktif lainnya
+        $otherSessions = ScheduleSession::with(['schedule.course'])
+            ->where('session_date', $dateStr)
+            ->where('is_active', true)
+            ->where(function ($q) use ($session) {
+                $q->where('schedule_id', '!=', $session->schedule_id)
+                  ->orWhere('week_no', '!=', $session->week_no);
+            })
+            ->where(function ($q) use ($roomId) {
+                $q->where('room_id', (string) $roomId)
+                  ->orWhere(function ($sub) use ($roomId) {
+                      $sub->whereNull('room_id')
+                          ->whereHas('schedule', fn ($sc) => $sc->where('room_id', (string) $roomId));
+                  });
+            })
+            ->get();
+
+        foreach ($otherSessions as $other) {
+            $otherStart = $other->effectiveStartTime();
+            $otherRawEnd = $other->effectiveEndTime();
+            $otherBlockedEnd = self::roundUpToBlock($otherRawEnd, 30) . ':00';
+
+            if ($otherStart < $endTimeStr && $otherBlockedEnd > $startTimeStr) {
+                $courseName = $other->schedule?->course?->name ?? 'Kuliah';
+                $classCode = $other->schedule?->class_code ?? '';
+                $timeSpan = substr($otherStart, 0, 5) . ' - ' . substr($otherRawEnd, 0, 5);
+                return "Bentrok dengan jadwal kuliah aktif lain ({$courseName} Kelas {$classCode} jam {$timeSpan}).";
+            }
+        }
+
+        return null;
     }
 }

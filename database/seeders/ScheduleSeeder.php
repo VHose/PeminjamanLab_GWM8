@@ -55,21 +55,12 @@ class ScheduleSeeder extends Seeder
                 ]);
             }
 
-            // Batas pertemuan per jadwal (opsional), disimpan ke meeting_from dan meeting_to
             $rows = [];
             $schedules = $data['schedules'] ?? $data['schedule'] ?? [];
             foreach ($schedules as $s) {
-                $meetingFrom = null;
-                $meetingTo = null;
-                if (isset($s['meetings'])) {
-                    $meetingFrom = $s['meetings'][0] ?? null;
-                    $meetingTo = $s['meetings'][1] ?? null;
-                    unset($s['meetings']);
-                }
+                unset($s['meetings']);
                 $rows[] = $s + [
                     'period_id' => $periodId,
-                    'meeting_from' => $meetingFrom,
-                    'meeting_to' => $meetingTo,
                     'created_at' => $now,
                     'updated_at' => $now,
                 ];

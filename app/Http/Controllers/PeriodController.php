@@ -14,6 +14,13 @@ use Illuminate\View\View;
 
 class PeriodController extends Controller
 {
+    public function index(): View
+    {
+        $periods = Period::withCount('holidays')->withCount('schedules')->orderByDesc('start_date')->get();
+
+        return view('admin.periods.index', compact('periods'));
+    }
+
     public function create(): View
     {
         return view('admin.periods.create');
@@ -41,7 +48,7 @@ class PeriodController extends Controller
             );
         });
 
-        return redirect()->route('admin.settings.index', ['tab' => 'periods'])
+        return redirect()->route('admin.periods.index')
             ->with('success', 'Periode semester berhasil ditambahkan.');
     }
 
@@ -72,7 +79,7 @@ class PeriodController extends Controller
             );
         });
 
-        return redirect()->route('admin.settings.index', ['tab' => 'periods'])
+        return redirect()->route('admin.periods.index')
             ->with('success', 'Periode semester berhasil diperbarui.');
     }
 

@@ -11,13 +11,6 @@
             <a class="btn btn-outline-secondary" href="{{ route('bookings.index') }}">Kembali</a>
         </div>
 
-        @if(isset($isConfigured) && !$isConfigured)
-            <div class="alert alert-danger shadow-sm mb-4">
-                <strong><i class="bi bi-exclamation-triangle"></i> Peminjaman Belum Dibuka:</strong>
-                Pengaturan jam operasional laboratorium dan batas pemesanan belum ditentukan oleh Administrator. Harap hubungi admin laboratorium.
-            </div>
-        @endif
-
         <form method="post" action="{{ route('bookings.store') }}" id="bookingForm" enctype="multipart/form-data">
             @csrf
             <input type="hidden" name="type" value="new">
@@ -91,13 +84,13 @@
                                 </div>
                                 <div class="col-md-2">
                                     <label class="form-label fw-semibold">Jam Mulai <span class="text-danger">*</span></label>
-                                    <select class="form-select start-time-select" name="slots[0][start]" required disabled>
+                                    <select class="form-select start-time-select" name="slots[0][start]" data-preselect="{{ old('slots.0.start', request('start')) }}" required disabled>
                                         <option value="">Pilih Jam</option>
                                     </select>
                                 </div>
                                 <div class="col-md-2">
                                     <label class="form-label fw-semibold">Jam Selesai <span class="text-danger">*</span></label>
-                                    <select class="form-select end-time-select" name="slots[0][end]" required disabled>
+                                    <select class="form-select end-time-select" name="slots[0][end]" data-preselect="{{ old('slots.0.end', request('end')) }}" required disabled>
                                         <option value="">Pilih Jam</option>
                                     </select>
                                 </div>
@@ -236,6 +229,14 @@ function populateStartTimes(slotItem) {
     } else {
         alertBox.style.display = 'none';
         startSelect.disabled = false;
+
+        const preselectStart = startSelect.dataset.preselect;
+        if (preselectStart && startSelect.querySelector(`option[value="${preselectStart}"]`)) {
+            startSelect.value = preselectStart;
+            delete startSelect.dataset.preselect;
+            populateEndTimes(slotItem);
+            return;
+        }
     }
 
     updatePreviews();
@@ -279,6 +280,12 @@ function populateEndTimes(slotItem) {
     }
 
     endSelect.disabled = false;
+
+    const preselectEnd = endSelect.dataset.preselect;
+    if (preselectEnd && endSelect.querySelector(`option[value="${preselectEnd}"]`)) {
+        endSelect.value = preselectEnd;
+        delete endSelect.dataset.preselect;
+    }
 
     const hasPending = pending.some(p => startTime < p.end && nextBlockedTime > p.start);
     if (hasPending) {

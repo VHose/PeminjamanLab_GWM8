@@ -67,8 +67,7 @@ class AuthController extends Controller
         UserRole::create([
             'user_id' => $user->id,
             'role_id' => $visitorRole->id,
-            'start_date' => now()->toDateString(),
-            'end_date' => null,
+            'period_id' => null,
         ]);
 
         Auth::login($user);

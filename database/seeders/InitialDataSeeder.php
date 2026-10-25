@@ -45,6 +45,10 @@ class InitialDataSeeder extends Seeder
                 'name' => '2026/2027 Ganjil',
                 'start_date' => '2026-09-14', // Wajib Senin pertama kuliah
                 'end_date' => '2027-01-29',   // Akhir UAS
+                'uts_start' => '2026-11-02',
+                'uts_end' => '2026-11-13',
+                'uas_start' => '2027-01-18',
+                'uas_end' => '2027-01-29',
                 'is_active' => true,
                 'created_at' => $now,
                 'updated_at' => $now,

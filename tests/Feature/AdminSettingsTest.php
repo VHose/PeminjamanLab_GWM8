@@ -5,7 +5,6 @@ namespace Tests\Feature;
 use App\Enums\ScheduleType;
 use App\Enums\WeekType;
 use App\Models\ActivityLog;
-use App\Models\ClassSlot;
 use App\Models\Course;
 use App\Models\Period;
 use App\Models\PeriodHoliday;
@@ -13,7 +12,6 @@ use App\Models\Role;
 use App\Models\Room;
 use App\Models\Schedule;
 use App\Models\ScheduleSession;
-use App\Models\Setting;
 use App\Models\StudyProgram;
 use App\Models\User;
 use App\Models\UserRole;
@@ -98,80 +96,24 @@ class AdminSettingsTest extends TestCase
         ]);
     }
 
-    public function test_non_admin_cannot_access_settings(): void
+    public function test_non_admin_cannot_access_periods(): void
     {
         $this->actingAs($this->visitor)
-            ->get(route('admin.settings.index'))
+            ->get(route('admin.periods.index'))
             ->assertStatus(403);
 
         $this->actingAs($this->kalab)
-            ->get(route('admin.settings.index'))
+            ->get(route('admin.periods.index'))
             ->assertStatus(403);
     }
 
-    public function test_admin_can_access_and_update_settings(): void
+    public function test_admin_can_access_periods_page(): void
     {
         $response = $this->actingAs($this->admin)
-            ->get(route('admin.settings.index'));
+            ->get(route('admin.periods.index'));
 
         $response->assertStatus(200);
-        $response->assertSee('Pengaturan Sistem');
-
-        // Update settings
-        $updateResponse = $this->actingAs($this->admin)
-            ->post(route('admin.settings.update'), [
-                'booking_block_minutes' => 30,
-                'lab_open_time' => '07:00',
-                'lab_close_time' => '21:00',
-                'lab_open_time_saturday' => '08:00',
-                'lab_close_time_saturday' => '17:00',
-            ]);
-
-        $updateResponse->assertRedirect(route('admin.settings.index', ['tab' => 'general']));
-
-        $this->assertSame('30', Setting::get('booking_block_minutes'));
-        $this->assertSame('07:00', Setting::get('lab_open_time'));
-        $this->assertSame('21:00', Setting::get('lab_close_time'));
-        $this->assertSame('08:00', Setting::get('lab_open_time_saturday'));
-        $this->assertSame('17:00', Setting::get('lab_close_time_saturday'));
-        $this->assertTrue(Setting::isBookingConfigured());
-
-        // Pastikan tercatat di activity_log
-        $this->assertDatabaseHas('activity_log', [
-            'user_id' => $this->admin->id,
-            'action' => 'update',
-            'subject_type' => 'setting',
-        ]);
-    }
-
-    public function test_class_slot_crud_and_toggle(): void
-    {
-        // 1. Create slot
-        $this->actingAs($this->admin)
-            ->post(route('admin.class-slots.store'), [
-                'code' => 'T2-1',
-                'start_time' => '07:00',
-                'end_time' => '08:40',
-                'is_active' => 1,
-            ])
-            ->assertRedirect(route('admin.settings.index', ['tab' => 'slots']));
-
-        $slot = ClassSlot::find('T2-1');
-        $this->assertNotNull($slot);
-        $this->assertTrue($slot->is_active);
-
-        // 2. Toggle active
-        $this->actingAs($this->admin)
-            ->post(route('admin.class-slots.toggle', $slot))
-            ->assertSessionHas('success');
-
-        $this->assertFalse($slot->fresh()->is_active);
-
-        $this->assertDatabaseHas('activity_log', [
-            'user_id' => $this->admin->id,
-            'subject_type' => 'class_slot',
-            'subject_id' => 'T2-1',
-        ]);
+        $response->assertSee('Periode Semester');
     }
 
     public function test_period_validation_must_be_monday_and_exam_ordering(): void
@@ -204,9 +146,13 @@ class AdminSettingsTest extends TestCase
                 'name' => '2026/2027 Genap',
                 'start_date' => '2027-02-22', // Senin
                 'end_date' => '2027-07-02',
+                'uts_start' => '2027-04-12',
+                'uts_end' => '2027-04-23',
+                'uas_start' => '2027-06-21',
+                'uas_end' => '2027-07-02',
                 'is_active' => 1,
             ])
-            ->assertRedirect(route('admin.settings.index', ['tab' => 'periods']));
+            ->assertRedirect(route('admin.periods.index'));
 
         $newPeriod = Period::where('name', '2026/2027 Genap')->first();
         $this->assertNotNull($newPeriod);
@@ -343,6 +289,10 @@ class AdminSettingsTest extends TestCase
             'name' => '2025/2026 Genap',
             'start_date' => '2026-02-16',
             'end_date' => '2026-06-26',
+            'uts_start' => '2026-04-13',
+            'uts_end' => '2026-04-24',
+            'uas_start' => '2026-06-15',
+            'uas_end' => '2026-06-26',
             'is_active' => false,
         ]);
 

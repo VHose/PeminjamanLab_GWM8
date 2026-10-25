@@ -52,10 +52,10 @@ class BookingFlowTest extends TestCase
         $roleAdmin = Role::create(['name' => 'Admin']);
 
         $this->studyProgram = StudyProgram::create([
-            'code' => 'IF',
+            'id' => '72',
             'name' => 'S1 Teknik Informatika',
             'color_hex' => '#FFF3B0',
-            'active' => true,
+            'is_active' => true,
         ]);
 
         $this->visitor = User::create([
@@ -118,8 +118,8 @@ class BookingFlowTest extends TestCase
             'start_date' => now()->subMonth()->toDateString(),
         ]);
 
-        $this->adv1 = Room::create(['code' => 'ADV1', 'name' => 'Advanced 1', 'capacity' => 30, 'active' => true]);
-        $this->adv2 = Room::create(['code' => 'ADV2', 'name' => 'Advanced 2', 'capacity' => 30, 'active' => true]);
+        $this->adv1 = Room::create(['id' => 'ADV1', 'name' => 'Advanced 1', 'capacity' => 30, 'is_active' => true]);
+        $this->adv2 = Room::create(['id' => 'ADV2', 'name' => 'Advanced 2', 'capacity' => 30, 'is_active' => true]);
 
         $this->period = Period::create([
             'name' => 'Ganjil 2026/2027',

@@ -122,16 +122,8 @@
 @endphp
 
 <div class="card mb-4 shadow-sm border-0">
-    <div class="card-header bg-white py-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
-        <div>
-            <h2 class="h5 mb-1 fw-bold">Denah Laboratorium Komputer GWM Lantai 8</h2>
-            <div class="small text-muted">
-                Arahkan kursor ke ruangan <span class="badge bg-primary-subtle text-primary border border-primary-subtle">Lab</span> untuk melihat nama ruangan, lalu klik untuk langsung mengajukan peminjaman.
-            </div>
-        </div>
-        <a href="{{ asset('images/denah-lantai-8.png') }}" target="_blank" class="btn btn-sm btn-outline-primary">
-            Lihat Ukuran Penuh
-        </a>
+    <div class="card-header bg-white py-3">
+        <h2 class="h5 mb-0 fw-bold">Denah Laboratorium Komputer GWM Lantai 8</h2>
     </div>
     <div class="card-body p-3 text-center bg-light">
         <div class="denah-interactive-wrapper shadow-sm rounded border bg-white">
@@ -224,6 +216,12 @@
                 <span class="d-inline-block border" style="width: 18px; height: 18px; background-color: #BFE3F7;"></span>
                 <span>Peminjaman / Booking</span>
             </span>
+            @if($canSeeInactiveSessions)
+                <span class="d-inline-flex align-items-center gap-1">
+                    <span class="d-inline-block border" style="width: 18px; height: 18px; background-color: #f8f9fa; border: 1px dashed #adb5bd !important;"></span>
+                    <span>Kuliah Libur / Nonaktif</span>
+                </span>
+            @endif
             <span class="d-inline-flex align-items-center gap-1">
                 <span class="d-inline-block border bg-white" style="width: 18px; height: 18px;"></span>
                 <span>Kosong (Dapat Dipinjam)</span>
@@ -248,94 +246,251 @@
     </div>
 @endif
 
-<div class="card shadow-sm border-0 mb-5">
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-bordered align-middle mb-0 text-center" style="font-size: 0.85rem;">
+<div class="card shadow-sm border mb-5 schedule-table-card">
+    <div class="card-header bg-white py-3 px-4 border-bottom">
+        <h2 class="h5 mb-0 fw-bold">Jadwal Penggunaan Laboratorium</h2>
+    </div>
+    <div class="card-body p-3 p-md-4 bg-light bg-opacity-25">
+        <div class="schedule-scroll-container shadow-sm">
+            @php
+                $gridOccupants = [];
+                $totalSlots = count($timeSlots);
+
+                foreach ($rooms as $room) {
+                    $gridOccupants[$room->id] = [];
+                    foreach ($timeSlots as $slotIdx => $slot) {
+                        $slotStart = $slot['start'];
+
+                        $slotSession = $sessions->first(function($s) use ($room, $slotStart) {
+                            $effRoom = $s->effectiveRoomId();
+                            $effStart = substr($s->effectiveStartTime(), 0, 5);
+                            $effEnd = substr($s->effectiveEndTime(), 0, 5);
+                            return $effRoom === $room->id && $effStart <= $slotStart && $effEnd > $slotStart;
+                        });
+
+                        $slotBooking = $bookings->first(function($b) use ($room, $slotStart) {
+                            $bStart = substr($b->start_time, 0, 5);
+                            $bEnd = substr($b->end_time, 0, 5);
+                            return $b->room_id === $room->id && $bStart <= $slotStart && $bEnd > $slotStart;
+                        });
+
+                        if ($slotSession && $slotSession->is_active) {
+                            $gridOccupants[$room->id][$slotIdx] = [
+                                'type'     => 'active_session',
+                                'key'      => 'sess_' . $slotSession->schedule_id . '_' . $slotSession->week_no,
+                                'item'     => $slotSession,
+                                'inactive' => null,
+                            ];
+                        } elseif ($slotBooking) {
+                            $gridOccupants[$room->id][$slotIdx] = [
+                                'type'     => 'booking',
+                                'key'      => 'bk_' . $slotBooking->id,
+                                'item'     => $slotBooking,
+                                'inactive' => ($slotSession && ! $slotSession->is_active) ? $slotSession : null,
+                            ];
+                        } elseif ($slotSession && ! $slotSession->is_active) {
+                            $gridOccupants[$room->id][$slotIdx] = [
+                                'type'     => 'inactive_session',
+                                'key'      => 'inactive_' . $slotSession->schedule_id . '_' . $slotSession->week_no,
+                                'item'     => $slotSession,
+                                'inactive' => null,
+                            ];
+                        } else {
+                            $gridOccupants[$room->id][$slotIdx] = [
+                                'type'     => 'empty',
+                                'key'      => null,
+                                'item'     => null,
+                                'inactive' => null,
+                            ];
+                        }
+                    }
+                }
+
+                $cellMeta = [];
+                foreach ($rooms as $room) {
+                    $cellMeta[$room->id] = [];
+                    $slotIdx = 0;
+                    while ($slotIdx < $totalSlots) {
+                        $occ = $gridOccupants[$room->id][$slotIdx];
+                        if ($occ['type'] === 'empty') {
+                            $cellMeta[$room->id][$slotIdx] = [
+                                'render'  => true,
+                                'rowspan' => 1,
+                                'data'    => $occ,
+                            ];
+                            $slotIdx++;
+                        } else {
+                            $span = 1;
+                            while (($slotIdx + $span) < $totalSlots && $gridOccupants[$room->id][$slotIdx + $span]['key'] === $occ['key']) {
+                                $span++;
+                            }
+                            $cellMeta[$room->id][$slotIdx] = [
+                                'render'  => true,
+                                'rowspan' => $span,
+                                'data'    => $occ,
+                            ];
+                            for ($s = 1; $s < $span; $s++) {
+                                $cellMeta[$room->id][$slotIdx + $s] = [
+                                    'render'  => false,
+                                    'rowspan' => 0,
+                                    'data'    => null,
+                                ];
+                            }
+                            $slotIdx += $span;
+                        }
+                    }
+                }
+            @endphp
+
+            <table class="table table-bordered align-middle text-center schedule-grid-table">
                 <thead class="table-light">
                     <tr>
-                        <th style="width: 140px;">Jam</th>
+                        <th class="col-jam fw-bold text-secondary">Jam</th>
                         @foreach($rooms as $room)
-                            <th>{{ $room->id }}</th>
+                            <th class="col-room fw-bold text-dark">{{ $room->id }}</th>
                         @endforeach
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($timeSlots as $slot)
-                        @php $slotStart = $slot['start']; @endphp
+                    @foreach($timeSlots as $slotIdx => $slot)
                         <tr>
-                            <td class="table-light fw-bold text-secondary py-2" style="font-size: 0.78rem; white-space: nowrap;">{{ $slot['label'] }}</td>
+                            <td class="col-jam table-light fw-bold text-secondary py-2" style="font-size: 0.78rem; white-space: nowrap;">
+                                {{ $slot['label'] }}
+                            </td>
                             @foreach($rooms as $room)
                                 @php
-                                    $cellSessions = $sessions->filter(function($s) use ($room, $slotStart) {
-                                        $effRoom = $s->effectiveRoomId();
-                                        $effStart = substr($s->effectiveStartTime(), 0, 5);
-                                        $effEnd = substr($s->effectiveEndTime(), 0, 5);
-                                        return $effRoom === $room->id
-                                            && $effStart <= $slotStart
-                                            && $effEnd > $slotStart;
-                                    });
-
-                                    $cellBookings = $bookings->filter(function($b) use ($room, $slotStart) {
-                                        $bStart = substr($b->start_time, 0, 5);
-                                        $bEnd = substr($b->end_time, 0, 5);
-                                        return $b->room_id === $room->id
-                                            && $bStart <= $slotStart
-                                            && $bEnd > $slotStart;
-                                    });
+                                    $meta = $cellMeta[$room->id][$slotIdx] ?? null;
                                 @endphp
 
-                                @if($cellSessions->isNotEmpty())
+                                @if($meta && $meta['render'])
                                     @php
-                                        $sess = $cellSessions->first();
-                                        $effStart = substr($sess->effectiveStartTime(), 0, 5);
-                                        $effEnd = substr($sess->effectiveEndTime(), 0, 5);
-                                        $isStart = ($effStart === $slotStart);
-                                        $color = $sess->schedule->course->studyProgram->color_hex ?? '#E2E3E5';
+                                        $rowspan = $meta['rowspan'];
+                                        $occ = $meta['data'];
+                                        $type = $occ['type'];
                                     @endphp
-                                    <td class="p-1" style="background-color: {{ $color }}; {{ $isStart ? '' : 'border-top: none;' }}">
-                                        @if($isStart)
-                                            <div class="fw-bold">
+
+                                    @if($type === 'active_session')
+                                        @php
+                                            $sess = $occ['item'];
+                                            $effStart = substr($sess->effectiveStartTime(), 0, 5);
+                                            $effEnd = substr($sess->effectiveEndTime(), 0, 5);
+                                            $color = $sess->schedule->course->studyProgram->color_hex ?? '#E2E3E5';
+                                        @endphp
+                                        <td rowspan="{{ $rowspan }}" class="col-room p-2 text-center" style="background-color: {{ $color }}; vertical-align: middle;">
+                                            <div class="fw-bold" style="font-size: 0.82rem; line-height: 1.25;">
                                                 {{ $sess->schedule->course->name }}
                                             </div>
-                                            <div class="small text-secondary" style="font-size: 0.72rem;">
+                                            <div class="small text-secondary mt-1" style="font-size: 0.70rem;">
                                                 {{ $effStart }} - {{ $effEnd }}
                                                 @if($sess->schedule->class_code)
                                                     <span class="badge text-bg-light border">{{ $sess->schedule->class_code }}</span>
                                                 @endif
                                             </div>
                                             @if($isInternal && $sess->schedule->lecturer)
-                                                <div class="small text-dark mt-1">{{ $sess->schedule->lecturer->name }}</div>
+                                                <div class="small text-dark mt-1" style="font-size: 0.70rem;">{{ $sess->schedule->lecturer->name }}</div>
                                             @endif
                                             @if($sess->note)
-                                                <div class="small text-danger fw-semibold">{{ $sess->note }}</div>
+                                                <div class="small text-danger fw-semibold mt-1" style="font-size: 0.70rem;">{{ $sess->note }}</div>
                                             @endif
-                                        @endif
-                                    </td>
-                                @elseif($cellBookings->isNotEmpty())
-                                    @php
-                                        $bk = $cellBookings->first();
-                                        $bStart = substr($bk->start_time, 0, 5);
-                                        $bEnd = substr($bk->end_time, 0, 5);
-                                        $isStart = ($bStart === $slotStart);
-                                    @endphp
-                                    <td class="p-1" style="background-color: #BFE3F7; {{ $isStart ? '' : 'border-top: none;' }}">
-                                        @if($isStart)
+
+                                            @if($canToggleSession)
+                                                <div class="mt-2 pt-1 border-top border-dark border-opacity-10 d-flex justify-content-center">
+                                                    <form method="POST" action="{{ route('admin.schedule-sessions.toggle', [$sess->schedule_id, $sess->week_no]) }}" class="d-inline-block m-0">
+                                                        @csrf
+                                                        <div class="form-check form-switch m-0 p-0" title="Kuliah Aktif - Klik untuk meliburkan">
+                                                            <input class="form-check-input m-0" type="checkbox" role="switch" id="toggle-{{ $sess->schedule_id }}-{{ $sess->week_no }}" onchange="this.form.submit()" checked>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            @endif
+                                        </td>
+                                    @elseif($type === 'booking')
+                                        @php
+                                            $bk = $occ['item'];
+                                            $inactiveSess = $occ['inactive'];
+                                            $bStart = substr($bk->start_time, 0, 5);
+                                            $bEnd = substr($bk->end_time, 0, 5);
+                                        @endphp
+                                        <td rowspan="{{ $rowspan }}" class="col-room p-2 text-center" style="background-color: #BFE3F7; vertical-align: middle;">
                                             @if($bk->status === \App\Enums\BookingDetailStatus::PENDING)
-                                                <div class="fw-bold text-primary">Pending</div>
+                                                <div class="fw-bold text-primary" style="font-size: 0.82rem;">Pending</div>
                                                 <div class="small text-secondary" style="font-size: 0.70rem;">{{ $bStart }} - {{ $bEnd }}</div>
-                                                <div class="small text-dark fw-semibold mt-1">{{ $bk->display_requester }}</div>
+                                                <div class="small text-dark fw-semibold mt-1" style="font-size: 0.72rem;">{{ $bk->display_requester }}</div>
                                             @else
-                                                <div class="fw-bold text-dark">{{ $bk->display_requester }}</div>
-                                                <div class="small text-secondary" style="font-size: 0.72rem;">{{ $bStart }} - {{ $bEnd }}</div>
+                                                <div class="fw-bold text-dark" style="font-size: 0.82rem;">{{ $bk->display_requester }}</div>
+                                                <div class="small text-secondary" style="font-size: 0.70rem;">{{ $bStart }} - {{ $bEnd }}</div>
                                                 @if($isInternal)
-                                                    <div class="small text-muted" style="font-size: 0.70rem;">{{ Str::limit($bk->booking->purpose, 25) }}</div>
+                                                    <div class="small text-muted mt-1" style="font-size: 0.70rem;">{{ Str::limit($bk->booking->purpose, 25) }}</div>
                                                 @endif
                                             @endif
-                                        @endif
-                                    </td>
-                                @else
-                                    <td class="bg-white p-1"></td>
+
+                                            @if($inactiveSess)
+                                                <div class="mt-1 pt-1 border-top border-primary border-opacity-25">
+                                                    <span class="badge text-bg-danger" style="font-size: 0.62rem;">Kuliah Libur</span>
+                                                    <div class="small text-muted" style="font-size: 0.65rem;">{{ $inactiveSess->schedule->course->name }}</div>
+                                                    @if($canToggleSession)
+                                                        <div class="d-flex justify-content-center mt-1">
+                                                            <form method="POST" action="{{ route('admin.schedule-sessions.toggle', [$inactiveSess->schedule_id, $inactiveSess->week_no]) }}" class="d-inline-block m-0">
+                                                                @csrf
+                                                                <div class="form-check form-switch m-0 p-0" title="Kuliah Libur - Klik untuk mengaktifkan kembali">
+                                                                    <input class="form-check-input m-0" type="checkbox" role="switch" id="toggle-{{ $inactiveSess->schedule_id }}-{{ $inactiveSess->week_no }}" onchange="this.form.submit()">
+                                                                </div>
+                                                            </form>
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                            @endif
+                                        </td>
+                                    @elseif($type === 'inactive_session')
+                                        @php
+                                            $sess = $occ['item'];
+                                            $effStart = substr($sess->effectiveStartTime(), 0, 5);
+                                            $effEnd = substr($sess->effectiveEndTime(), 0, 5);
+                                        @endphp
+                                        <td rowspan="{{ $rowspan }}" class="col-room p-2 text-center" style="background-color: #f8f9fa; border: 1px dashed #adb5bd; vertical-align: middle;">
+                                            <div class="d-flex justify-content-center mb-1">
+                                                <span class="badge text-bg-danger" style="font-size: 0.65rem;">Kuliah Libur</span>
+                                            </div>
+                                            <div class="fw-semibold text-secondary text-decoration-line-through" style="font-size: 0.82rem; line-height: 1.25;">
+                                                {{ $sess->schedule->course->name }}
+                                            </div>
+                                            <div class="small text-muted mt-1" style="font-size: 0.70rem;">
+                                                {{ $effStart }} - {{ $effEnd }}
+                                                @if($sess->schedule->class_code)
+                                                    <span class="badge text-bg-light border text-muted">{{ $sess->schedule->class_code }}</span>
+                                                @endif
+                                            </div>
+                                            @if($isInternal && $sess->schedule->lecturer)
+                                                <div class="small text-muted mt-1" style="font-size: 0.70rem;">{{ $sess->schedule->lecturer->name }}</div>
+                                            @endif
+                                            @if($sess->note)
+                                                <div class="small text-danger fw-semibold mt-1" style="font-size: 0.70rem;">{{ $sess->note }}</div>
+                                            @endif
+
+                                            @if($canToggleSession)
+                                                <div class="mt-2 pt-1 border-top border-secondary border-opacity-25 d-flex justify-content-center">
+                                                    <form method="POST" action="{{ route('admin.schedule-sessions.toggle', [$sess->schedule_id, $sess->week_no]) }}" class="d-inline-block m-0">
+                                                        @csrf
+                                                        <div class="form-check form-switch m-0 p-0" title="Kuliah Libur - Klik untuk mengaktifkan kembali">
+                                                            <input class="form-check-input m-0" type="checkbox" role="switch" id="toggle-{{ $sess->schedule_id }}-{{ $sess->week_no }}" onchange="this.form.submit()">
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            @endif
+                                        </td>
+                                    @else
+                                        {{-- Empty slot (span 1) - Can be clicked and dragged to block booking --}}
+                                        <td class="col-room empty-slot bg-white p-0"
+                                            data-room-id="{{ $room->id }}"
+                                            data-room-name="{{ $room->name }}"
+                                            data-date="{{ $date->toDateString() }}"
+                                            data-date-formatted="{{ $date->locale('id')->translatedFormat('l, d F Y') }}"
+                                            data-start="{{ $slot['start'] }}"
+                                            data-end="{{ $slot['end'] }}"
+                                            data-slot-idx="{{ $slotIdx }}"
+                                            title="Klik atau geser untuk memblok waktu peminjaman di {{ $room->id }}">
+                                        </td>
+                                    @endif
                                 @endif
                             @endforeach
                         </tr>
@@ -345,10 +500,180 @@
         </div>
     </div>
 </div>
+
+{{-- Floating Pop-up Konfirmasi Blok Peminjaman (Kanan Atas) --}}
+<div id="bookingDragPopup" class="booking-selection-popup shadow-lg border">
+    <div class="d-flex justify-content-between align-items-center px-3 py-2 bg-primary text-white rounded-top">
+        <div class="d-flex align-items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-calendar2-check-fill" viewBox="0 0 16 16">
+              <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM2 3.5v1a.5.5 0 0 0 .5.5h11a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5H2a.5.5 0 0 0-.5.5zm10.854 4.646a.5.5 0 0 0-.708 0L7.5 12.793l-1.646-1.647a.5.5 0 0 0-.708.708l2 2a.5.5 0 0 0 .708 0l5-5a.5.5 0 0 0 0-.708z"/>
+            </svg>
+            <span class="fw-bold small">Peminjaman Ruangan Terpilih</span>
+        </div>
+        <button type="button" class="btn-close btn-close-white btn-sm" id="btnCancelDragSelection" aria-label="Tutup"></button>
+    </div>
+    <div class="p-3">
+        <div class="mb-2">
+            <div class="text-secondary small" style="font-size: 0.70rem;">HARI & TANGGAL</div>
+            <div class="fw-bold text-dark" id="popupDragDate">-</div>
+        </div>
+        <div class="mb-2">
+            <div class="text-secondary small" style="font-size: 0.70rem;">LABORATORIUM</div>
+            <div class="fw-bold text-dark" id="popupDragRoom">-</div>
+        </div>
+        <div class="p-2 rounded bg-light border d-flex align-items-center justify-content-between mb-3">
+            <div>
+                <div class="text-secondary small" style="font-size: 0.68rem;">JAM PEMINJAMAN</div>
+                <div class="fw-bold text-primary fs-6" id="popupDragTime">-</div>
+            </div>
+            <span class="badge text-bg-primary fw-semibold" id="popupDragDuration">-</span>
+        </div>
+        <a href="#" id="btnConfirmDragBooking" class="btn btn-primary w-100 fw-bold py-2 shadow-sm d-flex align-items-center justify-content-center gap-2">
+            <span>Konfirmasi & Ajukan</span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-right" viewBox="0 0 16 16">
+              <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8z"/>
+            </svg>
+        </a>
+    </div>
+</div>
 @endsection
 
 @push('styles')
 <style>
+/* ── Schedule Grid Table & Scroll Container Styling ── */
+.schedule-table-card {
+    border-radius: 0.75rem;
+    overflow: hidden;
+}
+
+.schedule-scroll-container {
+    overflow-x: auto;
+    overflow-y: visible;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 0.5rem;
+    border: 1px solid #dee2e6;
+    background: #ffffff;
+}
+
+.schedule-grid-table {
+    table-layout: fixed !important;
+    width: max-content !important;
+    min-width: 100% !important;
+    margin-bottom: 0 !important;
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+}
+
+.schedule-grid-table tr {
+    height: 38px !important;
+}
+
+.schedule-grid-table th,
+.schedule-grid-table td {
+    border-right: 1px solid #dee2e6 !important;
+    border-bottom: 1px solid #dee2e6 !important;
+}
+
+.schedule-grid-table th.col-jam,
+.schedule-grid-table td.col-jam {
+    width: 125px !important;
+    min-width: 125px !important;
+    max-width: 125px !important;
+    height: 38px !important;
+    position: sticky !important;
+    left: 0 !important;
+    z-index: 10 !important;
+    background-color: #f8f9fa !important;
+    border-right: 2px solid #ced4da !important;
+    padding: 4px 8px !important;
+    vertical-align: middle !important;
+}
+
+.schedule-grid-table thead th.col-jam {
+    z-index: 12 !important;
+}
+
+.schedule-grid-table th.col-room,
+.schedule-grid-table td.col-room {
+    width: 145px !important;
+    min-width: 145px !important;
+    max-width: 145px !important;
+    vertical-align: middle !important;
+    word-break: break-word !important;
+}
+
+.schedule-grid-table td.empty-slot {
+    cursor: pointer;
+    background-color: #ffffff;
+    user-select: none;
+    -webkit-user-select: none;
+    transition: background-color 0.1s ease-in-out;
+}
+
+.schedule-grid-table td.empty-slot:hover {
+    background-color: #e9f2ff !important;
+}
+
+.schedule-grid-table td.empty-slot.selected-drag-slot {
+    background-color: #cfe2ff !important;
+    outline: 2px dashed #0d6efd !important;
+    outline-offset: -2px;
+}
+
+.schedule-grid-table .form-switch {
+    min-height: auto;
+    padding-left: 0 !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+}
+
+.schedule-grid-table .form-switch .form-check-input {
+    float: none !important;
+    margin: 0 !important;
+    cursor: pointer !important;
+    width: 2.3em !important;
+    height: 1.15em !important;
+}
+
+.booking-selection-popup {
+    position: fixed;
+    top: 85px;
+    right: 24px;
+    z-index: 1060;
+    width: 320px;
+    max-width: calc(100vw - 32px);
+    border-radius: 0.75rem;
+    background: #ffffff;
+    border: 2px solid #0d6efd !important;
+    transform: translateY(-15px);
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 12px 36px rgba(13, 110, 253, 0.2), 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.booking-selection-popup.show {
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.schedule-scroll-container::-webkit-scrollbar {
+    height: 8px;
+}
+.schedule-scroll-container::-webkit-scrollbar-track {
+    background: #f1f3f5;
+    border-radius: 4px;
+}
+.schedule-scroll-container::-webkit-scrollbar-thumb {
+    background: #ced4da;
+    border-radius: 4px;
+}
+.schedule-scroll-container::-webkit-scrollbar-thumb:hover {
+    background: #adb5bd;
+}
+
 .denah-interactive-wrapper {
     position: relative;
     display: inline-block;
@@ -444,6 +769,141 @@ document.addEventListener('DOMContentLoaded', () => {
             tooltip.style.opacity = '0';
         });
     });
+
+    // ── Click & Drag to Block Time Slots ──
+    const dragPopup = document.getElementById('bookingDragPopup');
+    const dragDate = document.getElementById('popupDragDate');
+    const dragRoom = document.getElementById('popupDragRoom');
+    const dragTime = document.getElementById('popupDragTime');
+    const dragDuration = document.getElementById('popupDragDuration');
+    const btnConfirmDrag = document.getElementById('btnConfirmDragBooking');
+    const btnCancelDrag = document.getElementById('btnCancelDragSelection');
+
+    let isDragging = false;
+    let dragRoomId = null;
+    let dragRoomName = null;
+    let dragDateVal = null;
+    let dragDateFormattedVal = null;
+    let dragStartIdx = null;
+    let dragCurrentIdx = null;
+
+    function clearDragSelection() {
+        document.querySelectorAll('.empty-slot.selected-drag-slot').forEach(el => {
+            el.classList.remove('selected-drag-slot');
+        });
+        isDragging = false;
+        dragRoomId = null;
+        dragRoomName = null;
+        dragDateVal = null;
+        dragDateFormattedVal = null;
+        dragStartIdx = null;
+        dragCurrentIdx = null;
+        if (dragPopup) {
+            dragPopup.classList.remove('show');
+        }
+    }
+
+    function updateDragSelection() {
+        if (!dragRoomId || dragStartIdx === null || dragCurrentIdx === null) return;
+
+        const min = Math.min(dragStartIdx, dragCurrentIdx);
+        const max = Math.max(dragStartIdx, dragCurrentIdx);
+
+        // Check if all cells between min and max are empty slots
+        const targetCells = [];
+        let isContiguous = true;
+        for (let i = min; i <= max; i++) {
+            const cell = document.querySelector(`.empty-slot[data-room-id="${dragRoomId}"][data-slot-idx="${i}"]`);
+            if (!cell) {
+                isContiguous = false;
+                break;
+            }
+            targetCells.push(cell);
+        }
+
+        if (!isContiguous) {
+            return;
+        }
+
+        // Apply visual selection
+        document.querySelectorAll('.empty-slot.selected-drag-slot').forEach(el => {
+            el.classList.remove('selected-drag-slot');
+        });
+        targetCells.forEach(cell => cell.classList.add('selected-drag-slot'));
+
+        const firstCell = document.querySelector(`.empty-slot[data-room-id="${dragRoomId}"][data-slot-idx="${min}"]`);
+        const lastCell = document.querySelector(`.empty-slot[data-room-id="${dragRoomId}"][data-slot-idx="${max}"]`);
+
+        const startTime = firstCell.dataset.start;
+        const endTime = lastCell.dataset.end;
+
+        const countSlots = (max - min + 1);
+        const totalMinutes = countSlots * 30;
+        let durationText = '';
+        if (totalMinutes % 60 === 0) {
+            durationText = `${totalMinutes / 60} Jam`;
+        } else {
+            const h = Math.floor(totalMinutes / 60);
+            const m = totalMinutes % 60;
+            durationText = h > 0 ? `${h} Jam ${m} Mnt` : `${m} Menit`;
+        }
+
+        if (dragDate) dragDate.textContent = dragDateFormattedVal;
+        if (dragRoom) dragRoom.textContent = `${dragRoomName} (${dragRoomId})`;
+        if (dragTime) dragTime.textContent = `${startTime} - ${endTime}`;
+        if (dragDuration) dragDuration.textContent = durationText;
+
+        if (btnConfirmDrag) {
+            btnConfirmDrag.href = `{{ route('bookings.create') }}?room_id=${encodeURIComponent(dragRoomId)}&date=${encodeURIComponent(dragDateVal)}&start=${encodeURIComponent(startTime)}&end=${encodeURIComponent(endTime)}`;
+        }
+
+        if (dragPopup) {
+            dragPopup.classList.add('show');
+        }
+    }
+
+    const scrollContainer = document.querySelector('.schedule-scroll-container');
+    if (scrollContainer) {
+        scrollContainer.addEventListener('mousedown', (e) => {
+            const slot = e.target.closest('.empty-slot');
+            if (!slot || e.button !== 0) return;
+
+            e.preventDefault();
+            isDragging = true;
+            dragRoomId = slot.dataset.roomId;
+            dragRoomName = slot.dataset.roomName;
+            dragDateVal = slot.dataset.date;
+            dragDateFormattedVal = slot.dataset.dateFormatted;
+            dragStartIdx = parseInt(slot.dataset.slotIdx);
+            dragCurrentIdx = dragStartIdx;
+
+            updateDragSelection();
+        });
+
+        scrollContainer.addEventListener('mouseover', (e) => {
+            if (!isDragging) return;
+            const slot = e.target.closest('.empty-slot');
+            if (!slot) return;
+
+            if (slot.dataset.roomId === dragRoomId) {
+                dragCurrentIdx = parseInt(slot.dataset.slotIdx);
+                updateDragSelection();
+            }
+        });
+    }
+
+    document.addEventListener('mouseup', () => {
+        if (isDragging) {
+            isDragging = false;
+        }
+    });
+
+    if (btnCancelDrag) {
+        btnCancelDrag.addEventListener('click', (e) => {
+            e.preventDefault();
+            clearDragSelection();
+        });
+    }
 });
 </script>
 @endpush

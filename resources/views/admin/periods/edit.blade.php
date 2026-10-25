@@ -7,7 +7,7 @@
             <div class="card-header bg-white py-3">
                 <div class="d-flex justify-content-between align-items-center">
                     <h1 class="h5 fw-bold mb-0">Ubah Periode Semester: {{ $period->name }}</h1>
-                    <a href="{{ route('admin.settings.index', ['tab' => 'periods']) }}" class="btn btn-sm btn-outline-secondary">Kembali</a>
+                    <a href="{{ route('admin.periods.index') }}" class="btn btn-sm btn-outline-secondary">Kembali</a>
                 </div>
             </div>
             <div class="card-body p-4">
@@ -68,7 +68,7 @@
                             Kelola Hari Libur Periode ({{ $period->holidays()->count() }})
                         </a>
                         <div class="d-flex gap-2">
-                            <a href="{{ route('admin.settings.index', ['tab' => 'periods']) }}" class="btn btn-outline-secondary">Batal</a>
+                            <a href="{{ route('admin.periods.index') }}" class="btn btn-outline-secondary">Batal</a>
                             <button type="submit" class="btn btn-primary px-4">Simpan Perubahan</button>
                         </div>
                     </div>

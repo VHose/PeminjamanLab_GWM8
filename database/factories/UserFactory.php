@@ -35,7 +35,7 @@ class UserFactory extends Factory
             UserRole::query()->firstOrCreate([
                 'user_id' => $user->id,
                 'role_id' => $visitorRole->id,
-                'start_date' => now()->toDateString(),
+                'period_id' => null,
             ]);
         });
     }

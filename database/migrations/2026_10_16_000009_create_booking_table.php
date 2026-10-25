@@ -9,13 +9,12 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // Header peminjaman: siapa, PIC, tujuan, dan status keseluruhan
         Schema::create('booking', function (Blueprint $table) {
             $table->id();
             $table->string('user_id', 10);                           // peminjam
             $table->string('created_by', 10)->nullable();            // staf yang input atas nama dosen
             $table->string('pic_name', 100);
-            $table->string('pic_phone', 20)->nullable();
+            $table->string('pic_phone', 20);
             $table->string('purpose', 500);                          // dibatasi, dokumen panjang lewat attachment
             // 0 PENDING_PRODI, 1 PENDING_LAB, 2 APPROVED, 3 REJECTED, 4 CANCELLED, 5 CHANGE_REQUESTED
             $table->unsignedTinyInteger('status')->default(0);
@@ -59,7 +58,7 @@ return new class extends Migration
             $table->string('original_name', 150);
             $table->string('path', 255);
             $table->string('mime_type', 100);
-            $table->unsignedInteger('size');                         // byte
+            $table->unsignedInteger('size');                  
             $table->timestamp('created_at')->useCurrent();
         });
 

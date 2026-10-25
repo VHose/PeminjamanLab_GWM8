@@ -8,10 +8,11 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('schedule', function (Blueprint $table) {
-            $table->unsignedTinyInteger('meeting_from')->nullable()->after('end_time');
-            $table->unsignedTinyInteger('meeting_to')->nullable()->after('meeting_from');
-        });
+        if (Schema::hasColumn('schedule', 'meeting_from')) {
+            Schema::table('schedule', function (Blueprint $table) {
+                $table->dropColumn(['meeting_from', 'meeting_to']);
+            });
+        }
     }
 
     public function down(): void

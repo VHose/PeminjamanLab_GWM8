@@ -8,7 +8,6 @@ use App\Models\BookingDetail;
 use App\Models\Period;
 use App\Models\Room;
 use App\Models\ScheduleSession;
-use App\Models\Setting;
 use App\Models\StudyProgram;
 use App\Services\BookingService;
 use App\Services\PeriodWeekCalendar;
@@ -87,6 +86,20 @@ class DashboardController extends Controller
         $allRooms = Room::where('is_active', true)->orderBy('id')->get();
         $rooms = $allRooms->when($selectedRoomId, fn ($q, $id) => $q->where('id', $id));
 
+        // Hak akses sesi nonaktif (libur) dan toggle
+        $user = $request->user();
+        $canSeeInactiveSessions = false;
+        $canToggleSession = false;
+
+        if ($user) {
+            if ($user->hasRole('Admin')) {
+                $canSeeInactiveSessions = true;
+                $canToggleSession = true;
+            } elseif ($user->hasRole('Kepala_Prodi', 'Kepala_Lab', 'Dosen')) {
+                $canSeeInactiveSessions = true;
+            }
+        }
+
         // Tampilan jadwal kuliah:
         // Pada minggu UTS, UAS, dan LIBUR tampilan jadwal kuliah kosong!
         $sessions = collect();
@@ -95,14 +108,20 @@ class DashboardController extends Controller
         if ($period && $selectedWeek && $selectedWeek['type'] === WeekType::KULIAH && $day >= 1 && $day <= 5) {
             $meetingNo = $selectedWeek['meeting_no'];
 
-            $sessions = ScheduleSession::with(['schedule.course.studyProgram', 'schedule.lecturer', 'room', 'schedule.room'])
+            $sessionsQuery = ScheduleSession::with(['schedule.course.studyProgram', 'schedule.lecturer', 'room', 'schedule.room'])
                 ->whereHas('schedule', function ($q) use ($period, $day) {
                     $q->where('period_id', $period->id)
                       ->where('day_of_week', $day);
                 })
-                ->where('week_no', $meetingNo)
-                ->where('is_active', true)
-                ->get();
+                ->where('week_no', $meetingNo);
+
+            // Staf_Lab, Visitor, dan tamu (guest) hanya melihat sesi aktif.
+            // Sesi libur (is_active = false) tidak muncul sehingga slot ruangan kosong dan dapat dipinjam.
+            if (! $canSeeInactiveSessions) {
+                $sessionsQuery->where('is_active', true);
+            }
+
+            $sessions = $sessionsQuery->get();
         }
 
         // Ambil data peminjaman (booking_detail) pada tanggal yang dipilih
@@ -112,7 +131,6 @@ class DashboardController extends Controller
             ->get();
 
         // Tentukan apakah user merupakan role internal
-        $user = $request->user();
         $isInternal = $user && $user->isInternal($period?->id);
 
         // Format nama display untuk peminjaman
@@ -127,13 +145,9 @@ class DashboardController extends Controller
             }
         });
 
-        // Ambil jam operasional lab dari Setting
-        $labOpen = Setting::get('lab_open_time', '07:00');
-        $labClose = Setting::get('lab_close_time', '22:00');
-        if ($day === 6) {
-            $labOpen = Setting::get('lab_open_time_saturday', $labOpen);
-            $labClose = Setting::get('lab_close_time_saturday', $labClose);
-        }
+        // Jam operasional lab: Senin - Sabtu (07:00 - 22:00)
+        $labOpen = '07:00';
+        $labClose = '22:00';
 
         $openHour = (int) substr($labOpen, 0, 2);
         $openMin  = (int) substr($labOpen, 3, 2);
@@ -185,7 +199,9 @@ class DashboardController extends Controller
             'isNonLectureWeek',
             'timeSlots',
             'isInternal',
-            'studyPrograms'
+            'studyPrograms',
+            'canSeeInactiveSessions',
+            'canToggleSession'
         ));
     }
 }

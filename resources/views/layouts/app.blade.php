@@ -39,7 +39,7 @@
                         @endif
                         @if(auth()->user()->hasRole('Admin'))
                             <li class="nav-item">
-                                <a class="nav-link text-white {{ request()->routeIs('admin.settings.*') ? 'active fw-bold' : '' }}" href="{{ route('admin.settings.index') }}">Pengaturan</a>
+                                <a class="nav-link text-white {{ request()->routeIs('admin.periods.*') || request()->routeIs('admin.holidays.*') ? 'active fw-bold' : '' }}" href="{{ route('admin.periods.index') }}">Periode Semester</a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link text-white" href="{{ route('admin.users.index') }}">Kelola Pengguna</a>

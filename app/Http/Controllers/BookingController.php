@@ -9,7 +9,6 @@ use App\Models\Booking;
 use App\Models\BookingAttachment;
 use App\Models\BookingDetail;
 use App\Models\Room;
-use App\Models\Setting;
 use App\Services\BookingService;
 use App\Services\NotificationService;
 use Carbon\Carbon;
@@ -33,18 +32,16 @@ class BookingController extends Controller
 
     public function create(): View
     {
-        $isConfigured = Setting::isBookingConfigured();
         $rooms = Room::where('is_active', true)->orderBy('id')->get();
 
-        return view('bookings.create', compact('rooms', 'isConfigured'));
+        return view('bookings.create', compact('rooms'));
     }
 
     public function staffCreate(): View
     {
-        $isConfigured = Setting::isBookingConfigured();
         $rooms = Room::where('is_active', true)->orderBy('id')->get();
 
-        return view('bookings.staff-create', compact('rooms', 'isConfigured'));
+        return view('bookings.staff-create', compact('rooms'));
     }
 
     public function show(Booking $booking): View
@@ -71,9 +68,8 @@ class BookingController extends Controller
         abort_unless($canChange, 403, 'Perubahan jadwal hanya bisa diajukan paling lambat H-2.');
 
         $rooms = Room::where('is_active', true)->orderBy('id')->get();
-        $isConfigured = Setting::isBookingConfigured();
 
-        return view('bookings.change', compact('booking', 'rooms', 'isConfigured'));
+        return view('bookings.change', compact('booking', 'rooms'));
     }
 
     public function store(
@@ -81,15 +77,9 @@ class BookingController extends Controller
         BookingService $service,
         NotificationService $notifications
     ): RedirectResponse {
-        if (! Setting::isBookingConfigured()) {
-            throw ValidationException::withMessages([
-                'slots' => 'Peminjaman belum dibuka karena jam operasional lab belum ditentukan oleh Administrator.',
-            ]);
-        }
-
         $data = $request->validate([
             'pic_name' => ['required', 'string', 'max:100'],
-            'pic_phone' => ['nullable', 'string', 'max:20'],
+            'pic_phone' => ['required', 'string', 'max:20'],
             'purpose' => ['required', 'string', 'max:500'],
             'slots' => ['required', 'array', 'min:1'],
             'slots.*.room_id' => ['required', 'exists:room,id'],
@@ -123,15 +113,11 @@ class BookingController extends Controller
                 ]);
             }
 
-            // Jam operasional lab
-            $labOpen = $dateCarbon->isSaturday()
-                ? Setting::get('lab_open_time_saturday', Setting::get('lab_open_time', '07:00'))
-                : Setting::get('lab_open_time', '07:00');
-            $labClose = $dateCarbon->isSaturday()
-                ? Setting::get('lab_close_time_saturday', Setting::get('lab_close_time', '21:00'))
-                : Setting::get('lab_close_time', '21:00');
+            // Jam operasional lab: Senin - Sabtu (07:00 - 22:00)
+            $labOpen = '07:00';
+            $labClose = '22:00';
 
-            if ($slot['start'] < substr($labOpen, 0, 5) || $slot['end'] > substr($labClose, 0, 5)) {
+            if ($slot['start'] < $labOpen || $slot['end'] > $labClose) {
                 throw ValidationException::withMessages([
                     'slots' => "Peminjaman harus berada di dalam jam operasional laboratorium ({$labOpen} - {$labClose}).",
                 ]);
@@ -300,6 +286,7 @@ class BookingController extends Controller
                 'user_id' => $user->id,
                 'created_by' => $user->id,
                 'pic_name' => $data['requester_name'],
+                'pic_phone' => $request->input('pic_phone') ?? $user->phone ?? '-',
                 'purpose' => $data['purpose'],
                 'status' => BookingStatus::APPROVED,
             ]);

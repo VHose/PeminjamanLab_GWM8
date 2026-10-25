@@ -6,15 +6,14 @@ use App\Http\Controllers\ApprovalController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BookingAvailabilityController;
 use App\Http\Controllers\BookingController;
-use App\Http\Controllers\ClassSlotController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MasterController;
 use App\Http\Controllers\PasswordChangeController;
 use App\Http\Controllers\PeriodController;
 use App\Http\Controllers\PeriodHolidayController;
 use App\Http\Controllers\PeriodRoleController;
+use App\Http\Controllers\ScheduleSessionController;
 use App\Http\Controllers\SectionController;
-use App\Http\Controllers\SettingController;
 use Illuminate\Support\Facades\Route;
 
 // Halaman Beranda & Jadwal
@@ -94,16 +93,9 @@ Route::middleware('auth')->group(function () {
         Route::post('/users/{user}/reset-password', [AdminUserController::class, 'resetPassword'])->name('admin.users.resetPassword');
         Route::post('/users/{user}/toggle', [AdminUserController::class, 'toggleActive'])->name('admin.users.toggle');
 
-        // Pengaturan Sistem & Aturan Booking
-        Route::get('/settings', [SettingController::class, 'index'])->name('admin.settings.index');
-        Route::post('/settings', [SettingController::class, 'update'])->name('admin.settings.update');
-
-        // Slot Jam Kelas
-        Route::post('/class-slots', [ClassSlotController::class, 'store'])->name('admin.class-slots.store');
-        Route::put('/class-slots/{classSlot}', [ClassSlotController::class, 'update'])->name('admin.class-slots.update');
-        Route::post('/class-slots/{classSlot}/toggle', [ClassSlotController::class, 'toggle'])->name('admin.class-slots.toggle');
-
         // Periode Semester
+        Route::get('/periods', [PeriodController::class, 'index'])->name('admin.periods.index');
+        Route::get('/settings', fn () => redirect()->route('admin.periods.index'))->name('admin.settings.index');
         Route::get('/periods/create', [PeriodController::class, 'create'])->name('admin.periods.create');
         Route::post('/periods', [PeriodController::class, 'store'])->name('admin.periods.store');
         Route::get('/periods/{period}/edit', [PeriodController::class, 'edit'])->name('admin.periods.edit');
@@ -111,6 +103,9 @@ Route::middleware('auth')->group(function () {
         Route::post('/periods/{period}/toggle', [PeriodController::class, 'toggleActive'])->name('admin.periods.toggle');
         Route::delete('/periods/{period}', [PeriodController::class, 'destroy'])->name('admin.periods.destroy');
         Route::post('/periods/{period}/regenerate', [PeriodController::class, 'regenerateSessions'])->name('admin.periods.regenerate');
+
+        // Toggle Aktif/Libur Sesi Pertemuan Kuliah Langsung dari Tabel Jadwal
+        Route::post('/schedule-sessions/{scheduleId}/{weekNo}/toggle', [ScheduleSessionController::class, 'toggle'])->name('admin.schedule-sessions.toggle');
 
         // Hari Libur Periode
         Route::get('/periods/{period}/holidays', [PeriodHolidayController::class, 'index'])->name('admin.holidays.index');

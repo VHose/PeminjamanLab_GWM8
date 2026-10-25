@@ -9,7 +9,7 @@ class ScheduleSession extends Model
 {
     protected $table = 'schedule_session';
 
-    public $timestamps = false;
+    public $timestamps = true;
 
     public $incrementing = false;
 
@@ -41,6 +41,41 @@ class ScheduleSession extends Model
               ->where('week_no', '=', $this->getAttribute('week_no'));
 
         return $query;
+    }
+
+    protected function getKeyForSelectQuery()
+    {
+        return $this->getAttribute('schedule_id');
+    }
+
+    public function fresh($with = [])
+    {
+        if (! $this->exists) {
+            return null;
+        }
+
+        return static::with(is_string($with) ? func_get_args() : $with)
+            ->where('schedule_id', $this->schedule_id)
+            ->where('week_no', $this->week_no)
+            ->first();
+    }
+
+    public function refresh()
+    {
+        if (! $this->exists) {
+            return $this;
+        }
+
+        $fresh = static::where('schedule_id', $this->schedule_id)
+            ->where('week_no', $this->week_no)
+            ->first();
+
+        if ($fresh) {
+            $this->setRawAttributes($fresh->getAttributes(), true);
+            $this->load(array_keys($this->relations));
+        }
+
+        return $this;
     }
 
     public function schedule(): BelongsTo

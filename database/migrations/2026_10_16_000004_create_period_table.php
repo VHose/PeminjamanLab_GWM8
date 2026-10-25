@@ -11,15 +11,13 @@ return new class extends Migration
     {
         Schema::create('period', function (Blueprint $table) {
             $table->smallIncrements('id');
-            $table->string('name', 30)->unique();        // contoh: 2026/2027 Ganjil
-            $table->date('start_date');                  // Senin pertama kuliah
-            $table->date('end_date');                    // akhir UAS
-            // Minggu UTS dan UAS dikosongkan dari jadwal mingguan. Nomor pertemuan dan
-            // tanggal tiap minggu dihitung dari start_date, tidak disimpan per baris.
-            $table->date('uts_start')->nullable();
-            $table->date('uts_end')->nullable();
-            $table->date('uas_start')->nullable();
-            $table->date('uas_end')->nullable();
+            $table->string('name', 30)->unique();
+            $table->date('start_date');                 
+            $table->date('end_date');                   
+            $table->date('uts_start');
+            $table->date('uts_end');
+            $table->date('uas_start');
+            $table->date('uas_end');
             $table->boolean('is_active')->default(false);
             $table->timestamps();
 

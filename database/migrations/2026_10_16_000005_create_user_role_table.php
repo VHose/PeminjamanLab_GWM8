@@ -13,9 +13,9 @@ return new class extends Migration
         Schema::create('user_role', function (Blueprint $table) {
             $table->string('user_id', 10);
             $table->unsignedTinyInteger('role_id');
-            $table->unsignedSmallInteger('period_id');
+            $table->unsignedSmallInteger('period_id')->nullable();
 
-            $table->primary(['user_id', 'role_id', 'period_id']);
+            $table->unique(['user_id', 'role_id', 'period_id']);
             $table->index(['period_id', 'role_id']); // "siapa saja Kepala Lab periode ini"
             $table->index(['role_id', 'period_id']);
 

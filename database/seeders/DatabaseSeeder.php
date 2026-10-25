@@ -10,8 +10,6 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             InitialDataSeeder::class,
-            ClassSlotSeeder::class,
-            SettingSeeder::class,
             CalendarSeeder::class,
             ScheduleSeeder::class,
         ]);
