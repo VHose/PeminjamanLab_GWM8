@@ -145,7 +145,7 @@ class BookingService
         $blockMinutes = 30;
 
         // 1. Dari jadwal kuliah
-        if ($date->dayOfWeekIso <= 5) {
+        if ($date->dayOfWeekIso <= 6) {
             $activeSessions = ScheduleSession::with('schedule')
                 ->where('session_date', $dateStr)
                 ->where('is_active', true)

@@ -394,13 +394,54 @@
                                             @endif
 
                                             @if($canToggleSession)
-                                                <div class="mt-2 pt-1 border-top border-dark border-opacity-10 d-flex justify-content-center">
+                                                <div class="mt-2 pt-1 border-top border-dark border-opacity-10 d-flex justify-content-center align-items-center gap-2">
                                                     <form method="POST" action="{{ route('admin.schedule-sessions.toggle', [$sess->schedule_id, $sess->week_no]) }}" class="d-inline-block m-0">
                                                         @csrf
                                                         <div class="form-check form-switch m-0 p-0" title="Kuliah Aktif - Klik untuk meliburkan">
                                                             <input class="form-check-input m-0" type="checkbox" role="switch" id="toggle-{{ $sess->schedule_id }}-{{ $sess->week_no }}" onchange="this.form.submit()" checked>
                                                         </div>
                                                     </form>
+                                                    @if(auth()->check() && auth()->user()->hasRole('Admin'))
+                                                        @php
+                                                            $parentRoomName = $sess->schedule?->room?->name ?? '-';
+                                                            $parentStart = substr($sess->schedule?->start_time ?? '', 0, 5);
+                                                            $parentEnd = substr($sess->schedule?->end_time ?? '', 0, 5);
+                                                            $currentStart = $sess->start_time ? substr($sess->start_time, 0, 5) : '';
+                                                            $currentEnd = $sess->end_time ? substr($sess->end_time, 0, 5) : '';
+                                                            $defaultDateStr = $sess->defaultSessionDate() ?? $sess->session_date->toDateString();
+                                                            $defaultDateFormatted = \Carbon\Carbon::parse($defaultDateStr)->locale('id')->isoFormat('dddd, D MMMM Y');
+                                                            $currentDateFormatted = $sess->session_date->locale('id')->isoFormat('dddd, D MMMM Y');
+                                                            $isDateOverridden = ($sess->session_date->toDateString() !== $defaultDateStr);
+                                                            $isOverridden = ($sess->room_id !== null || $sess->start_time !== null || $isDateOverridden || $sess->note !== null);
+                                                        @endphp
+                                                        <button type="button" class="btn btn-sm btn-light border py-0 px-1 text-secondary" 
+                                                            style="font-size: 0.68rem; line-height: 1.2;" 
+                                                            title="Override Ruangan / Waktu / Hari"
+                                                            data-bs-toggle="modal" 
+                                                            data-bs-target="#overrideSessionModal"
+                                                            data-schedule-id="{{ $sess->schedule_id }}"
+                                                            data-week-no="{{ $sess->week_no }}"
+                                                            data-course-name="{{ $sess->schedule?->course?->name ?? 'Kuliah' }}"
+                                                            data-class-code="{{ $sess->schedule?->class_code ?? '' }}"
+                                                            data-session-date-ymd="{{ $sess->session_date->toDateString() }}"
+                                                            data-session-date-formatted="{{ $currentDateFormatted }}"
+                                                            data-parent-date-formatted="{{ $defaultDateFormatted }}"
+                                                            data-parent-date-ymd="{{ $defaultDateStr }}"
+                                                            data-room-id="{{ $sess->room_id ?? '' }}"
+                                                            data-start-time="{{ $currentStart }}"
+                                                            data-end-time="{{ $currentEnd }}"
+                                                            data-note="{{ $sess->note ?? '' }}"
+                                                            data-action-url="{{ route('admin.schedule-sessions.update', [$sess->schedule_id, $sess->week_no]) }}"
+                                                            data-parent-room="{{ $parentRoomName }}"
+                                                            data-parent-start="{{ $parentStart }}"
+                                                            data-parent-end="{{ $parentEnd }}"
+                                                            data-is-overridden="{{ $isOverridden ? '1' : '0' }}">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
+                                                              <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
+                                                              <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z"/>
+                                                            </svg>
+                                                        </button>
+                                                    @endif
                                                 </div>
                                             @endif
                                         </td>
@@ -429,13 +470,54 @@
                                                     <span class="badge text-bg-danger" style="font-size: 0.62rem;">Kuliah Libur</span>
                                                     <div class="small text-muted" style="font-size: 0.65rem;">{{ $inactiveSess->schedule->course->name }}</div>
                                                     @if($canToggleSession)
-                                                        <div class="d-flex justify-content-center mt-1">
+                                                        <div class="d-flex justify-content-center align-items-center gap-2 mt-1">
                                                             <form method="POST" action="{{ route('admin.schedule-sessions.toggle', [$inactiveSess->schedule_id, $inactiveSess->week_no]) }}" class="d-inline-block m-0">
                                                                 @csrf
                                                                 <div class="form-check form-switch m-0 p-0" title="Kuliah Libur - Klik untuk mengaktifkan kembali">
                                                                     <input class="form-check-input m-0" type="checkbox" role="switch" id="toggle-{{ $inactiveSess->schedule_id }}-{{ $inactiveSess->week_no }}" onchange="this.form.submit()">
                                                                 </div>
                                                             </form>
+                                                            @if(auth()->check() && auth()->user()->hasRole('Admin'))
+                                                                @php
+                                                                    $parentRoomName = $inactiveSess->schedule?->room?->name ?? '-';
+                                                                    $parentStart = substr($inactiveSess->schedule?->start_time ?? '', 0, 5);
+                                                                    $parentEnd = substr($inactiveSess->schedule?->end_time ?? '', 0, 5);
+                                                                    $currentStart = $inactiveSess->start_time ? substr($inactiveSess->start_time, 0, 5) : '';
+                                                                    $currentEnd = $inactiveSess->end_time ? substr($inactiveSess->end_time, 0, 5) : '';
+                                                                    $defaultDateStr = $inactiveSess->defaultSessionDate() ?? $inactiveSess->session_date->toDateString();
+                                                                    $defaultDateFormatted = \Carbon\Carbon::parse($defaultDateStr)->locale('id')->isoFormat('dddd, D MMMM Y');
+                                                                    $currentDateFormatted = $inactiveSess->session_date->locale('id')->isoFormat('dddd, D MMMM Y');
+                                                                    $isDateOverridden = ($inactiveSess->session_date->toDateString() !== $defaultDateStr);
+                                                                    $isOverridden = ($inactiveSess->room_id !== null || $inactiveSess->start_time !== null || $isDateOverridden || $inactiveSess->note !== null);
+                                                                @endphp
+                                                                <button type="button" class="btn btn-sm btn-light border py-0 px-1 text-secondary" 
+                                                                    style="font-size: 0.68rem; line-height: 1.2;" 
+                                                                    title="Override Ruangan / Waktu / Hari"
+                                                                    data-bs-toggle="modal" 
+                                                                    data-bs-target="#overrideSessionModal"
+                                                                    data-schedule-id="{{ $inactiveSess->schedule_id }}"
+                                                                    data-week-no="{{ $inactiveSess->week_no }}"
+                                                                    data-course-name="{{ $inactiveSess->schedule?->course?->name ?? 'Kuliah' }}"
+                                                                    data-class-code="{{ $inactiveSess->schedule?->class_code ?? '' }}"
+                                                                    data-session-date-ymd="{{ $inactiveSess->session_date->toDateString() }}"
+                                                                    data-session-date-formatted="{{ $currentDateFormatted }}"
+                                                                    data-parent-date-formatted="{{ $defaultDateFormatted }}"
+                                                                    data-parent-date-ymd="{{ $defaultDateStr }}"
+                                                                    data-room-id="{{ $inactiveSess->room_id ?? '' }}"
+                                                                    data-start-time="{{ $currentStart }}"
+                                                                    data-end-time="{{ $currentEnd }}"
+                                                                    data-note="{{ $inactiveSess->note ?? '' }}"
+                                                                    data-action-url="{{ route('admin.schedule-sessions.update', [$inactiveSess->schedule_id, $inactiveSess->week_no]) }}"
+                                                                    data-parent-room="{{ $parentRoomName }}"
+                                                                    data-parent-start="{{ $parentStart }}"
+                                                                    data-parent-end="{{ $parentEnd }}"
+                                                                    data-is-overridden="{{ $isOverridden ? '1' : '0' }}">
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
+                                                                      <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
+                                                                      <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z"/>
+                                                                    </svg>
+                                                                </button>
+                                                            @endif
                                                         </div>
                                                     @endif
                                                 </div>
@@ -448,7 +530,7 @@
                                             $effEnd = substr($sess->effectiveEndTime(), 0, 5);
                                         @endphp
                                         <td rowspan="{{ $rowspan }}" class="col-room p-2 text-center" style="background-color: #f8f9fa; border: 1px dashed #adb5bd; vertical-align: middle;">
-                                            <div class="d-flex justify-content-center mb-1">
+                                            <div class="d-flex justify-content-center gap-1 mb-1">
                                                 <span class="badge text-bg-danger" style="font-size: 0.65rem;">Kuliah Libur</span>
                                             </div>
                                             <div class="fw-semibold text-secondary text-decoration-line-through" style="font-size: 0.82rem; line-height: 1.25;">
@@ -468,13 +550,54 @@
                                             @endif
 
                                             @if($canToggleSession)
-                                                <div class="mt-2 pt-1 border-top border-secondary border-opacity-25 d-flex justify-content-center">
+                                                <div class="mt-2 pt-1 border-top border-secondary border-opacity-25 d-flex justify-content-center align-items-center gap-2">
                                                     <form method="POST" action="{{ route('admin.schedule-sessions.toggle', [$sess->schedule_id, $sess->week_no]) }}" class="d-inline-block m-0">
                                                         @csrf
                                                         <div class="form-check form-switch m-0 p-0" title="Kuliah Libur - Klik untuk mengaktifkan kembali">
                                                             <input class="form-check-input m-0" type="checkbox" role="switch" id="toggle-{{ $sess->schedule_id }}-{{ $sess->week_no }}" onchange="this.form.submit()">
                                                         </div>
                                                     </form>
+                                                    @if(auth()->check() && auth()->user()->hasRole('Admin'))
+                                                        @php
+                                                            $parentRoomName = $sess->schedule?->room?->name ?? '-';
+                                                            $parentStart = substr($sess->schedule?->start_time ?? '', 0, 5);
+                                                            $parentEnd = substr($sess->schedule?->end_time ?? '', 0, 5);
+                                                            $currentStart = $sess->start_time ? substr($sess->start_time, 0, 5) : '';
+                                                            $currentEnd = $sess->end_time ? substr($sess->end_time, 0, 5) : '';
+                                                            $defaultDateStr = $sess->defaultSessionDate() ?? $sess->session_date->toDateString();
+                                                            $defaultDateFormatted = \Carbon\Carbon::parse($defaultDateStr)->locale('id')->isoFormat('dddd, D MMMM Y');
+                                                            $currentDateFormatted = $sess->session_date->locale('id')->isoFormat('dddd, D MMMM Y');
+                                                            $isDateOverridden = ($sess->session_date->toDateString() !== $defaultDateStr);
+                                                            $isOverridden = ($sess->room_id !== null || $sess->start_time !== null || $isDateOverridden || $sess->note !== null);
+                                                        @endphp
+                                                        <button type="button" class="btn btn-sm btn-light border py-0 px-1 text-secondary" 
+                                                            style="font-size: 0.68rem; line-height: 1.2;" 
+                                                            title="Override Ruangan / Waktu / Hari"
+                                                            data-bs-toggle="modal" 
+                                                            data-bs-target="#overrideSessionModal"
+                                                            data-schedule-id="{{ $sess->schedule_id }}"
+                                                            data-week-no="{{ $sess->week_no }}"
+                                                            data-course-name="{{ $sess->schedule?->course?->name ?? 'Kuliah' }}"
+                                                            data-class-code="{{ $sess->schedule?->class_code ?? '' }}"
+                                                            data-session-date-ymd="{{ $sess->session_date->toDateString() }}"
+                                                            data-session-date-formatted="{{ $currentDateFormatted }}"
+                                                            data-parent-date-formatted="{{ $defaultDateFormatted }}"
+                                                            data-parent-date-ymd="{{ $defaultDateStr }}"
+                                                            data-room-id="{{ $sess->room_id ?? '' }}"
+                                                            data-start-time="{{ $currentStart }}"
+                                                            data-end-time="{{ $currentEnd }}"
+                                                            data-note="{{ $sess->note ?? '' }}"
+                                                            data-action-url="{{ route('admin.schedule-sessions.update', [$sess->schedule_id, $sess->week_no]) }}"
+                                                            data-parent-room="{{ $parentRoomName }}"
+                                                            data-parent-start="{{ $parentStart }}"
+                                                            data-parent-end="{{ $parentEnd }}"
+                                                            data-is-overridden="{{ $isOverridden ? '1' : '0' }}">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
+                                                              <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
+                                                              <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z"/>
+                                                            </svg>
+                                                        </button>
+                                                    @endif
                                                 </div>
                                             @endif
                                         </td>
@@ -536,6 +659,88 @@
         </a>
     </div>
 </div>
+
+{{-- Modal Override Sesi Pertemuan Kuliah (Reusable Single Modal) --}}
+@if($canToggleSession)
+<div class="modal fade" id="overrideSessionModal" tabindex="-1" aria-labelledby="overrideSessionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-light">
+                <div>
+                    <h5 class="modal-title fw-bold fs-6" id="overrideSessionModalLabel">Override Pertemuan Kuliah</h5>
+                    <div class="text-muted small" id="overrideSessionSubtitle">-</div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+            </div>
+            <form id="overrideSessionForm" method="POST" action="">
+                @csrf
+                @method('PATCH')
+                <div class="modal-body p-4">
+                    {{-- Alert Info Jadwal Induk --}}
+                    <div class="alert alert-secondary py-2 px-3 mb-3 small d-flex flex-column gap-1">
+                        <div class="fw-semibold text-dark">Jadwal Induk:</div>
+                        <div>Hari & Tanggal Default: <span class="fw-bold" id="overrideParentDateText">-</span></div>
+                        <div>Ruangan Default: <span class="fw-bold" id="overrideParentRoomText">-</span></div>
+                        <div>Waktu Default: <span class="fw-bold" id="overrideParentTimeText">-</span></div>
+                    </div>
+
+                    {{-- Pindah Hari / Tanggal --}}
+                    <div class="mb-3">
+                        <label for="overrideSessionDate" class="form-label small fw-bold">Pindah ke Hari / Tanggal (Opsional)</label>
+                        <input type="date" name="session_date" id="overrideSessionDate" class="form-control"
+                            @if($period) min="{{ $period->start_date->toDateString() }}" max="{{ $period->end_date->toDateString() }}" @endif>
+                        <div class="form-text small" style="font-size: 0.72rem;">Pilih tanggal baru jika pertemuan ini dipindahkan ke hari lain (Senin - Sabtu).</div>
+                        <div class="small fw-semibold text-primary mt-1" id="overrideSessionDatePreview" style="font-size: 0.72rem;"></div>
+                    </div>
+
+                    {{-- Pindah Ruangan --}}
+                    <div class="mb-3">
+                        <label for="overrideRoomId" class="form-label small fw-bold">Pindah ke Ruangan (Opsional)</label>
+                        <select name="room_id" id="overrideRoomId" class="form-select">
+                            <option value="">— Ikut jadwal induk —</option>
+                            @foreach($allRooms as $r)
+                                <option value="{{ $r->id }}">{{ $r->name }} ({{ $r->id }})</option>
+                            @endforeach
+                        </select>
+                        <div class="form-text small" style="font-size: 0.72rem;">Pilih ruangan lain jika kuliah dipindahkan khusus pertemuan ini.</div>
+                    </div>
+
+                    {{-- Geser Waktu --}}
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label for="overrideStartTime" class="form-label small fw-bold">Jam Mulai (Opsional)</label>
+                            <input type="time" name="start_time" id="overrideStartTime" class="form-control">
+                        </div>
+                        <div class="col-6">
+                            <label for="overrideEndTime" class="form-label small fw-bold">Jam Selesai (Opsional)</label>
+                            <input type="time" name="end_time" id="overrideEndTime" class="form-control">
+                        </div>
+                        <div class="col-12">
+                            <div class="form-text small" style="font-size: 0.72rem;">Kosongkan jika jam kuliah tidak berubah. Jika diisi, jam mulai dan jam selesai wajib diisi keduanya.</div>
+                        </div>
+                    </div>
+
+                    {{-- Catatan --}}
+                    <div class="mb-1">
+                        <label for="overrideNote" class="form-label small fw-bold">Catatan Override</label>
+                        <input type="text" name="note" id="overrideNote" class="form-control" maxlength="100" placeholder="Contoh: Dipindah ke Lab SI 1">
+                        <div class="form-text small" style="font-size: 0.72rem;">Maksimal 100 karakter.</div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light px-4 py-2 d-flex justify-content-between align-items-center">
+                    <button type="submit" name="clear_override" value="1" class="btn btn-outline-danger btn-sm" id="btnResetOverride" onclick="return confirm('Reset semua override pertemuan ini ke jadwal induk?')">
+                        Reset Override
+                    </button>
+                    <div class="d-flex gap-2 ms-auto">
+                        <button type="button" class="btn btn-light btn-sm border" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary btn-sm px-3 fw-semibold">Simpan</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endif
 @endsection
 
 @push('styles')
@@ -902,6 +1107,93 @@ document.addEventListener('DOMContentLoaded', () => {
         btnCancelDrag.addEventListener('click', (e) => {
             e.preventDefault();
             clearDragSelection();
+        });
+    }
+
+    // Helper format tanggal bahasa Indonesia
+    function formatIndonesianDate(dateStr) {
+        if (!dateStr) return '';
+        const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+        const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+        const parts = dateStr.split('-');
+        if (parts.length !== 3) return '';
+        const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+        if (isNaN(d.getTime())) return '';
+        return `${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+    }
+
+    // Modal Override Sesi Pertemuan Kuliah
+    const overrideModalEl = document.getElementById('overrideSessionModal');
+    if (overrideModalEl) {
+        const sessionDateInput = document.getElementById('overrideSessionDate');
+        const sessionDatePreview = document.getElementById('overrideSessionDatePreview');
+
+        if (sessionDateInput && sessionDatePreview) {
+            sessionDateInput.addEventListener('input', function () {
+                sessionDatePreview.textContent = this.value ? `Hari terpilih: ${formatIndonesianDate(this.value)}` : '';
+            });
+        }
+
+        overrideModalEl.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            if (!button) return;
+
+            const form = document.getElementById('overrideSessionForm');
+            const actionUrl = button.getAttribute('data-action-url');
+            const courseName = button.getAttribute('data-course-name') || '';
+            const classCode = button.getAttribute('data-class-code') || '';
+            const weekNo = button.getAttribute('data-week-no') || '';
+            const sessionDateYmd = button.getAttribute('data-session-date-ymd') || '';
+            const sessionDateFmt = button.getAttribute('data-session-date-formatted') || '';
+            const parentDateFmt = button.getAttribute('data-parent-date-formatted') || '-';
+            const parentRoom = button.getAttribute('data-parent-room') || '-';
+            const parentStart = button.getAttribute('data-parent-start') || '';
+            const parentEnd = button.getAttribute('data-parent-end') || '';
+            const currentRoomId = button.getAttribute('data-room-id') || '';
+            const currentStart = button.getAttribute('data-start-time') || '';
+            const currentEnd = button.getAttribute('data-end-time') || '';
+            const currentNote = button.getAttribute('data-note') || '';
+            const isOverridden = button.getAttribute('data-is-overridden') === '1';
+
+            if (form) form.action = actionUrl;
+
+            const subtitleEl = document.getElementById('overrideSessionSubtitle');
+            if (subtitleEl) {
+                subtitleEl.textContent = `${courseName} ${classCode ? '(' + classCode + ')' : ''} • Pertemuan ke-${weekNo} (${sessionDateFmt})`;
+            }
+
+            const parentDateEl = document.getElementById('overrideParentDateText');
+            if (parentDateEl) parentDateEl.textContent = parentDateFmt;
+
+            const parentRoomEl = document.getElementById('overrideParentRoomText');
+            if (parentRoomEl) parentRoomEl.textContent = parentRoom;
+
+            const parentTimeEl = document.getElementById('overrideParentTimeText');
+            if (parentTimeEl) parentTimeEl.textContent = `${parentStart} - ${parentEnd}`;
+
+            if (sessionDateInput) {
+                sessionDateInput.value = sessionDateYmd;
+                if (sessionDatePreview) {
+                    sessionDatePreview.textContent = sessionDateYmd ? `Hari terpilih: ${formatIndonesianDate(sessionDateYmd)}` : '';
+                }
+            }
+
+            const roomSelect = document.getElementById('overrideRoomId');
+            if (roomSelect) roomSelect.value = currentRoomId;
+
+            const startInput = document.getElementById('overrideStartTime');
+            if (startInput) startInput.value = currentStart;
+
+            const endInput = document.getElementById('overrideEndTime');
+            if (endInput) endInput.value = currentEnd;
+
+            const noteInput = document.getElementById('overrideNote');
+            if (noteInput) noteInput.value = currentNote;
+
+            const resetBtn = document.getElementById('btnResetOverride');
+            if (resetBtn) {
+                resetBtn.style.display = isOverridden ? 'inline-block' : 'none';
+            }
         });
     }
 });

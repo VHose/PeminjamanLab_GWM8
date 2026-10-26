@@ -509,4 +509,319 @@ class ScheduleSessionManagementTest extends TestCase
         $this->actingAs($this->kaprodi)->post($toggleUrl)->assertForbidden();
         $this->actingAs($this->kalab)->post($toggleUrl)->assertForbidden();
     }
+
+    /**
+     * 7. Admin dapat meng-override ruangan dan waktu satu pertemuan kuliah.
+     */
+    public function test_admin_can_override_session_room_and_time(): void
+    {
+        $schedule = Schedule::create([
+            'period_id' => $this->period->id,
+            'course_id' => $this->course->id,
+            'class_code' => 'A',
+            'type' => ScheduleType::THEORY,
+            'day_of_week' => 1,
+            'user_id' => $this->lecturer->id,
+            'room_id' => $this->adv1->id,
+            'start_time' => '08:00:00',
+            'end_time' => '10:00:00',
+        ]);
+
+        app(ScheduleSessionGenerator::class)->generateForPeriod($this->period);
+
+        $updateUrl = route('admin.schedule-sessions.update', [$schedule->id, 1]);
+
+        $response = $this->actingAs($this->admin)->patch($updateUrl, [
+            'room_id' => $this->adv2->id,
+            'start_time' => '09:00',
+            'end_time' => '11:00',
+            'note' => 'Pindah ke Lab ADV 2',
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        $session = ScheduleSession::where('schedule_id', $schedule->id)->where('week_no', 1)->first();
+        $this->assertEquals($this->adv2->id, $session->room_id);
+        $this->assertEquals('09:00:00', $session->start_time);
+        $this->assertEquals('11:00:00', $session->end_time);
+        $this->assertEquals('Pindah ke Lab ADV 2', $session->note);
+        $this->assertEquals($this->adv2->id, $session->effectiveRoomId());
+        $this->assertEquals('09:00:00', $session->effectiveStartTime());
+        $this->assertEquals('11:00:00', $session->effectiveEndTime());
+
+        // Cek log aktivitas
+        $this->assertDatabaseHas('activity_log', [
+            'action' => 'override_session',
+            'subject_type' => 'schedule_session',
+            'subject_id' => "{$schedule->id}-1",
+        ]);
+
+        // Cek tampilan tabel jadwal menampilkan catatan override dan tidak menampilkan badge teks Override
+        $viewUrl = route('home', ['period_id' => $this->period->id, 'week' => 1, 'day' => 1]);
+        $viewRes = $this->actingAs($this->admin)->get($viewUrl);
+        $viewRes->assertOk();
+        $viewRes->assertDontSee('<span class="badge bg-warning text-dark', false);
+        $viewRes->assertSee('Pindah ke Lab ADV 2');
+    }
+
+    /**
+     * 8. Admin dapat me-reset override pertemuan kembali ke jadwal induk.
+     */
+    public function test_admin_can_reset_session_override(): void
+    {
+        $schedule = Schedule::create([
+            'period_id' => $this->period->id,
+            'course_id' => $this->course->id,
+            'class_code' => 'A',
+            'type' => ScheduleType::THEORY,
+            'day_of_week' => 1,
+            'user_id' => $this->lecturer->id,
+            'room_id' => $this->adv1->id,
+            'start_time' => '08:00:00',
+            'end_time' => '10:00:00',
+        ]);
+
+        app(ScheduleSessionGenerator::class)->generateForPeriod($this->period);
+
+        $session = ScheduleSession::where('schedule_id', $schedule->id)->where('week_no', 1)->first();
+        $session->update([
+            'room_id' => $this->adv2->id,
+            'start_time' => '09:00:00',
+            'end_time' => '11:00:00',
+            'note' => 'Override sementara',
+        ]);
+
+        $updateUrl = route('admin.schedule-sessions.update', [$schedule->id, 1]);
+
+        $response = $this->actingAs($this->admin)->patch($updateUrl, [
+            'clear_override' => '1',
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        $session->refresh();
+        $this->assertNull($session->room_id);
+        $this->assertNull($session->start_time);
+        $this->assertNull($session->end_time);
+        $this->assertNull($session->note);
+        $this->assertEquals($this->adv1->id, $session->effectiveRoomId());
+        $this->assertEquals('08:00:00', $session->effectiveStartTime());
+
+        $this->assertDatabaseHas('activity_log', [
+            'action' => 'reset_session_override',
+            'subject_type' => 'schedule_session',
+            'subject_id' => "{$schedule->id}-1",
+        ]);
+    }
+
+    /**
+     * 9. Override dicegah jika bentrok dengan peminjaman yang sudah approved.
+     */
+    public function test_override_conflict_with_approved_booking_is_prevented(): void
+    {
+        $schedule = Schedule::create([
+            'period_id' => $this->period->id,
+            'course_id' => $this->course->id,
+            'class_code' => 'A',
+            'type' => ScheduleType::THEORY,
+            'day_of_week' => 1,
+            'user_id' => $this->lecturer->id,
+            'room_id' => $this->adv1->id,
+            'start_time' => '08:00:00',
+            'end_time' => '10:00:00',
+        ]);
+
+        app(ScheduleSessionGenerator::class)->generateForPeriod($this->period);
+
+        $session = ScheduleSession::where('schedule_id', $schedule->id)->where('week_no', 1)->first();
+        $sessionDate = $session->session_date->toDateString();
+
+        // Buat booking approved di ADV2 pada jam yang sama
+        $booking = Booking::create([
+            'user_id' => $this->visitor->id,
+            'period_id' => $this->period->id,
+            'purpose' => 'Seminar Mahasiswa',
+            'status' => BookingStatus::APPROVED,
+            'submitted_at' => now(),
+            'pic_name' => 'Budi',
+            'pic_phone' => '081234567890',
+        ]);
+
+        BookingDetail::create([
+            'booking_id' => $booking->id,
+            'room_id' => $this->adv2->id,
+            'booking_date' => $sessionDate,
+            'start_time' => '08:30:00',
+            'end_time' => '10:30:00',
+            'status' => BookingDetailStatus::APPROVED,
+        ]);
+
+        $updateUrl = route('admin.schedule-sessions.update', [$schedule->id, 1]);
+
+        $response = $this->actingAs($this->admin)->patch($updateUrl, [
+            'room_id' => $this->adv2->id,
+            'start_time' => '08:00',
+            'end_time' => '10:00',
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHasErrors(['error']);
+
+        $session->refresh();
+        $this->assertNull($session->room_id);
+    }
+
+    /**
+     * 10. Non-admin tidak dapat melakukan override sesi pertemuan (403 Forbidden).
+     */
+    public function test_non_admin_cannot_override_session(): void
+    {
+        $schedule = Schedule::create([
+            'period_id' => $this->period->id,
+            'course_id' => $this->course->id,
+            'class_code' => 'A',
+            'type' => ScheduleType::THEORY,
+            'day_of_week' => 1,
+            'user_id' => $this->lecturer->id,
+            'room_id' => $this->adv1->id,
+            'start_time' => '08:00:00',
+            'end_time' => '10:00:00',
+        ]);
+
+        app(ScheduleSessionGenerator::class)->generateForPeriod($this->period);
+
+        $updateUrl = route('admin.schedule-sessions.update', [$schedule->id, 1]);
+
+        $this->actingAs($this->visitor)->patch($updateUrl, ['room_id' => $this->adv2->id])->assertForbidden();
+        $this->actingAs($this->staff)->patch($updateUrl, ['room_id' => $this->adv2->id])->assertForbidden();
+        $this->actingAs($this->lecturer)->patch($updateUrl, ['room_id' => $this->adv2->id])->assertForbidden();
+        $this->actingAs($this->kaprodi)->patch($updateUrl, ['room_id' => $this->adv2->id])->assertForbidden();
+        $this->actingAs($this->kalab)->patch($updateUrl, ['room_id' => $this->adv2->id])->assertForbidden();
+    }
+
+    /**
+     * 11. Validasi waktu: jika salah satu jam diisi harus keduanya, dan end_time > start_time.
+     */
+    public function test_override_time_validation(): void
+    {
+        $schedule = Schedule::create([
+            'period_id' => $this->period->id,
+            'course_id' => $this->course->id,
+            'class_code' => 'A',
+            'type' => ScheduleType::THEORY,
+            'day_of_week' => 1,
+            'user_id' => $this->lecturer->id,
+            'room_id' => $this->adv1->id,
+            'start_time' => '08:00:00',
+            'end_time' => '10:00:00',
+        ]);
+
+        app(ScheduleSessionGenerator::class)->generateForPeriod($this->period);
+
+        $updateUrl = route('admin.schedule-sessions.update', [$schedule->id, 1]);
+
+        // A. Hanya isi start_time
+        $resA = $this->actingAs($this->admin)->patch($updateUrl, [
+            'start_time' => '08:00',
+        ]);
+        $resA->assertSessionHasErrors(['time']);
+
+        // B. end_time <= start_time
+        $resB = $this->actingAs($this->admin)->patch($updateUrl, [
+            'start_time' => '10:00',
+            'end_time' => '09:00',
+        ]);
+        $resB->assertSessionHasErrors(['end_time']);
+    }
+
+    /**
+     * 12. Admin dapat memindahkan hari/tanggal satu pertemuan kuliah ke hari lain.
+     */
+    public function test_admin_can_override_session_day_and_date(): void
+    {
+        $schedule = Schedule::create([
+            'period_id' => $this->period->id,
+            'course_id' => $this->course->id,
+            'class_code' => 'A',
+            'type' => ScheduleType::THEORY,
+            'day_of_week' => 1, // Senin (2026-09-14)
+            'user_id' => $this->lecturer->id,
+            'room_id' => $this->adv1->id,
+            'start_time' => '08:00:00',
+            'end_time' => '10:00:00',
+        ]);
+
+        app(ScheduleSessionGenerator::class)->generateForPeriod($this->period);
+
+        $session = ScheduleSession::where('schedule_id', $schedule->id)->where('week_no', 1)->first();
+        $this->assertEquals('2026-09-14', $session->session_date->toDateString());
+
+        $updateUrl = route('admin.schedule-sessions.update', [$schedule->id, 1]);
+
+        // Pindahkan ke Rabu (2026-09-16) dan ruangan ADV2
+        $response = $this->actingAs($this->admin)->patch($updateUrl, [
+            'session_date' => '2026-09-16',
+            'room_id' => $this->adv2->id,
+            'start_time' => '09:00',
+            'end_time' => '11:00',
+            'note' => 'Pindah ke Rabu di Lab ADV 2',
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        $session->refresh();
+        $this->assertEquals('2026-09-16', $session->session_date->toDateString());
+        $this->assertEquals($this->adv2->id, $session->room_id);
+
+        // Pada hari Senin (day = 1), sesi tidak lagi muncul di grid
+        $mondayUrl = route('home', ['period_id' => $this->period->id, 'week' => 1, 'day' => 1]);
+        $mondayRes = $this->actingAs($this->admin)->get($mondayUrl);
+        $mondayRes->assertOk();
+        $mondayRes->assertDontSee('Pindah ke Rabu di Lab ADV 2');
+
+        // Pada hari Rabu (day = 3), sesi muncul di grid di ruangan ADV2
+        $wednesdayUrl = route('home', ['period_id' => $this->period->id, 'week' => 1, 'day' => 3]);
+        $wednesdayRes = $this->actingAs($this->admin)->get($wednesdayUrl);
+        $wednesdayRes->assertOk();
+        $wednesdayRes->assertSee('Pindah ke Rabu di Lab ADV 2');
+        $wednesdayRes->assertSee($this->course->name);
+
+        // Reset override mengembalikan sesi ke hari Senin (2026-09-14)
+        $this->actingAs($this->admin)->patch($updateUrl, ['clear_override' => '1'])->assertRedirect();
+        $session->refresh();
+        $this->assertEquals('2026-09-14', $session->session_date->toDateString());
+        $this->assertNull($session->room_id);
+    }
+
+    /**
+     * 13. Sesi tidak dapat dipindahkan ke hari Minggu.
+     */
+    public function test_override_session_date_cannot_be_sunday(): void
+    {
+        $schedule = Schedule::create([
+            'period_id' => $this->period->id,
+            'course_id' => $this->course->id,
+            'class_code' => 'A',
+            'type' => ScheduleType::THEORY,
+            'day_of_week' => 1,
+            'user_id' => $this->lecturer->id,
+            'room_id' => $this->adv1->id,
+            'start_time' => '08:00:00',
+            'end_time' => '10:00:00',
+        ]);
+
+        app(ScheduleSessionGenerator::class)->generateForPeriod($this->period);
+
+        $updateUrl = route('admin.schedule-sessions.update', [$schedule->id, 1]);
+
+        // 2026-09-20 adalah hari Minggu
+        $res = $this->actingAs($this->admin)->patch($updateUrl, [
+            'session_date' => '2026-09-20',
+        ]);
+
+        $res->assertSessionHasErrors(['session_date']);
+    }
 }

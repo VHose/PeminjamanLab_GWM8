@@ -106,6 +106,7 @@ Route::middleware('auth')->group(function () {
 
         // Toggle Aktif/Libur Sesi Pertemuan Kuliah Langsung dari Tabel Jadwal
         Route::post('/schedule-sessions/{scheduleId}/{weekNo}/toggle', [ScheduleSessionController::class, 'toggle'])->name('admin.schedule-sessions.toggle');
+        Route::patch('/schedule-sessions/{scheduleId}/{weekNo}', [ScheduleSessionController::class, 'update'])->name('admin.schedule-sessions.update');
 
         // Hari Libur Periode
         Route::get('/periods/{period}/holidays', [PeriodHolidayController::class, 'index'])->name('admin.holidays.index');

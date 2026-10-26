@@ -102,4 +102,43 @@ class ScheduleSession extends Model
     {
         return $this->end_time ?? $this->schedule->end_time;
     }
+
+    /**
+     * Mengembalikan tanggal sesi default berdasarkan jadwal induk dan kalender periode.
+     */
+    public function defaultSessionDate(): ?string
+    {
+        $period = $this->schedule?->period;
+        if (! $period) {
+            return null;
+        }
+
+        static $calendarCache = [];
+        $periodId = $period->id;
+
+        if (! isset($calendarCache[$periodId])) {
+            $calendarService = app(\App\Services\PeriodWeekCalendar::class);
+            $holidays = $period->holidays()->get(['start_date', 'end_date', 'note'])->toArray();
+            $calendar = $calendarService->buildCalendar(
+                $period->start_date->toDateString(),
+                $period->end_date->toDateString(),
+                $period->uts_start?->toDateString(),
+                $period->uts_end?->toDateString(),
+                $period->uas_start?->toDateString(),
+                $period->uas_end?->toDateString(),
+                $holidays
+            );
+            $calendarCache[$periodId] = array_values(array_filter($calendar, fn ($w) => $w['type'] === \App\Enums\WeekType::KULIAH));
+        }
+
+        $kuliahWeeks = $calendarCache[$periodId];
+        $targetWeek = collect($kuliahWeeks)->firstWhere('meeting_no', $this->week_no);
+
+        if (! $targetWeek) {
+            return null;
+        }
+
+        $dayIndex = ($this->schedule?->day_of_week ?? 1) - 1;
+        return $targetWeek['days'][$dayIndex]['date'] ?? null;
+    }
 }

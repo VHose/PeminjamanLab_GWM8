@@ -9,9 +9,6 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // Libur per periode. Hari tunggal: start_date = end_date.
-        // Libur yang menutup satu minggu penuh (Senin sampai Jumat) membuat minggu itu dilewati
-        // dan tidak dapat nomor pertemuan. Libur sebagian membuat sesinya is_active = false.
         Schema::create('period_holiday', function (Blueprint $table) {
             $table->unsignedSmallInteger('period_id');
             $table->date('start_date');

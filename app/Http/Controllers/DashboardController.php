@@ -105,15 +105,12 @@ class DashboardController extends Controller
         $sessions = collect();
         $isNonLectureWeek = $selectedWeek && $selectedWeek['type'] !== WeekType::KULIAH;
 
-        if ($period && $selectedWeek && $selectedWeek['type'] === WeekType::KULIAH && $day >= 1 && $day <= 5) {
-            $meetingNo = $selectedWeek['meeting_no'];
-
+        if ($period && $selectedWeek && $day >= 1 && $day <= 6) {
             $sessionsQuery = ScheduleSession::with(['schedule.course.studyProgram', 'schedule.lecturer', 'room', 'schedule.room'])
-                ->whereHas('schedule', function ($q) use ($period, $day) {
-                    $q->where('period_id', $period->id)
-                      ->where('day_of_week', $day);
+                ->whereHas('schedule', function ($q) use ($period) {
+                    $q->where('period_id', $period->id);
                 })
-                ->where('week_no', $meetingNo);
+                ->whereDate('session_date', $date->toDateString());
 
             // Staf_Lab, Visitor, dan tamu (guest) hanya melihat sesi aktif.
             // Sesi libur (is_active = false) tidak muncul sehingga slot ruangan kosong dan dapat dipinjam.
