@@ -24,6 +24,8 @@ return new class extends Migration
             $table->string('room_id', 10);
             $table->time('start_time');
             $table->time('end_time');
+            $table->string('notes', 100)->nullable();                // keterangan jadwal (kelas gabungan, dll.)
+            $table->string('sks', 10);                   // total beban SKS (misal "4" atau "3+1")
             $table->timestamps();
 
             $table->unique(['period_id', 'course_id', 'class_code', 'type', 'day_of_week'], 'schedule_natural_unique');
@@ -42,16 +44,16 @@ return new class extends Migration
         });
 
         // Hasil generate per minggu (default semua aktif, staf tinggal matikan 1 baris kalau libur)
+        // Nilai room, start_time, end_time NOT NULL (diisi default dari schedule induk)
         Schema::create('schedule_session', function (Blueprint $table) {
             $table->unsignedInteger('schedule_id');
             $table->unsignedTinyInteger('week_no');                  // pertemuan ke 1..14 (UTS/UAS tidak punya baris)
             $table->date('session_date');
             $table->boolean('is_active')->default(true);
-            // Override untuk kelas yang dipindah sekali saja. NULL = ikut jadwal induk
-            $table->string('room_id', 10)->nullable();
-            $table->time('start_time')->nullable();
-            $table->time('end_time')->nullable();
-            $table->string('note', 150)->nullable();
+            $table->string('room_id', 10);
+            $table->time('start_time');
+            $table->time('end_time');
+            $table->string('note', 100)->nullable();
 
             $table->primary(['schedule_id', 'week_no']);
             $table->index(['session_date', 'is_active']);

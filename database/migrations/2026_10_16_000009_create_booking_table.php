@@ -12,7 +12,6 @@ return new class extends Migration
         Schema::create('booking', function (Blueprint $table) {
             $table->id();
             $table->string('user_id', 10);                           // peminjam
-            $table->string('created_by', 10)->nullable();            // staf yang input atas nama dosen
             $table->string('pic_name', 100);
             $table->string('pic_phone', 20);
             $table->string('purpose', 500);                          // dibatasi, dokumen panjang lewat attachment
@@ -22,17 +21,14 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index('user_id');
-            $table->index('created_by');
             $table->index(['status', 'created_at']);
 
             $table->foreign('user_id')->references('id')->on('user')
                 ->cascadeOnUpdate()->restrictOnDelete();
-            $table->foreign('created_by')->references('id')->on('user')
-                ->cascadeOnUpdate()->restrictOnDelete();
         });
 
-        // Many-to-many booking x room. Satu ruangan boleh muncul beberapa kali di booking
-        // yang sama selama tanggal / jamnya beda, jadi tanggal dan jam masuk PK.
+        // Many-to-many booking x room. PK komposit: booking_id + booking_date + start_time.
+        // room_id sebagai foreign key biasa.
         Schema::create('booking_detail', function (Blueprint $table) {
             $table->unsignedBigInteger('booking_id');
             $table->string('room_id', 10);
@@ -42,7 +38,7 @@ return new class extends Migration
             // 0 PENDING, 1 APPROVED, 2 REJECTED, 3 CANCELLED
             $table->unsignedTinyInteger('status')->default(0);
 
-            $table->primary(['booking_id', 'room_id', 'booking_date', 'start_time']);
+            $table->primary(['booking_id', 'booking_date', 'start_time']);
             // Index utama cek bentrok: ruangan + tanggal + jam
             $table->index(['room_id', 'booking_date', 'start_time', 'end_time'], 'booking_detail_conflict_idx');
 
@@ -52,14 +48,16 @@ return new class extends Migration
                 ->cascadeOnUpdate()->restrictOnDelete();
         });
 
+        // Weak entity bergantung ke booking (identifying relationship).
+        // PK komposit: booking_id + original_name.
         Schema::create('booking_attachment', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('booking_id')->constrained('booking')->cascadeOnUpdate()->cascadeOnDelete();
-            $table->string('original_name', 150);
-            $table->string('path', 255);
-            $table->string('mime_type', 100);
-            $table->unsignedInteger('size');                  
+            $table->unsignedBigInteger('booking_id');
+            $table->string('original_name', 100);
             $table->timestamp('created_at')->useCurrent();
+
+            $table->primary(['booking_id', 'original_name']);
+            $table->foreign('booking_id')->references('id')->on('booking')
+                ->cascadeOnUpdate()->cascadeOnDelete();
         });
 
         if (in_array(DB::getDriverName(), ['mysql', 'mariadb'])) {

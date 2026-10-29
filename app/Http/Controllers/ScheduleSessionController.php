@@ -107,9 +107,9 @@ class ScheduleSessionController extends Controller
 
             $session->update([
                 'session_date' => $defaultDate,
-                'room_id'      => null,
-                'start_time'   => null,
-                'end_time'     => null,
+                'room_id'      => $session->schedule->room_id,
+                'start_time'   => $session->schedule->start_time,
+                'end_time'     => $session->schedule->end_time,
                 'note'         => null,
             ]);
 
@@ -154,9 +154,9 @@ class ScheduleSessionController extends Controller
         // 4. Simpan override
         $session->update([
             'session_date' => $targetDate,
-            'room_id'      => $targetRoomId,
-            'start_time'   => $formattedStartTime,
-            'end_time'     => $formattedEndTime,
+            'room_id'      => $targetRoomId ?? $session->room_id,
+            'start_time'   => $formattedStartTime ?? $session->start_time,
+            'end_time'     => $formattedEndTime ?? $session->end_time,
             'note'         => $note,
         ]);
 

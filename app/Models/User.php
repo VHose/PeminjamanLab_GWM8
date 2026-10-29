@@ -30,6 +30,10 @@ class User extends Authenticatable
         'must_change_password',
     ];
 
+    protected $attributes = [
+        'study_program_id' => '00',
+    ];
+
     protected $hidden = [
         'password',
         'remember_token',

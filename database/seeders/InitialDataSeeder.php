@@ -18,8 +18,9 @@ class InitialDataSeeder extends Seeder
 
         $now = now();
 
-        // 2. Program Studi (PK kode: 72 IF, 73 SI, 79 S2)
+        // 2. Program Studi (PK kode: 72 IF, 73 SI, 79 S2, 00 Undefined untuk dosen luar prodi)
         DB::table('study_program')->upsert([
+            ['id' => '00', 'name' => 'Undefined',              'color_hex' => '#E2E3E5', 'is_active' => true, 'created_at' => $now, 'updated_at' => $now],
             ['id' => '72', 'name' => 'S1 Teknik Informatika', 'color_hex' => '#FFF3B0', 'is_active' => true, 'created_at' => $now, 'updated_at' => $now],
             ['id' => '73', 'name' => 'S1 Sistem Informasi',    'color_hex' => '#FBEFD1', 'is_active' => true, 'created_at' => $now, 'updated_at' => $now],
             ['id' => '79', 'name' => 'S2 Magister',            'color_hex' => '#FFB366', 'is_active' => true, 'created_at' => $now, 'updated_at' => $now],

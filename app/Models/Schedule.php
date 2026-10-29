@@ -21,6 +21,8 @@ class Schedule extends Model
         'room_id',
         'start_time',
         'end_time',
+        'notes',
+        'sks',
     ];
 
     protected function casts(): array

@@ -15,7 +15,7 @@ class BookingDetail extends Model
 
     public $incrementing = false;
 
-    protected $primaryKey = ['booking_id', 'room_id', 'booking_date', 'start_time'];
+    protected $primaryKey = ['booking_id', 'booking_date', 'start_time'];
 
     protected $fillable = [
         'booking_id',
@@ -73,13 +73,19 @@ class BookingDetail extends Model
             ? $this->booking_date->format('Y-m-d') 
             : (string) $this->booking_date;
 
-        return "{$this->booking_id}_{$this->room_id}_{$dateStr}_{$this->start_time}";
+        return "{$this->booking_id}_{$dateStr}_{$this->start_time}";
     }
 
     public function resolveRouteBinding($value, $field = null): ?self
     {
         if (is_string($value) && str_contains($value, '_')) {
-            $parts = explode('_', $value, 4);
+            $parts = explode('_', $value);
+            if (count($parts) === 3) {
+                return $this->where('booking_id', $parts[0])
+                    ->where('booking_date', $parts[1])
+                    ->where('start_time', $parts[2])
+                    ->first();
+            }
             if (count($parts) === 4) {
                 return $this->where('booking_id', $parts[0])
                     ->where('room_id', $parts[1])
@@ -108,7 +114,6 @@ class BookingDetail extends Model
         }
 
         $query->where('booking_id', '=', $this->getAttribute('booking_id'))
-              ->where('room_id', '=', $this->getAttribute('room_id'))
               ->where('booking_date', '=', $date)
               ->where('start_time', '=', $this->getAttribute('start_time'));
 

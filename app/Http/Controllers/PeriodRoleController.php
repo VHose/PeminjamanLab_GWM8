@@ -146,7 +146,7 @@ class PeriodRoleController extends Controller
 
                 if (! $prodiId) {
                     $prefix = substr($nik, 0, 2);
-                    $prodiId = in_array($prefix, $prodiIds, true) ? $prefix : null;
+                    $prodiId = in_array($prefix, $prodiIds, true) ? $prefix : '00';
                 }
 
                 $user = User::find($nik);

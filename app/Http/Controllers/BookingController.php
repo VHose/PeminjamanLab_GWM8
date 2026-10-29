@@ -50,7 +50,7 @@ class BookingController extends Controller
             abort(403);
         }
 
-        $booking->load(['details.room', 'user', 'createdBy', 'attachments']);
+        $booking->load(['details.room', 'user', 'attachments']);
 
         return view('bookings.show', compact('booking'));
     }
@@ -169,15 +169,12 @@ class BookingController extends Controller
 
             foreach ($uploadedFiles as $file) {
                 if ($file && $file->isValid()) {
-                    $storedPath = $file->store('booking_attachments', 'local');
-                    BookingAttachment::create([
-                        'booking_id' => $booking->id,
-                        'original_name' => mb_substr($file->getClientOriginalName(), 0, 150),
-                        'path' => $storedPath,
-                        'mime_type' => $file->getClientMimeType() ?: 'application/octet-stream',
-                        'size' => $file->getSize() ?: 0,
-                        'created_at' => now(),
-                    ]);
+                    $originalName = mb_substr($file->getClientOriginalName(), 0, 100);
+                    $file->storeAs("booking_attachments/{$booking->id}", $originalName, 'local');
+                    BookingAttachment::updateOrCreate(
+                        ['booking_id' => $booking->id, 'original_name' => $originalName],
+                        ['created_at' => now()]
+                    );
                 }
             }
 
@@ -247,7 +244,7 @@ class BookingController extends Controller
             abort(403, 'Anda tidak memiliki hak akses untuk melihat berkas ini.');
         }
 
-        if ($attachment->booking_id !== $booking->id) {
+        if ((int) $attachment->booking_id !== (int) $booking->id) {
             abort(404);
         }
 
@@ -333,15 +330,12 @@ class BookingController extends Controller
 
             foreach ($uploadedFiles as $file) {
                 if ($file && $file->isValid()) {
-                    $storedPath = $file->store('booking_attachments', 'local');
-                    BookingAttachment::create([
-                        'booking_id' => $booking->id,
-                        'original_name' => mb_substr($file->getClientOriginalName(), 0, 150),
-                        'path' => $storedPath,
-                        'mime_type' => $file->getClientMimeType() ?: 'application/octet-stream',
-                        'size' => $file->getSize() ?: 0,
-                        'created_at' => now(),
-                    ]);
+                    $originalName = mb_substr($file->getClientOriginalName(), 0, 100);
+                    $file->storeAs("booking_attachments/{$booking->id}", $originalName, 'local');
+                    BookingAttachment::updateOrCreate(
+                        ['booking_id' => $booking->id, 'original_name' => $originalName],
+                        ['created_at' => now()]
+                    );
                 }
             }
 

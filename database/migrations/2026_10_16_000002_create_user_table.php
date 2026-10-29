@@ -11,13 +11,12 @@ return new class extends Migration
         Schema::create('user', function (Blueprint $table) {
             // NIK dosen (6) / NRP mahasiswa (10) / kode eksternal (maks 10, di-generate aplikasi)
             $table->string('id', 10)->primary();
-            // Nullable hanya untuk Visitor (pihak eksternal) yang tidak punya prodi
-            $table->string('study_program_id', 5)->nullable();
+            // Foreign key prodi TIDAK boleh null, default '00' (Undefined) untuk dosen luar prodi / pihak luar
+            $table->string('study_program_id', 5)->default('00');
             $table->string('name', 100);
             $table->string('email', 100)->unique();
             $table->string('phone', 20)->nullable();
-            // Hash bcrypt selalu 60 karakter. Pastikan HASH_DRIVER=bcrypt
-            $table->string('password', 65);
+            $table->string('password', 100);
             $table->rememberToken();
             $table->boolean('is_active')->default(true);
             $table->timestamps();

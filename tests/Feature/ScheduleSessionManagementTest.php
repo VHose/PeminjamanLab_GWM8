@@ -602,9 +602,9 @@ class ScheduleSessionManagementTest extends TestCase
         $response->assertSessionHas('success');
 
         $session->refresh();
-        $this->assertNull($session->room_id);
-        $this->assertNull($session->start_time);
-        $this->assertNull($session->end_time);
+        $this->assertEquals($this->adv1->id, $session->room_id);
+        $this->assertEquals('08:00:00', $session->start_time);
+        $this->assertEquals('10:00:00', $session->end_time);
         $this->assertNull($session->note);
         $this->assertEquals($this->adv1->id, $session->effectiveRoomId());
         $this->assertEquals('08:00:00', $session->effectiveStartTime());
@@ -670,7 +670,7 @@ class ScheduleSessionManagementTest extends TestCase
         $response->assertSessionHasErrors(['error']);
 
         $session->refresh();
-        $this->assertNull($session->room_id);
+        $this->assertEquals($this->adv1->id, $session->room_id);
     }
 
     /**
@@ -793,7 +793,7 @@ class ScheduleSessionManagementTest extends TestCase
         $this->actingAs($this->admin)->patch($updateUrl, ['clear_override' => '1'])->assertRedirect();
         $session->refresh();
         $this->assertEquals('2026-09-14', $session->session_date->toDateString());
-        $this->assertNull($session->room_id);
+        $this->assertEquals($this->adv1->id, $session->room_id);
     }
 
     /**

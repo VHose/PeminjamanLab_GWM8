@@ -29,8 +29,8 @@
                             @enderror
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label fw-semibold">Nomor Telepon / WhatsApp PIC</label>
-                            <input class="form-control @error('pic_phone') is-invalid @enderror" name="pic_phone" maxlength="15" value="{{ old('pic_phone', auth()->user()->phone) }}" placeholder="08xxxxxxxxxx">
+                            <label class="form-label fw-semibold">Nomor Telepon / WhatsApp PIC <span class="text-danger">*</span></label>
+                            <input class="form-control @error('pic_phone') is-invalid @enderror" name="pic_phone" maxlength="15" value="{{ old('pic_phone', auth()->user()->phone) }}" placeholder="08xxxxxxxxxx" required>
                             @error('pic_phone')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror

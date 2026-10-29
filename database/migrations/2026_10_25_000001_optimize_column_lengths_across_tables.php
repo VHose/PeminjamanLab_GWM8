@@ -30,10 +30,10 @@ return new class extends Migration
 
         // 3. user
         Schema::table('user', function (Blueprint $table) {
-            $table->string('name', 80)->change();
+            $table->string('name', 100)->change();
             $table->string('email', 70)->change();
             $table->string('phone', 15)->nullable()->change();
-            $table->char('password', 60)->change();
+            $table->string('password', 100)->change();
         });
 
         // 4. period
@@ -62,7 +62,7 @@ return new class extends Migration
 
         // 8. schedule_session
         Schema::table('schedule_session', function (Blueprint $table) {
-            $table->string('room_id', 8)->nullable()->change();
+            $table->string('room_id', 8)->change();
             $table->string('note', 100)->nullable()->change();
         });
 
@@ -82,8 +82,12 @@ return new class extends Migration
         // 11. booking_attachment
         Schema::table('booking_attachment', function (Blueprint $table) {
             $table->string('original_name', 100)->change();
-            $table->string('path', 150)->change();
-            $table->string('mime_type', 50)->change();
+            if (Schema::hasColumn('booking_attachment', 'path')) {
+                $table->string('path', 150)->change();
+            }
+            if (Schema::hasColumn('booking_attachment', 'mime_type')) {
+                $table->string('mime_type', 50)->change();
+            }
         });
 
         // 12. period_holiday
@@ -166,9 +170,13 @@ return new class extends Migration
         });
 
         Schema::table('booking_attachment', function (Blueprint $table) {
-            $table->string('original_name', 150)->change();
-            $table->string('path', 255)->change();
-            $table->string('mime_type', 100)->change();
+            $table->string('original_name', 100)->change();
+            if (Schema::hasColumn('booking_attachment', 'path')) {
+                $table->string('path', 255)->change();
+            }
+            if (Schema::hasColumn('booking_attachment', 'mime_type')) {
+                $table->string('mime_type', 100)->change();
+            }
         });
 
         Schema::table('period_holiday', function (Blueprint $table) {

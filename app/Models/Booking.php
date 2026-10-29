@@ -13,7 +13,6 @@ class Booking extends Model
 
     protected $fillable = [
         'user_id',
-        'created_by',
         'pic_name',
         'requester_name',
         'pic_phone',
@@ -53,11 +52,6 @@ class Booking extends Model
     public function requester(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
-    }
-
-    public function createdBy(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'created_by');
     }
 
     public function details(): HasMany

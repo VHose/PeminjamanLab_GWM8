@@ -91,7 +91,7 @@ class UpdateScheduleSessionRequest extends FormRequest
             'start_time.date_format' => 'Format jam mulai tidak valid (gunakan format HH:mm, contoh 08:00).',
             'end_time.date_format'   => 'Format jam selesai tidak valid (gunakan format HH:mm, contoh 10:00).',
             'end_time.after'         => 'Jam selesai harus lebih besar dari jam mulai.',
-            'note.max'               => 'Catatan override maksimal 100 karakter.',
+            'note.max'               => 'Catatan maksimal 100 karakter.',
         ];
     }
 }
