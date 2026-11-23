@@ -83,6 +83,11 @@ Route::middleware('auth')->group(function () {
         Route::post('/period-roles/copy', [PeriodRoleController::class, 'copy'])->name('admin.period-roles.copy');
         Route::post('/period-roles/upload', [PeriodRoleController::class, 'upload'])->name('admin.period-roles.upload');
         Route::delete('/period-roles/{periodId}/{userId}/{roleId}', [PeriodRoleController::class, 'destroy'])->name('admin.period-roles.destroy');
+        Route::put('/period-roles/{periodId}/{userId}', [PeriodRoleController::class, 'updateUserRoles'])->name('admin.period-roles.update-user');
+
+        // Import Jadwal Kuliah Excel/CSV
+        Route::get('/schedules/import', [\App\Http\Controllers\ScheduleImportController::class, 'index'])->name('admin.schedules.import');
+        Route::post('/schedules/import', [\App\Http\Controllers\ScheduleImportController::class, 'store'])->name('admin.schedules.import.store');
     });
 
     // Admin Only: Fitur Pengaturan Lengkap & Master Data

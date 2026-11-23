@@ -6,7 +6,7 @@
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
                 <h1 class="h3 fw-bold mb-1">Detail Peminjaman Ruangan #{{ $booking->id }}</h1>
-                <p class="text-secondary mb-0">Diajukan pada {{ $booking->submitted_at ? $booking->submitted_at->format('d F Y, H:i') : $booking->created_at->format('d F Y, H:i') }}</p>
+                <p class="text-secondary mb-0">Diajukan pada {{ $booking->created_at->format('d F Y, H:i') }}</p>
             </div>
             <a class="btn btn-outline-secondary" href="{{ route('bookings.index') }}">Kembali ke Daftar</a>
         </div>
@@ -65,36 +65,31 @@
         <div class="card shadow-sm border-0 mb-4">
             <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
                 <h2 class="h5 fw-bold mb-0">
-                    <i class="bi bi-paperclip me-1 text-primary"></i> Berkas Pendukung Kegiatan
+                    Berkas Pendukung Kegiatan
                 </h2>
                 <span class="badge text-bg-light border text-secondary">{{ $booking->attachments->count() }} Berkas</span>
             </div>
             <div class="card-body">
                 @if($booking->attachments->isEmpty())
                     <p class="text-secondary mb-0 fst-italic">
-                        <i class="bi bi-info-circle me-1"></i> Tidak ada berkas lampiran (surat izin, poster, atau proposal) yang diunggah untuk peminjaman ini.
+                        Tidak ada berkas lampiran (surat izin, poster, atau proposal) yang diunggah untuk peminjaman ini.
                     </p>
                 @else
                     <div class="list-group list-group-flush border rounded">
                         @foreach($booking->attachments as $att)
                             <div class="list-group-item d-flex justify-content-between align-items-center py-3 flex-wrap gap-2">
-                                <div class="d-flex align-items-center gap-3">
-                                    <div class="fs-2 text-center" style="width: 40px;">
-                                        <i class="bi {{ $att->icon_class }}"></i>
-                                    </div>
-                                    <div>
-                                        <div class="fw-semibold text-dark">{{ $att->original_name }}</div>
-                                        <div class="small text-secondary">
-                                            {{ $att->formatted_size }} &bull; Diunggah {{ $att->created_at ? $att->created_at->translatedFormat('d F Y, H:i') : '-' }}
-                                        </div>
+                                <div>
+                                    <div class="fw-semibold text-dark">{{ $att->original_name }}</div>
+                                    <div class="small text-secondary">
+                                        {{ $att->formatted_size }} &bull; Diunggah {{ $att->created_at ? $att->created_at->translatedFormat('d F Y, H:i') : '-' }}
                                     </div>
                                 </div>
                                 <div class="d-flex gap-2">
                                     <a href="{{ route('bookings.attachments.show', [$booking, $att]) }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                        <i class="bi bi-eye"></i> Buka / Pratinjau
+                                        Buka / Pratinjau
                                     </a>
                                     <a href="{{ route('bookings.attachments.show', [$booking, $att, 'download' => 1]) }}" class="btn btn-sm btn-primary">
-                                        <i class="bi bi-download"></i> Unduh
+                                        Unduh
                                     </a>
                                 </div>
                             </div>
@@ -123,7 +118,7 @@
                     <tbody>
                         @foreach($booking->details as $dt)
                             <tr>
-                                <td class="fw-bold">{{ $dt->room->id ?? '-' }} ({{ $dt->room->name ?? 'Lab' }})</td>
+                                <td class="fw-bold">{{ $dt->room->name ?? $dt->room->id ?? $dt->room_id ?? '-' }}</td>
                                 <td>{{ $dt->start_datetime->format('l, d F Y') }}</td>
                                 <td>{{ $dt->start_datetime->format('H:i') }}</td>
                                 <td>{{ $dt->end_datetime->format('H:i') }}</td>

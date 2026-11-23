@@ -23,9 +23,34 @@ class BookingController extends Controller
 {
     public function index(Request $request): View
     {
-        $bookings = $request->user()->isInternal()
-            ? Booking::with(['details.room', 'user'])->latest()->paginate(15)
-            : $request->user()->bookings()->with(['details.room'])->latest()->paginate(15);
+        $search = $request->input('search');
+        $status = $request->input('status');
+
+        $query = $request->user()->isInternal()
+            ? Booking::with(['details.room', 'user'])
+            : $request->user()->bookings()->with(['details.room']);
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('id', 'like', "%{$search}%")
+                  ->orWhere('pic_name', 'like', "%{$search}%")
+                  ->orWhere('purpose', 'like', "%{$search}%")
+                  ->orWhereHas('user', function ($uq) use ($search) {
+                      $uq->where('name', 'like', "%{$search}%")
+                         ->orWhere('email', 'like', "%{$search}%");
+                  })
+                  ->orWhereHas('details.room', function ($rq) use ($search) {
+                      $rq->where('name', 'like', "%{$search}%")
+                         ->orWhere('id', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        if ($status !== null && $status !== '') {
+            $query->where('status', (int) $status);
+        }
+
+        $bookings = $query->latest()->paginate(15)->withQueryString();
 
         return view('bookings.index', compact('bookings'));
     }
@@ -100,7 +125,6 @@ class BookingController extends Controller
         foreach ($data['slots'] as $slot) {
             $dateCarbon = Carbon::parse($slot['date']);
 
-            // Tolak hari Minggu
             if ($dateCarbon->isSunday()) {
                 throw ValidationException::withMessages([
                     'slots' => 'Peminjaman pada hari Minggu tidak diperkenankan.',
@@ -110,14 +134,12 @@ class BookingController extends Controller
             $start = Carbon::parse("{$slot['date']} {$slot['start']}");
             $end = Carbon::parse("{$slot['date']} {$slot['end']}");
 
-            // H+2 minimal
             if ($start->lt($minAllowedStart)) {
                 throw ValidationException::withMessages([
                     'slots' => 'Waktu mulai peminjaman minimal 2 hari dari sekarang (H+2).',
                 ]);
             }
 
-            // Jam operasional lab: Senin - Sabtu (07:00 - 22:00)
             $labOpen = '07:00';
             $labClose = '22:00';
 
@@ -127,7 +149,6 @@ class BookingController extends Controller
                 ]);
             }
 
-            // Cek ketersediaan
             if (! $service->isAvailable($slot['room_id'], $start, $end)) {
                 throw ValidationException::withMessages([
                     'slots' => "Ruangan {$slot['room_id']} pada tanggal {$slot['date']} ({$slot['start']} - {$slot['end']}) sudah terisi oleh jadwal kuliah atau peminjaman lain.",
@@ -158,7 +179,6 @@ class BookingController extends Controller
                 ]);
             }
 
-            // Upload berkas pendukung (surat/poster/proposal) jika ada (opsional)
             $uploadedFiles = [];
             if ($request->hasFile('attachments')) {
                 $rawFiles = $request->file('attachments');
@@ -234,9 +254,6 @@ class BookingController extends Controller
         return back()->with('success', 'Peminjaman berhasil dibatalkan.');
     }
 
-    /**
-     * Unduh atau buka berkas lampiran pendukung peminjaman secara aman.
-     */
     public function showAttachment(Request $request, Booking $booking, BookingAttachment $attachment)
     {
         $user = $request->user();
@@ -259,9 +276,6 @@ class BookingController extends Controller
         return Storage::disk('local')->response($attachment->path, $attachment->original_name);
     }
 
-    /**
-     * Staf Lab: Input peminjaman atas nama dosen (langsung disetujui).
-     */
     public function staffStore(
         Request $request,
         BookingService $service

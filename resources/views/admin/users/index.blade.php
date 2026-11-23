@@ -18,11 +18,24 @@
 
 <div class="card shadow-sm border-0 mb-4">
     <div class="card-header bg-white py-3">
-        <h2 class="h5 fw-bold mb-0">Daftar Akun Pengguna (Total: {{ $users->total() }})</h2>
+        <div class="row g-2 align-items-center justify-content-between">
+            <div class="col-md-5">
+                <h2 class="h5 fw-bold mb-0">Daftar Akun Pengguna (Total: {{ $users->total() }})</h2>
+            </div>
+            <div class="col-md-7">
+                <form method="get" action="{{ route('admin.users.index') }}" class="d-flex gap-2 justify-content-md-end">
+                    <input type="text" id="userSearchInput" name="search" value="{{ request('search') }}" class="form-control form-control-sm" style="max-width: 280px;" placeholder="Cari NIK, nama, email, prodi...">
+                    <button type="submit" class="btn btn-sm btn-outline-primary">Cari</button>
+                    @if(request('search'))
+                        <a href="{{ route('admin.users.index') }}" class="btn btn-sm btn-outline-secondary">Reset</a>
+                    @endif
+                </form>
+            </div>
+        </div>
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
+            <table class="table table-hover align-middle mb-0" id="usersTable">
                 <thead class="table-light">
                     <tr>
                         <th>NIK / ID</th>
@@ -187,4 +200,23 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const searchInput = document.getElementById('userSearchInput');
+    const tableBody = document.querySelector('#usersTable tbody');
+    if (searchInput && tableBody) {
+        searchInput.addEventListener('keyup', function () {
+            const filter = this.value.toLowerCase().trim();
+            const rows = tableBody.querySelectorAll('tr');
+            rows.forEach(function (row) {
+                if (row.cells.length > 1) {
+                    const text = row.textContent.toLowerCase();
+                    row.style.display = text.includes(filter) ? '' : 'none';
+                }
+            });
+        });
+    }
+});
+</script>
 @endsection

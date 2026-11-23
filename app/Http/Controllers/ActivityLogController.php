@@ -10,8 +10,20 @@ class ActivityLogController extends Controller
 {
     public function index(Request $request): View
     {
-        $logs = ActivityLog::with('user.roles')->latest('created_at')->paginate(20);
+        $search = $request->input('search');
 
-        return view('logs.index', compact('logs'));
+        $query = ActivityLog::with('user.roles')->latest('created_at');
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('description', 'like', "%{$search}%")
+                  ->orWhere('action', 'like', "%{$search}%")
+                  ->orWhereHas('user', fn ($u) => $u->where('name', 'like', "%{$search}%"));
+            });
+        }
+
+        $logs = $query->paginate(20)->withQueryString();
+
+        return view('logs.index', compact('logs', 'search'));
     }
 }

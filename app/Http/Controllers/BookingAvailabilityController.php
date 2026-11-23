@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Room;
 use App\Services\BookingService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -17,7 +16,7 @@ class BookingAvailabilityController extends Controller
             'date' => 'required|date',
         ]);
 
-        $roomId = (int) $data['room_id'];
+        $roomId = (string) $data['room_id'];
         $date = Carbon::parse($data['date']);
 
         return response()->json([

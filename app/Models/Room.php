@@ -15,6 +15,11 @@ class Room extends Model
 
     protected $fillable = ['id', 'name', 'capacity', 'is_active'];
 
+    public function getCodeAttribute(): string
+    {
+        return (string) $this->id;
+    }
+
     protected function casts(): array
     {
         return [

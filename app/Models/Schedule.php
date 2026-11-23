@@ -11,6 +11,10 @@ class Schedule extends Model
 {
     protected $table = 'schedule';
 
+    protected $attributes = [
+        'sks' => '0',
+    ];
+
     protected $fillable = [
         'period_id',
         'course_id',

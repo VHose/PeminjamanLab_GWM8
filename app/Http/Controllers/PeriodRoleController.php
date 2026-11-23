@@ -25,16 +25,38 @@ class PeriodRoleController extends Controller
         $selectedPeriodId = $request->query('period_id', Period::where('is_active', true)->value('id') ?? $allPeriods->first()?->id);
 
         $selectedPeriod = Period::find($selectedPeriodId);
+        $search = $request->query('search');
 
         $userRoles = collect();
+        $groupedUsers = collect();
         $invalidEmailUsers = collect();
 
         if ($selectedPeriod) {
-            $userRoles = UserRole::with(['user.studyProgram', 'role'])
-                ->where('period_id', $selectedPeriod->id)
-                ->get();
+            $userRolesQuery = UserRole::with(['user.studyProgram', 'role'])
+                ->where('period_id', $selectedPeriod->id);
 
-            // Peringatan: user yang emailnya masih berakhiran @belum-diisi.invalid
+            if ($search) {
+                $userRolesQuery->where(function ($q) use ($search) {
+                    $q->whereHas('user', function ($uq) use ($search) {
+                        $uq->where('name', 'like', "%{$search}%")
+                           ->orWhere('id', 'like', "%{$search}%")
+                           ->orWhere('email', 'like', "%{$search}%");
+                    })->orWhereHas('role', function ($rq) use ($search) {
+                        $rq->where('name', 'like', "%{$search}%");
+                    });
+                });
+            }
+
+            $userRoles = $userRolesQuery->get();
+
+            $groupedUsers = $userRoles->groupBy('user_id')->map(function ($roles) {
+                return (object) [
+                    'user' => $roles->first()->user,
+                    'roles' => $roles->pluck('role'),
+                    'user_roles' => $roles,
+                ];
+            });
+
             $userIdsInPeriod = $userRoles->pluck('user_id')->unique();
             $invalidEmailUsers = User::whereIn('id', $userIdsInPeriod)
                 ->where('email', 'like', '%@belum-diisi.invalid')
@@ -48,9 +70,11 @@ class PeriodRoleController extends Controller
             'allPeriods',
             'selectedPeriod',
             'userRoles',
+            'groupedUsers',
             'invalidEmailUsers',
             'allRoles',
-            'studyPrograms'
+            'studyPrograms',
+            'search'
         ));
     }
 
@@ -86,7 +110,7 @@ class PeriodRoleController extends Controller
             $request->user()->id,
             'copy_roles',
             'user_role',
-            $toId,
+            (string) $toId,
             "Menyalin {$copiedCount} penugasan peran dari periode {$fromPeriod->name} ke {$toPeriod->name}.",
             $request->ip()
         );
@@ -121,7 +145,6 @@ class PeriodRoleController extends Controller
                     continue;
                 }
 
-                // Format: NIK/NRP, Nama, Email, RoleName, [KodeProdi]
                 $cols = array_map('trim', str_getcsv($line));
                 if (count($cols) < 3) {
                     continue;
@@ -133,7 +156,6 @@ class PeriodRoleController extends Controller
                 $roleName = $cols[3] ?? 'Staf_Lab';
                 $prodiId = $cols[4] ?? null;
 
-                // Abaikan header row jika ada
                 if (strtolower($nik) === 'nik' || strtolower($nik) === 'id') {
                     continue;
                 }
@@ -182,7 +204,7 @@ class PeriodRoleController extends Controller
             $request->user()->id,
             'upload_staff',
             'user_role',
-            $period->id,
+            (string) $period->id,
             "Mengunggah {$processedCount} daftar staf untuk periode {$period->name}.",
             $request->ip()
         );
@@ -225,12 +247,47 @@ class PeriodRoleController extends Controller
             $request->user()->id,
             'assign_role',
             'user_role',
-            $validated['period_id'],
+            (string) $validated['period_id'],
             "Menugaskan role kepada {$user->id} di periode {$validated['period_id']}.",
             $request->ip()
         );
 
         return back()->with('success', 'Peran berhasil ditambahkan.');
+    }
+
+    public function updateUserRoles(Request $request, int $periodId, string $userId): RedirectResponse
+    {
+        $validated = $request->validate([
+            'role_ids' => ['nullable', 'array'],
+            'role_ids.*' => ['exists:role,id'],
+        ]);
+
+        $roleIds = $validated['role_ids'] ?? [];
+
+        UserRole::where('period_id', $periodId)
+            ->where('user_id', $userId)
+            ->whereNotIn('role_id', $roleIds)
+            ->delete();
+
+        foreach ($roleIds as $rId) {
+            UserRole::firstOrCreate([
+                'period_id' => $periodId,
+                'user_id' => $userId,
+                'role_id' => $rId,
+            ]);
+        }
+
+        $user = User::find($userId);
+        ActivityLog::record(
+            $request->user()->id,
+            'update_roles',
+            'user_role',
+            (string) $periodId,
+            "Memperbarui peran pengguna {$user?->name} ({$userId}) pada periode {$periodId}.",
+            $request->ip()
+        );
+
+        return back()->with('success', "Peran untuk {$user?->name} berhasil diperbarui.");
     }
 
     public function destroy(Request $request, int $periodId, string $userId, int $roleId): RedirectResponse
@@ -245,7 +302,7 @@ class PeriodRoleController extends Controller
             $request->user()->id,
             'remove_role',
             'user_role',
-            $periodId,
+            (string) $periodId,
             "Menghapus peran role_id {$roleId} dari user {$userId} pada periode {$periodId}.",
             $request->ip()
         );

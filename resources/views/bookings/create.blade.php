@@ -56,8 +56,8 @@
                             Unggah Surat Izin / Poster Acara / Dokumen Kegiatan
                         </label>
                         <input class="form-control" type="file" name="attachments[]" id="attachments" multiple accept=".pdf,.jpg,.jpeg,.png,.doc,.docx">
+                        <div id="fileListPreview" class="mt-2"></div>
                         <div class="form-text mt-2">
-                            <i class="bi bi-info-circle text-primary me-1"></i>
                             <strong>Sifatnya opsional</strong> (tidak wajib diisi). Apabila kegiatan membutuhkan berkas persyaratan (seperti surat permohonan/pengantar izin dekanat/himpunan atau poster seminar/lomba), Anda dapat mengunggahnya di sini.<br>
                             <span class="text-secondary">Format yang diperbolehkan: <strong>PDF, JPG, JPEG, PNG, DOC, DOCX</strong>. Maksimal <strong>5 MB</strong> per berkas (dapat memilih lebih dari 1 berkas sekaligus).</span>
                         </div>
@@ -68,7 +68,7 @@
             <div class="card shadow-sm border-0 mb-4">
                 <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
                     <h2 class="h5 fw-bold mb-0">3. Pemilihan Ruangan & Waktu (Senin s/d Sabtu)</h2>
-                    <button type="button" class="btn btn-sm btn-outline-primary" id="btnAddSlot">Tambah Ruangan Lain</button>
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="btnAddSlot">+ Tambah Ruangan Lain</button>
                 </div>
                 <div class="card-body">
                     <div id="slotsContainer">
@@ -93,14 +93,26 @@
                                 </div>
                                 <div class="col-md-2">
                                     <label class="form-label fw-semibold">Jam Mulai <span class="text-danger">*</span></label>
-                                    <select class="form-select start-time-select" name="slots[0][start]" data-preselect="{{ old('slots.0.start', request('start')) }}" required disabled>
+                                    <select class="form-select start-time-select" name="slots[0][start]" data-preselect="{{ old('slots.0.start', request('start')) }}" required>
                                         <option value="">Pilih Jam</option>
+                                        @for($h = 7; $h <= 21; $h++)
+                                            @php $hStr = str_pad($h, 2, '0', STR_PAD_LEFT); @endphp
+                                            <option value="{{ $hStr }}:00" @selected(old('slots.0.start', request('start')) === "{$hStr}:00")>{{ $hStr }}:00</option>
+                                            <option value="{{ $hStr }}:30" @selected(old('slots.0.start', request('start')) === "{$hStr}:30")>{{ $hStr }}:30</option>
+                                        @endfor
+                                        <option value="22:00" @selected(old('slots.0.start', request('start')) === "22:00")>22:00</option>
                                     </select>
                                 </div>
                                 <div class="col-md-2">
                                     <label class="form-label fw-semibold">Jam Selesai <span class="text-danger">*</span></label>
-                                    <select class="form-select end-time-select" name="slots[0][end]" data-preselect="{{ old('slots.0.end', request('end')) }}" required disabled>
+                                    <select class="form-select end-time-select" name="slots[0][end]" data-preselect="{{ old('slots.0.end', request('end')) }}" required>
                                         <option value="">Pilih Jam</option>
+                                        @for($h = 7; $h <= 21; $h++)
+                                            @php $hStr = str_pad($h, 2, '0', STR_PAD_LEFT); @endphp
+                                            <option value="{{ $hStr }}:00" @selected(old('slots.0.end', request('end')) === "{$hStr}:00")>{{ $hStr }}:00</option>
+                                            <option value="{{ $hStr }}:30" @selected(old('slots.0.end', request('end')) === "{$hStr}:30")>{{ $hStr }}:30</option>
+                                        @endfor
+                                        <option value="22:00" @selected(old('slots.0.end', request('end')) === "22:00")>22:00</option>
                                     </select>
                                 </div>
                             </div>
@@ -115,10 +127,10 @@
                     <h2 class="h5 fw-bold mb-0">4. Pratinjau Jadwal Sebelum Diajukan</h2>
                 </div>
                 <div class="card-body">
-                    <p class="text-secondary small mb-3">Berikut adalah pratinjau tabel jadwal peminjaman yang akan Anda ajukan. Pastikan ruangan dan waktu sudah sesuai.</p>
+                    <p class="text-secondary small mb-3">Berikut adalah pratinjau tabel jadwal peminjaman yang akan Anda ajukan. Status ketersediaan akan langsung diperiksa secara otomatis.</p>
                     <div id="previewTablesContainer">
                         <div class="text-muted text-center py-3 preview-placeholder">
-                            Pilih ruangan, tanggal, dan jam peminjaman di atas untuk menampilkan tabel pratinjau.
+                            Pilih ruangan, tanggal, dan jam peminjaman di atas untuk menampilkan status ketersediaan pada tabel pratinjau.
                         </div>
                     </div>
                 </div>
@@ -127,6 +139,7 @@
             <div class="card shadow-sm border-0 mb-5">
                 <div class="card-body p-4 text-center">
                     <button type="submit" class="btn btn-primary btn-lg px-5" id="btnSubmit">Kirim Pengajuan Peminjaman</button>
+                    <div id="submitWarning" class="alert alert-danger mt-3 mb-0 mx-auto" style="display: none; max-width: 650px;"></div>
                 </div>
             </div>
         </form>
@@ -135,13 +148,7 @@
 
 @push('scripts')
 <script>
-const standardSlots = [];
-for (let h = 7; h <= 21; h++) {
-    standardSlots.push((h < 10 ? '0' : '') + h + ':00');
-    standardSlots.push((h < 10 ? '0' : '') + h + ':30');
-}
-standardSlots.push('22:00');
-
+let hasConflict = false;
 let slotCount = 1;
 
 function updateSlotTitles() {
@@ -167,18 +174,12 @@ function updateSlotTitles() {
 async function loadAvailability(slotItem) {
     const roomSelect = slotItem.querySelector('.room-select');
     const dateInput = slotItem.querySelector('.date-input');
-    const startSelect = slotItem.querySelector('.start-time-select');
-    const endSelect = slotItem.querySelector('.end-time-select');
     const alertBox = slotItem.querySelector('.availability-alert');
 
     const roomId = roomSelect.value;
     const dateVal = dateInput.value;
 
     if (!roomId || !dateVal) {
-        startSelect.disabled = true;
-        endSelect.disabled = true;
-        startSelect.innerHTML = '<option value="">Pilih Jam</option>';
-        endSelect.innerHTML = '<option value="">Pilih Jam</option>';
         alertBox.style.display = 'none';
         updatePreviews();
         return;
@@ -188,13 +189,10 @@ async function loadAvailability(slotItem) {
         const response = await fetch(`{{ route('availability') }}?room_id=${roomId}&date=${dateVal}`);
         const data = await response.json();
 
-        const unavailable = data.unavailable || [];
-        const pending = data.pending || [];
-
-        slotItem.dataset.unavailable = JSON.stringify(unavailable);
-        slotItem.dataset.pending = JSON.stringify(pending);
-
-        populateStartTimes(slotItem);
+        slotItem.dataset.unavailable = JSON.stringify(data.unavailable || []);
+        slotItem.dataset.pending = JSON.stringify(data.pending || []);
+        alertBox.style.display = 'none';
+        updatePreviews();
     } catch (err) {
         alertBox.className = 'alert alert-danger p-2 small mt-2';
         alertBox.textContent = 'Gagal memeriksa ketersediaan ruangan.';
@@ -202,117 +200,17 @@ async function loadAvailability(slotItem) {
     }
 }
 
-function isSlotBlocked(slotTime, unavailableList) {
-    return unavailableList.some(item => slotTime >= item.start && slotTime < item.end);
-}
-
-function populateStartTimes(slotItem) {
-    const startSelect = slotItem.querySelector('.start-time-select');
-    const endSelect = slotItem.querySelector('.end-time-select');
-    const alertBox = slotItem.querySelector('.availability-alert');
-
-    const unavailable = JSON.parse(slotItem.dataset.unavailable || '[]');
-    const pending = JSON.parse(slotItem.dataset.pending || '[]');
-
-    startSelect.innerHTML = '<option value="">-- Jam Mulai --</option>';
-    endSelect.innerHTML = '<option value="">-- Jam Selesai --</option>';
-    endSelect.disabled = true;
-
-    let availableCount = 0;
-    standardSlots.slice(0, -1).forEach(slotTime => {
-        if (!isSlotBlocked(slotTime, unavailable)) {
-            const isPendingSlot = pending.some(p => slotTime >= p.start && slotTime < p.end);
-            const opt = document.createElement('option');
-            opt.value = slotTime;
-            opt.textContent = isPendingSlot ? `${slotTime} (Antrian)` : slotTime;
-            startSelect.appendChild(opt);
-            availableCount++;
-        }
-    });
-
-    if (availableCount === 0) {
-        alertBox.className = 'alert alert-warning p-2 small mt-2';
-        alertBox.textContent = 'Ruangan ini sudah penuh terisi pada tanggal tersebut.';
-        alertBox.style.display = 'block';
-        startSelect.disabled = true;
-    } else {
-        alertBox.style.display = 'none';
-        startSelect.disabled = false;
-
-        const preselectStart = startSelect.dataset.preselect;
-        if (preselectStart && startSelect.querySelector(`option[value="${preselectStart}"]`)) {
-            startSelect.value = preselectStart;
-            delete startSelect.dataset.preselect;
-            populateEndTimes(slotItem);
-            return;
-        }
-    }
-
-    updatePreviews();
-}
-
-function populateEndTimes(slotItem) {
-    const startSelect = slotItem.querySelector('.start-time-select');
-    const endSelect = slotItem.querySelector('.end-time-select');
-    const alertBox = slotItem.querySelector('.availability-alert');
-
-    const unavailable = JSON.parse(slotItem.dataset.unavailable || '[]');
-    const pending = JSON.parse(slotItem.dataset.pending || '[]');
-
-    const startTime = startSelect.value;
-    endSelect.innerHTML = '<option value="">-- Jam Selesai --</option>';
-
-    if (!startTime) {
-        endSelect.disabled = true;
-        updatePreviews();
-        return;
-    }
-
-    const startIndex = standardSlots.indexOf(startTime);
-    let nextBlockedTime = '24:00';
-    for (const item of unavailable) {
-        if (item.start >= startTime && item.start < nextBlockedTime) {
-            nextBlockedTime = item.start;
-        }
-    }
-
-    for (let i = startIndex + 1; i < standardSlots.length; i++) {
-        const slotTime = standardSlots[i];
-        if (slotTime <= nextBlockedTime) {
-            const opt = document.createElement('option');
-            opt.value = slotTime;
-            opt.textContent = slotTime;
-            endSelect.appendChild(opt);
-        } else {
-            break;
-        }
-    }
-
-    endSelect.disabled = false;
-
-    const preselectEnd = endSelect.dataset.preselect;
-    if (preselectEnd && endSelect.querySelector(`option[value="${preselectEnd}"]`)) {
-        endSelect.value = preselectEnd;
-        delete endSelect.dataset.preselect;
-    }
-
-    const hasPending = pending.some(p => startTime < p.end && nextBlockedTime > p.start);
-    if (hasPending) {
-        alertBox.className = 'alert alert-info p-2 small mt-2';
-        alertBox.textContent = 'Jam yang Anda pilih bersinggungan dengan pengajuan berstatus pending. Pengajuan Anda akan masuk sebagai antrian selanjutnya.';
-        alertBox.style.display = 'block';
-    } else {
-        alertBox.style.display = 'none';
-    }
-
-    updatePreviews();
-}
-
 function updatePreviews() {
     const container = document.getElementById('previewTablesContainer');
     const items = document.querySelectorAll('.slot-item');
+    const btnSubmit = document.getElementById('btnSubmit');
+    const submitWarning = document.getElementById('submitWarning');
+
     let hasCompleteSlot = false;
     let tablesHtml = '';
+    let globalConflictFound = false;
+
+    const collectedSlots = [];
 
     items.forEach((item, index) => {
         const roomSelect = item.querySelector('.room-select');
@@ -320,17 +218,93 @@ function updatePreviews() {
         const startSelect = item.querySelector('.start-time-select');
         const endSelect = item.querySelector('.end-time-select');
 
+        const roomId = roomSelect.value;
         const roomCode = roomSelect.options[roomSelect.selectedIndex]?.dataset.code || roomSelect.options[roomSelect.selectedIndex]?.text || '';
         const dateVal = dateInput.value;
         const startTime = startSelect.value;
         const endTime = endSelect.value;
 
-        if (roomSelect.value && dateVal && startTime && endTime) {
+        if (roomId && dateVal && startTime && endTime) {
             hasCompleteSlot = true;
+            const unavailable = JSON.parse(item.dataset.unavailable || '[]');
+            const pending = JSON.parse(item.dataset.pending || '[]');
+
+            let isBentrok = false;
+            let conflictMsg = '';
+            let isPendingQueue = false;
+            let pendingMsg = '';
+
+            // 1. Validasi jam selesai harus lebih besar dari jam mulai
+            if (startTime >= endTime) {
+                isBentrok = true;
+                conflictMsg = 'Jam Selesai harus lebih besar dari Jam Mulai.';
+            }
+
+            // 2. Cek Hari Minggu
+            if (!isBentrok) {
+                const dateObj = new Date(dateVal + 'T00:00:00');
+                if (dateObj.getDay() === 0) {
+                    isBentrok = true;
+                    conflictMsg = 'Laboratorium tutup pada hari Minggu.';
+                }
+            }
+
+            // 3. Cek bentrok dengan jadwal fix / booking approved (unavailable)
+            if (!isBentrok) {
+                const overlaps = unavailable.filter(u => startTime < u.end && endTime > u.start);
+                if (overlaps.length > 0) {
+                    isBentrok = true;
+                    const details = overlaps.map(o => `${o.start}-${o.end}${o.notes ? ' (' + o.notes + ')' : ''}`).join(', ');
+                    conflictMsg = `Bentrok dengan jadwal yang sudah ada: ${details}.`;
+                }
+            }
+
+            // 4. Cek bentrok antar slot di form ini sendiri
+            if (!isBentrok) {
+                for (const prev of collectedSlots) {
+                    if (prev.roomId === roomId && prev.dateVal === dateVal) {
+                        if (startTime < prev.endTime && endTime > prev.startTime) {
+                            isBentrok = true;
+                            conflictMsg = `Bentrok dengan pilihan Ruangan #${prev.index + 1} (${prev.startTime}-${prev.endTime}) pada formulir ini.`;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // 5. Cek antrian pending
+            if (!isBentrok) {
+                const pOverlaps = pending.filter(p => startTime < p.end && endTime > p.start);
+                if (pOverlaps.length > 0) {
+                    isPendingQueue = true;
+                    pendingMsg = 'Bersinggungan dengan antrian pengajuan lain yang sedang menunggu persetujuan (akan masuk urutan berikutnya).';
+                }
+            }
+
+            if (isBentrok) {
+                globalConflictFound = true;
+            }
+
+            collectedSlots.push({ index, roomId, dateVal, startTime, endTime });
+
+            let badgeHtml = '';
+            let statusNote = '';
+            if (isBentrok) {
+                badgeHtml = '<span class="badge text-bg-danger fs-6">Jadwal Bentrok</span>';
+                statusNote = `<div class="text-danger small mt-1 fw-semibold"><i class="bi bi-x-circle me-1"></i>${conflictMsg}</div>`;
+            } else if (isPendingQueue) {
+                badgeHtml = '<span class="badge text-bg-warning text-dark fs-6">Antrian Pengajuan</span>';
+                statusNote = `<div class="text-secondary small mt-1"><i class="bi bi-info-circle me-1"></i>${pendingMsg}</div>`;
+            } else {
+                badgeHtml = '<span class="badge text-bg-success fs-6">Siap Diajukan</span>';
+                statusNote = '<div class="text-success small mt-1"><i class="bi bi-check-circle me-1"></i>Jadwal dan ruangan tersedia</div>';
+            }
+
             tablesHtml += `
-                <div class="card mb-3 border">
-                    <div class="card-header bg-primary text-white py-2 fw-semibold">
-                        Peminjaman ${roomCode} jam ${startTime}-${endTime}
+                <div class="card mb-3 border ${isBentrok ? 'border-danger' : ''}">
+                    <div class="card-header ${isBentrok ? 'bg-danger text-white' : 'bg-primary text-white'} py-2 fw-semibold d-flex justify-content-between align-items-center">
+                        <span>Peminjaman Ruangan #${index + 1}: ${roomCode} (${startTime} - ${endTime})</span>
+                        ${isBentrok ? '<span class="badge bg-light text-danger fw-bold">JADWAL BENTROK</span>' : ''}
                     </div>
                     <div class="card-body p-0">
                         <table class="table table-bordered table-sm mb-0">
@@ -340,7 +314,7 @@ function updatePreviews() {
                                     <th>Tanggal</th>
                                     <th>Waktu Mulai</th>
                                     <th>Waktu Selesai</th>
-                                    <th>Status Form</th>
+                                    <th>Status Ketersediaan</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -349,7 +323,10 @@ function updatePreviews() {
                                     <td>${dateVal}</td>
                                     <td>${startTime}</td>
                                     <td>${endTime}</td>
-                                    <td><span class="badge text-bg-success">Siap Diajukan</span></td>
+                                    <td>
+                                        ${badgeHtml}
+                                        ${statusNote}
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>
@@ -359,14 +336,60 @@ function updatePreviews() {
         }
     });
 
+    hasConflict = globalConflictFound;
+
     if (hasCompleteSlot) {
         container.innerHTML = tablesHtml;
     } else {
-        container.innerHTML = '<div class="text-muted text-center py-3 preview-placeholder">Pilih ruangan, tanggal, dan jam peminjaman di atas untuk menampilkan tabel pratinjau.</div>';
+        container.innerHTML = '<div class="text-muted text-center py-3 preview-placeholder">Pilih ruangan, tanggal, dan jam peminjaman di atas untuk menampilkan status ketersediaan pada tabel pratinjau.</div>';
+    }
+
+    if (hasConflict) {
+        btnSubmit.disabled = true;
+        if (submitWarning) {
+            submitWarning.innerHTML = '<strong><i class="bi bi-exclamation-triangle-fill me-1"></i> Jadwal Bentrok Terdeteksi!</strong><br>Pilihan waktu atau ruangan bentrok / tidak valid. Silakan sesuaikan jam atau ruangan agar tombol kirim dapat ditekan.';
+            submitWarning.style.display = 'block';
+        }
+    } else {
+        btnSubmit.disabled = false;
+        if (submitWarning) {
+            submitWarning.style.display = 'none';
+        }
     }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    const bookingForm = document.getElementById('bookingForm');
+    const attachmentsInput = document.getElementById('attachments');
+    const previewBox = document.getElementById('fileListPreview');
+
+    if (attachmentsInput && previewBox) {
+        attachmentsInput.addEventListener('change', function() {
+            if (!this.files || this.files.length === 0) {
+                previewBox.innerHTML = '';
+                return;
+            }
+            let html = '<div class="alert alert-secondary py-2 px-3 mb-0 small"><strong>Berkas yang dipilih (' + this.files.length + '):</strong><ul class="mb-0 ps-3 mt-1">';
+            for (let i = 0; i < this.files.length; i++) {
+                const f = this.files[i];
+                const sizeMb = (f.size / (1024 * 1024)).toFixed(2);
+                html += `<li>${f.name} <span class="text-muted">(${sizeMb} MB)</span></li>`;
+            }
+            html += '</ul></div>';
+            previewBox.innerHTML = html;
+        });
+    }
+
+    if (bookingForm) {
+        bookingForm.addEventListener('submit', (e) => {
+            if (hasConflict) {
+                e.preventDefault();
+                alert('Terdapat jadwal yang bentrok! Silakan sesuaikan jam atau ruangan sebelum mengirim pengajuan.');
+                return false;
+            }
+        });
+    }
+
     const container = document.getElementById('slotsContainer');
     const btnAdd = document.getElementById('btnAddSlot');
 
@@ -376,12 +399,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         clone.querySelector('.room-select').value = '';
         clone.querySelector('.date-input').value = '';
-        const startSelect = clone.querySelector('.start-time-select');
-        const endSelect = clone.querySelector('.end-time-select');
-        startSelect.innerHTML = '<option value="">Pilih Jam</option>';
-        endSelect.innerHTML = '<option value="">Pilih Jam</option>';
-        startSelect.disabled = true;
-        endSelect.disabled = true;
+        clone.querySelector('.start-time-select').value = '';
+        clone.querySelector('.end-time-select').value = '';
         clone.querySelector('.availability-alert').style.display = 'none';
         delete clone.dataset.unavailable;
         delete clone.dataset.pending;
@@ -405,9 +424,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const item = e.target.closest('.slot-item');
         if (e.target.classList.contains('room-select') || e.target.classList.contains('date-input')) {
             loadAvailability(item);
-        } else if (e.target.classList.contains('start-time-select')) {
-            populateEndTimes(item);
-        } else if (e.target.classList.contains('end-time-select')) {
+        } else if (e.target.classList.contains('start-time-select') || e.target.classList.contains('end-time-select')) {
             updatePreviews();
         }
     });

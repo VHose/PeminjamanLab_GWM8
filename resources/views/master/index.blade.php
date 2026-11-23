@@ -21,13 +21,26 @@
     </li>
 </ul>
 
-<div class="card shadow-sm border-0">
+<div class="card shadow-sm border-0 mb-4">
     <div class="card-header bg-white py-3">
-        <h2 class="h5 fw-bold mb-0">Daftar {{ $config['label'] }} (Total: {{ $records->total() }})</h2>
+        <div class="row g-2 align-items-center justify-content-between">
+            <div class="col-md-5">
+                <h2 class="h5 fw-bold mb-0">Daftar {{ $config['label'] }} (Total: {{ $records->total() }})</h2>
+            </div>
+            <div class="col-md-5">
+                <form method="get" action="{{ route('master.index', $type) }}" class="d-flex gap-2">
+                    <input type="text" name="search" id="searchMasterInput" class="form-control form-control-sm" placeholder="Cari {{ strtolower($config['label']) }}..." value="{{ $search ?? '' }}">
+                    @if(!empty($search))
+                        <a href="{{ route('master.index', $type) }}" class="btn btn-sm btn-outline-secondary">Reset</a>
+                    @endif
+                    <button type="submit" class="btn btn-sm btn-primary">Cari</button>
+                </form>
+            </div>
+        </div>
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
+            <table class="table table-hover align-middle mb-0" id="masterTable">
                 <thead class="table-light">
                     <tr>
                         <th style="width: 160px;">{{ $config['pk_label'] }}</th>
@@ -38,7 +51,7 @@
                             <th>Program Studi</th>
                         @endif
                         <th>Status</th>
-                        <th class="text-end" style="width: 200px;">Aksi</th>
+                        <th class="text-end" style="width: 220px;">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -59,11 +72,13 @@
                                 @endif
                             </td>
                             <td class="text-end">
-                                <div class="btn-group btn-group-sm">
-                                    <a class="btn btn-outline-secondary" href="{{ route('master.edit', [$type, $record->id]) }}">Ubah</a>
-                                    <form method="post" action="{{ route('master.toggle', [$type, $record->id]) }}" class="d-inline">
+                                <div class="d-inline-flex gap-1 justify-content-end align-items-center">
+                                    <a class="btn btn-sm btn-outline-primary" href="{{ route('master.edit', [$type, $record->id]) }}">
+                                        Ubah
+                                    </a>
+                                    <form method="post" action="{{ route('master.toggle', [$type, $record->id]) }}" class="d-inline m-0">
                                         @csrf
-                                        <button type="submit" class="btn {{ $record->is_active ? 'btn-outline-warning' : 'btn-outline-success' }}">
+                                        <button type="submit" class="btn btn-sm {{ $record->is_active ? 'btn-outline-danger' : 'btn-outline-success' }}" onclick="return confirm('Apakah Anda yakin ingin {{ $record->is_active ? 'menonaktifkan' : 'mengaktifkan' }} {{ $record->name }}?')">
                                             {{ $record->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
                                         </button>
                                     </form>
@@ -72,7 +87,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="text-center py-4 text-muted">Belum ada data {{ $config['label'] }}.</td>
+                            <td colspan="{{ $type === 'study-programs' ? 4 : 5 }}" class="text-center py-4 text-muted">Belum ada data {{ $config['label'] }} yang sesuai.</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -85,4 +100,23 @@
         </div>
     @endif
 </div>
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const input = document.getElementById('searchMasterInput');
+    const table = document.getElementById('masterTable');
+    if (input && table) {
+        input.addEventListener('keyup', function() {
+            const filter = input.value.toLowerCase();
+            const rows = table.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(filter) ? '' : 'none';
+            });
+        });
+    }
+});
+</script>
+@endpush
 @endsection

@@ -10,12 +10,38 @@
                     <p class="text-secondary small mb-0">Silakan masukkan email dan kata sandi Anda</p>
                 </div>
 
-                <form method="post" action="{{ route('login') }}">
+                <div class="p-3 mb-4 rounded bg-light border">
+                    <div class="small fw-bold text-secondary mb-2 text-uppercase" style="letter-spacing: 0.05rem;">
+                        Akses Cepat Pengujian (Role Testing)
+                    </div>
+                    <div class="d-flex flex-wrap gap-1">
+                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="quickFill('admin@example.com', 'password123')">
+                            Admin
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-success" onclick="quickFill('kalab@example.com', 'password123')">
+                            Kepala Lab
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-info text-dark" onclick="quickFill('kaprodi@example.com', 'password123')">
+                            Kaprodi
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-warning text-dark" onclick="quickFill('staflab@example.com', 'password123')">
+                            Staf Lab
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="quickFill('dosen@example.com', 'password123')">
+                            Dosen
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-dark" onclick="quickFill('visitor@example.com', 'password123')">
+                            Visitor
+                        </button>
+                    </div>
+                </div>
+
+                <form method="post" action="{{ route('login') }}" id="loginForm">
                     @csrf
 
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Alamat Email</label>
-                        <input class="form-control" name="email" type="email" value="{{ old('email') }}" placeholder="nama@example.com" required autofocus>
+                        <input class="form-control" name="email" id="emailInput" type="email" value="{{ old('email') }}" placeholder="nama@example.com" required autofocus>
                     </div>
 
                     <div class="mb-3">
@@ -23,7 +49,7 @@
                             <label class="form-label fw-semibold mb-0">Kata Sandi</label>
                             <a href="{{ route('password.request') }}" class="small text-decoration-none">Lupa kata sandi?</a>
                         </div>
-                        <input class="form-control mt-1" name="password" type="password" placeholder="Masukkan kata sandi..." required>
+                        <input class="form-control mt-1" name="password" id="passwordInput" type="password" placeholder="Masukkan kata sandi..." required>
                     </div>
 
                     <div class="form-check mb-3">
@@ -43,4 +69,15 @@
         </div>
     </div>
 </div>
+
+<script>
+    function quickFill(email, password) {
+        const emailInput = document.getElementById('emailInput');
+        const passwordInput = document.getElementById('passwordInput');
+        if (emailInput && passwordInput) {
+            emailInput.value = email;
+            passwordInput.value = password;
+        }
+    }
+</script>
 @endsection

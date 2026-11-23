@@ -35,15 +35,27 @@ class MasterController extends Controller
         ],
     ];
 
-    public function index(string $type): View
+    public function index(string $type, Request $request): View
     {
         $config = $this->config($type);
-        $records = $config['model']::query()
-            ->when($type === 'courses', fn ($q) => $q->with('studyProgram'))
-            ->orderBy('id')
-            ->paginate(20);
+        $search = $request->input('search');
 
-        return view('master.index', compact('type', 'config', 'records'));
+        $query = $config['model']::query()
+            ->when($type === 'courses', fn ($q) => $q->with('studyProgram'));
+
+        if ($search) {
+            $query->where(function ($q) use ($search, $type) {
+                $q->where('id', 'like', "%{$search}%")
+                  ->orWhere('name', 'like', "%{$search}%");
+                if ($type === 'courses') {
+                    $q->orWhereHas('studyProgram', fn ($sp) => $sp->where('name', 'like', "%{$search}%"));
+                }
+            });
+        }
+
+        $records = $query->orderBy('id')->paginate(20)->withQueryString();
+
+        return view('master.index', compact('type', 'config', 'records', 'search'));
     }
 
     public function create(string $type): View
@@ -150,7 +162,6 @@ class MasterController extends Controller
         $config = $this->config($type);
         $record = $config['model']::findOrFail($id);
 
-        // Aturan: data master dinonaktifkan (is_active), bukan dihapus
         $record->update(['is_active' => false]);
 
         ActivityLog::record(

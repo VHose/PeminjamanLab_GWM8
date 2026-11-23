@@ -8,7 +8,6 @@
     </div>
 </div>
 
-<!-- PILIH PERIODE -->
 <div class="card shadow-sm border-0 mb-4">
     <div class="card-body p-3">
         <form method="get" action="{{ route('admin.period-roles.index') }}" class="row g-3 align-items-center">
@@ -36,7 +35,6 @@
     </div>
 </div>
 
-<!-- PERINGATAN EMAIL SEMENTARA (@belum-diisi.invalid) -->
 @if($invalidEmailUsers->isNotEmpty())
     <div class="alert alert-warning border-warning shadow-sm mb-4" role="alert">
         <div class="d-flex align-items-start gap-3">
@@ -60,19 +58,31 @@
     </div>
 @endif
 
-<!-- TABEL DAFTAR PERAN PADA PERIODE TERPILIH -->
 <div class="card shadow-sm border-0 mb-4">
-    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-        <h2 class="h6 fw-bold mb-0">
-            Daftar Peran Staf & Dosen pada Periode: <span class="text-primary">{{ $selectedPeriod?->name ?? 'Belum dipilih' }}</span>
-            <span class="badge text-bg-secondary ms-2">{{ $userRoles->count() }} Penugasan</span>
-        </h2>
-        <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#quickAssignCollapse">
-            + Tambah Penugasan Manual
-        </button>
+    <div class="card-header bg-white py-3">
+        <div class="row g-2 align-items-center justify-content-between">
+            <div class="col-md-5">
+                <h2 class="h6 fw-bold mb-0">
+                    Daftar Staf & Dosen: <span class="text-primary">{{ $selectedPeriod?->name ?? 'Belum dipilih' }}</span>
+                    <span class="badge text-bg-secondary ms-2">{{ $groupedUsers->count() }} Pengguna</span>
+                </h2>
+            </div>
+            <div class="col-md-7 d-flex justify-content-end gap-2">
+                <form method="get" action="{{ route('admin.period-roles.index') }}" class="d-flex gap-2 flex-grow-1" style="max-width: 380px;">
+                    <input type="hidden" name="period_id" value="{{ $selectedPeriod?->id }}">
+                    <input type="text" name="search" id="searchRoleInput" class="form-control form-control-sm" placeholder="Cari nama, NIK, peran..." value="{{ $search ?? '' }}">
+                    @if(!empty($search))
+                        <a href="{{ route('admin.period-roles.index', ['period_id' => $selectedPeriod?->id]) }}" class="btn btn-sm btn-outline-secondary">Reset</a>
+                    @endif
+                    <button type="submit" class="btn btn-sm btn-primary">Cari</button>
+                </form>
+                <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#quickAssignCollapse">
+                    + Tambah Manual
+                </button>
+            </div>
+        </div>
     </div>
 
-    <!-- FORM QUICK ASSIGN -->
     <div class="collapse border-bottom p-3 bg-light" id="quickAssignCollapse">
         <form method="post" action="{{ route('admin.period-roles.store') }}" class="row g-3">
             @csrf
@@ -98,65 +108,75 @@
                 </select>
             </div>
             <div class="col-md-2 d-flex align-items-end">
-                <button type="submit" class="btn btn-sm btn-success w-100">Simpan Peran</button>
+                <button type="submit" class="btn btn-sm btn-primary w-100">Simpan Peran</button>
             </div>
         </form>
     </div>
 
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
+            <table class="table table-hover align-middle mb-0" id="rolesTable">
                 <thead class="table-light">
                     <tr>
-                        <th>NIK / NRP</th>
+                        <th style="width: 120px;">NIK / NRP</th>
                         <th>Nama Pengguna</th>
                         <th>Email</th>
                         <th>Program Studi</th>
                         <th>Peran di Periode Ini</th>
-                        <th class="text-end">Aksi</th>
+                        <th class="text-end" style="width: 140px;">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($userRoles as $ur)
+                    @forelse($groupedUsers as $item)
                         @php
-                            $isInvalidEmail = str_ends_with($ur->user->email, '@belum-diisi.invalid');
+                            $isInvalidEmail = str_ends_with($item->user->email, '@belum-diisi.invalid');
                         @endphp
                         <tr>
-                            <td class="fw-bold">{{ $ur->user_id }}</td>
-                            <td>{{ $ur->user->name }}</td>
+                            <td class="fw-bold font-monospace text-primary">{{ $item->user->id }}</td>
+                            <td class="fw-semibold">{{ $item->user->name }}</td>
                             <td>
                                 @if($isInvalidEmail)
-                                    <span class="text-danger fw-semibold" title="Email belum diisi">{{ $ur->user->email }}</span>
+                                    <span class="text-danger fw-semibold" title="Email belum diisi">{{ $item->user->email }}</span>
                                     <span class="badge text-bg-warning ms-1">Belum Diisi</span>
                                 @else
-                                    <span class="text-dark">{{ $ur->user->email }}</span>
+                                    <span class="text-dark">{{ $item->user->email }}</span>
                                 @endif
                             </td>
                             <td>
-                                @if($ur->user->studyProgram)
-                                    <span class="badge text-bg-light border">{{ $ur->user->studyProgram->name }}</span>
+                                @if($item->user->studyProgram)
+                                    <span class="badge text-bg-light border">{{ $item->user->studyProgram->name }}</span>
                                 @else
                                     <span class="text-muted">-</span>
                                 @endif
                             </td>
                             <td>
-                                <span class="badge bg-primary">
-                                    {{ str_replace('_', ' ', $ur->role->name) }}
-                                </span>
+                                <div class="d-flex flex-wrap gap-1">
+                                    @foreach($item->roles as $role)
+                                        @php
+                                            $badgeClass = match($role->name) {
+                                                'Admin' => 'bg-danger',
+                                                'Kepala_Lab' => 'bg-success',
+                                                'Kepala_Prodi' => 'bg-info text-dark',
+                                                'Dosen' => 'bg-primary',
+                                                'Staf_Lab' => 'bg-warning text-dark',
+                                                default => 'bg-secondary',
+                                            };
+                                        @endphp
+                                        <span class="badge {{ $badgeClass }}">
+                                            {{ str_replace('_', ' ', $role->name) }}
+                                        </span>
+                                    @endforeach
+                                </div>
                             </td>
                             <td class="text-end">
-                                <form method="post" action="{{ route('admin.period-roles.destroy', [$ur->period_id, $ur->user_id, $ur->role_id]) }}" class="d-inline" onsubmit="return confirm('Hapus peran {{ $ur->role->name }} untuk pengguna ini di periode {{ $selectedPeriod->name }}?')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-outline-danger">
-                                        Cabut Peran
-                                    </button>
-                                </form>
+                                <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editUserRolesModal-{{ $item->user->id }}">
+                                    Ubah Peran
+                                </button>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="text-center text-muted py-4">Belum ada peran staf yang ditugaskan pada periode semester ini.</td>
+                            <td colspan="6" class="text-center text-muted py-4">Belum ada peran staf yang sesuai kriteria pencarian pada periode ini.</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -165,7 +185,62 @@
     </div>
 </div>
 
-<!-- MODAL SALIN PERAN -->
+{{-- Modal Ubah Peran untuk Setiap Pengguna --}}
+@foreach($groupedUsers as $item)
+    <div class="modal fade" id="editUserRolesModal-{{ $item->user->id }}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <form method="post" action="{{ route('admin.period-roles.update-user', [$selectedPeriod->id, $item->user->id]) }}">
+                @csrf
+                @method('PUT')
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title fw-bold">Ubah Peran Pengguna</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="bg-light p-3 rounded mb-3 border">
+                            <div class="fw-bold fs-6">{{ $item->user->name }}</div>
+                            <div class="small text-secondary">NIK / NRP: <strong>{{ $item->user->id }}</strong> &bull; {{ $item->user->email }}</div>
+                            <div class="small text-secondary">Periode: <strong>{{ $selectedPeriod?->name }}</strong></div>
+                        </div>
+
+                        <label class="form-label fw-bold mb-2">Pilih Peran yang Diberikan (Dapat Lebih dari 1 Peran):</label>
+                        <div class="list-group mb-3">
+                            @foreach($allRoles as $r)
+                                @php
+                                    $hasRole = $item->roles->contains('id', $r->id);
+                                @endphp
+                                <label class="list-group-item d-flex gap-3 align-items-center cursor-pointer">
+                                    <input class="form-check-input flex-shrink-0 m-0" type="checkbox" name="role_ids[]" value="{{ $r->id }}" @checked($hasRole)>
+                                    <div class="flex-grow-1">
+                                        <div class="fw-semibold">{{ str_replace('_', ' ', $r->name) }}</div>
+                                        <small class="text-muted d-block">
+                                            @if($r->name === 'Dosen') Hak pengajaran dan peminjaman atas nama dosen.
+                                            @elseif($r->name === 'Kepala_Prodi') Persetujuan peminjaman tahap 1 lingkup program studi.
+                                            @elseif($r->name === 'Kepala_Lab') Persetujuan peminjaman tahap 2 per ruangan lab.
+                                            @elseif($r->name === 'Staf_Lab') Input peminjaman dosen dan operasional lab.
+                                            @elseif($r->name === 'Admin') Akses penuh seluruh pengaturan sistem.
+                                            @else Hak akses peminjaman umum.
+                                            @endif
+                                        </small>
+                                    </div>
+                                </label>
+                            @endforeach
+                        </div>
+                        <div class="small text-muted">
+                            <i class="bi bi-info-circle me-1"></i>Hapus centang semua peran jika ingin mencabut pengguna sepenuhnya dari periode ini.
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary btn-sm">Simpan Perubahan Peran</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+@endforeach
+
 <div class="modal fade" id="copyRolesModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -176,14 +251,12 @@
             <form method="post" action="{{ route('admin.period-roles.copy') }}">
                 @csrf
                 <div class="modal-body">
-                    <p class="text-secondary small mb-3">
-                        Gunakan fitur ini di awal semester untuk menyalin seluruh penugasan staf laboratorium, asisten, dan dosen dari periode sebelumnya ke periode saat ini secara cepat.
+                    <p class="small text-secondary">
+                        Fitur ini menyalin seluruh penugasan staf laboratorium dan dosen dari semester lalu ke semester saat ini. Penugasan yang sudah ada tidak akan diduplikasi.
                     </p>
-
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Periode Asal (Sumber Data)</label>
+                        <label class="form-label fw-semibold">Salin DARI Periode (Sumber):</label>
                         <select name="from_period_id" class="form-select" required>
-                            <option value="">-- Pilih Periode Asal --</option>
                             @foreach($allPeriods as $p)
                                 @if(!$selectedPeriod || $p->id !== $selectedPeriod->id)
                                     <option value="{{ $p->id }}">{{ $p->name }}</option>
@@ -191,72 +264,91 @@
                             @endforeach
                         </select>
                     </div>
-
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Periode Tujuan (Target Salinan)</label>
-                        <select name="to_period_id" class="form-select" required>
-                            @if($selectedPeriod)
-                                <option value="{{ $selectedPeriod->id }}" selected>{{ $selectedPeriod->name }}</option>
-                            @else
-                                <option value="">-- Pilih Periode Tujuan --</option>
-                                @foreach($allPeriods as $p)
-                                    <option value="{{ $p->id }}">{{ $p->name }}</option>
-                                @endforeach
-                            @endif
-                        </select>
+                        <label class="form-label fw-semibold">Salin KE Periode (Tujuan):</label>
+                        <input type="hidden" name="to_period_id" value="{{ $selectedPeriod?->id }}">
+                        <input type="text" class="form-control" value="{{ $selectedPeriod?->name }}" disabled>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary">Salin Peran Sekarang</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary btn-sm">Mulai Salin Peran</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
-<!-- MODAL UPLOAD DAFTAR STAF -->
 <div class="modal fade" id="uploadStaffModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title fw-bold">Unggah Daftar Staf Awal Semester</h5>
+                <h5 class="modal-title fw-bold">Upload Daftar Staf & Asisten Laboratorium</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form method="post" action="{{ route('admin.period-roles.upload') }}" enctype="multipart/form-data">
                 @csrf
                 <input type="hidden" name="period_id" value="{{ $selectedPeriod?->id }}">
                 <div class="modal-body">
-                    <p class="text-secondary small mb-3">
-                        Kepala Lab dapat mengunggah berkas CSV atau menempelkan daftar staf/asisten laboratorium. Akun pengguna yang belum ada akan dibuat secara otomatis dengan kata sandi acak dan kewajiban ganti kata sandi.
+                    <p class="small text-secondary mb-3">
+                        Unggah daftar staf untuk periode <strong>{{ $selectedPeriod?->name }}</strong>. Jika NIK belum terdaftar sebagai akun pengguna, akun akan otomatis dibuatkan dan pengguna diwajibkan mengganti kata sandi awal saat login.
                     </p>
 
-                    <div class="alert alert-info small mb-3">
-                        <strong>Format Baris (CSV / Teks):</strong><br>
-                        <code>NIK/NRP, Nama Lengkap, Email, Role (Staf_Lab / Dosen / Kepala_Lab / Kepala_Prodi), [KodeProdi]</code><br>
-                        <em>Contoh:</em><br>
-                        <code>STF001, Budi Santoso, budi@maranatha.edu, Staf_Lab</code><br>
-                        <code>720319, Rossevine Artha, rossevine@maranatha.edu, Kepala_Prodi, 72</code>
+                    <ul class="nav nav-tabs mb-3" role="tablist">
+                        <li class="nav-item">
+                            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabCsv" type="button">Upload File (CSV / TXT)</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabPaste" type="button">Tempel Teks (Paste)</button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content">
+                        <div class="tab-pane fade show active" id="tabCsv">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Pilih File Berkas</label>
+                                <input type="file" name="staff_file" class="form-control" accept=".csv,.txt">
+                                <div class="form-text">Format: <code>NIK, Nama Lengkap, Email, Peran (Opsional), Kode Prodi (Opsional)</code></div>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="tabPaste">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Tempel Baris Data Staf</label>
+                                <textarea name="staff_text" class="form-control font-monospace" rows="6" placeholder="72001, Budi Santoso, budi@maranatha.edu, Staf_Lab, 72&#10;72002, Siti Aminah, siti@maranatha.edu, Staf_Lab, 72"></textarea>
+                                <div class="form-text">Pisahkan tiap kolom dengan tanda koma (<code>,</code>) dan tiap data staf per baris baru.</div>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Pilih Berkas CSV / TXT</label>
-                        <input type="file" name="staff_file" class="form-control" accept=".csv,.txt">
-                    </div>
-
-                    <div class="text-center my-2 text-muted fw-bold">--- ATAU TEMPELKAN TEKS DI BAWAH ---</div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Tempel Teks Daftar Staf</label>
-                        <textarea name="staff_text" class="form-control font-monospace" rows="6" placeholder="720001, Dosen Satu, dosen1@maranatha.edu, Dosen, 72&#10;STF002, Asisten Lab, asisten@maranatha.edu, Staf_Lab"></textarea>
+                    <div class="alert alert-info py-2 px-3 small mb-0">
+                        <strong>Peran yang valid:</strong> Staf_Lab, Dosen, Kepala_Prodi, Kepala_Lab, Admin, Visitor.
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary">Proses & Simpan Peran Staf</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary btn-sm">Unggah dan Proses Data</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const input = document.getElementById('searchRoleInput');
+    const table = document.getElementById('rolesTable');
+    if (input && table) {
+        input.addEventListener('keyup', function() {
+            const filter = input.value.toLowerCase();
+            const rows = table.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(filter) ? '' : 'none';
+            });
+        });
+    }
+});
+</script>
+@endpush
 @endsection

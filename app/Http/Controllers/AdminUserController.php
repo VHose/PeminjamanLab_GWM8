@@ -20,20 +20,30 @@ class AdminUserController extends Controller
     public function index(Request $request): View
     {
         $activePeriodId = Period::where('is_active', true)->value('id');
+        $search = $request->input('search');
 
-        $users = User::with(['studyProgram', 'roles' => function ($q) use ($activePeriodId) {
+        $query = User::with(['studyProgram', 'roles' => function ($q) use ($activePeriodId) {
             if ($activePeriodId) {
                 $q->wherePivot('period_id', $activePeriodId);
             }
-        }])
-            ->orderBy('id')
-            ->paginate(20);
+        }]);
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('id', 'like', "%{$search}%")
+                  ->orWhere('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhereHas('studyProgram', fn ($sq) => $sq->where('name', 'like', "%{$search}%"));
+            });
+        }
+
+        $users = $query->orderBy('id')->paginate(20)->withQueryString();
 
         $allRoles = Role::all();
         $studyPrograms = StudyProgram::where('is_active', true)->orderBy('id')->get();
         $periods = Period::orderByDesc('start_date')->get();
 
-        return view('admin.users.index', compact('users', 'allRoles', 'studyPrograms', 'periods', 'activePeriodId'));
+        return view('admin.users.index', compact('users', 'allRoles', 'studyPrograms', 'periods', 'activePeriodId', 'search'));
     }
 
     public function store(StoreAdminUserRequest $request): RedirectResponse
@@ -96,7 +106,6 @@ class AdminUserController extends Controller
 
     public function toggleActive(Request $request, User $user): RedirectResponse
     {
-        // Cegah admin menonaktifkan dirinya sendiri
         if ($user->id === $request->user()->id) {
             return back()->with('error', 'Anda tidak dapat menonaktifkan akun Anda sendiri.');
         }

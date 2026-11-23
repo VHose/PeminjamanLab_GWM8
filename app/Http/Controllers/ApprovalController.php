@@ -23,8 +23,9 @@ class ApprovalController extends Controller
         $user = $request->user();
         $isKaprodi = $user->hasRole('Kepala_Prodi');
         $isKalab = $user->hasRole('Kepala_Lab');
+        $search = $request->input('search');
 
-        $pendingBookings = Booking::with(['details.room', 'requester', 'attachments'])
+        $query = Booking::with(['details.room', 'requester', 'attachments'])
             ->where(function ($q) use ($isKaprodi, $isKalab) {
                 if ($isKaprodi && $isKalab) {
                     $q->whereIn('status', [BookingStatus::PENDING_KAPRODI, BookingStatus::PENDING_KALAB]);
@@ -35,9 +36,19 @@ class ApprovalController extends Controller
                 } else {
                     $q->whereRaw('0 = 1');
                 }
-            })
-            ->latest('submitted_at')
-            ->paginate(15);
+            });
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('id', 'like', "%{$search}%")
+                  ->orWhere('pic_name', 'like', "%{$search}%")
+                  ->orWhere('purpose', 'like', "%{$search}%")
+                  ->orWhereHas('user', fn ($u) => $u->where('name', 'like', "%{$search}%")->orWhere('email', 'like', "%{$search}%"))
+                  ->orWhereHas('details.room', fn ($r) => $r->where('id', 'like', "%{$search}%")->orWhere('name', 'like', "%{$search}%"));
+            });
+        }
+
+        $pendingBookings = $query->latest('created_at')->paginate(15)->withQueryString();
 
         $recentDecisions = Booking::with(['details.room', 'requester', 'attachments'])
             ->whereIn('status', [BookingStatus::APPROVED, BookingStatus::REJECTED])
@@ -45,12 +56,9 @@ class ApprovalController extends Controller
             ->take(10)
             ->get();
 
-        return view('approvals.index', compact('pendingBookings', 'recentDecisions', 'isKaprodi', 'isKalab'));
+        return view('approvals.index', compact('pendingBookings', 'recentDecisions', 'isKaprodi', 'isKalab', 'search'));
     }
 
-    /**
-     * Keputusan Kaprodi (Level Booking).
-     */
     public function decideKaprodi(
         Request $request,
         Booking $booking,
@@ -84,7 +92,6 @@ class ApprovalController extends Controller
                     'notes' => $data['notes'],
                 ]);
 
-                // Semua detail ditolak
                 $booking->details()->update([
                     'status' => BookingDetailStatus::REJECTED,
                 ]);
@@ -108,9 +115,6 @@ class ApprovalController extends Controller
         return back()->with('success', 'Keputusan Kaprodi berhasil disimpan.');
     }
 
-    /**
-     * Keputusan Kalab (Per Ruangan / BookingDetail).
-     */
     public function decideKalabDetail(
         Request $request,
         BookingDetail $detail,
@@ -128,7 +132,6 @@ class ApprovalController extends Controller
             'notes' => 'nullable|required_if:status,rejected|string|max:150',
         ]);
 
-        // Cek bentrok jika hendak disetujui
         if ($data['status'] === 'approved') {
             $excludeId = $booking->type === BookingType::RESCHEDULE ? $booking->parent_booking_id : null;
             if (! $bookingService->isAvailable($detail->room_id, $detail->start_datetime, $detail->end_datetime, $excludeId)) {
@@ -155,7 +158,6 @@ class ApprovalController extends Controller
                 ($data['status'] === 'approved' ? 'Disetujui' : 'Ditolak') . " per ruangan {$detail->room_id} oleh Kalab." . (! empty($data['notes']) ? " Alasan: {$data['notes']}" : '')
             );
 
-            // Cek apakah semua detail untuk booking ini sudah diputuskan
             $hasPendingDetails = $booking->details()->where('status', BookingDetailStatus::PENDING)->exists();
 
             if (! $hasPendingDetails) {
@@ -164,7 +166,6 @@ class ApprovalController extends Controller
                 if ($hasAnyApproved) {
                     $booking->update(['status' => BookingStatus::APPROVED]);
 
-                    // Jika ini reschedule dan disetujui, booking lama dibatalkan
                     if ($booking->type === BookingType::RESCHEDULE && $booking->parent) {
                         $parent = $booking->parent;
                         $parent->update(['status' => BookingStatus::CANCELLED]);
@@ -179,7 +180,6 @@ class ApprovalController extends Controller
             }
         });
 
-        // Jika semua detail selesai diputuskan, kirim hasil akhir ke peminjam
         $booking->refresh();
         if ($booking->status === BookingStatus::APPROVED || $booking->status === BookingStatus::REJECTED) {
             $notifications->notifyFinalResult($booking);
