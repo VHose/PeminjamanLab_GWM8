@@ -4,15 +4,6 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
         <h1 class="h3 fw-bold mb-1">Persetujuan Peminjaman Laboratorium</h1>
-        <p class="text-secondary mb-0">
-            Peran Aktif: 
-            @if($isKaprodi)
-                <span class="badge bg-primary">Kepala Program Studi (Tahap 1 - Pengajuan)</span>
-            @endif
-            @if($isKalab)
-                <span class="badge bg-success">Kepala Laboratorium (Tahap 2 - Per Ruangan)</span>
-            @endif
-        </p>
     </div>
 </div>
 
@@ -35,16 +26,16 @@
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0" id="pendingBookingsTable">
+            <table class="table table-hover align-middle text-nowrap mb-0" id="pendingBookingsTable">
                 <thead class="table-light">
                     <tr>
-                        <th>ID</th>
-                        <th>Tipe</th>
-                        <th>Status Booking</th>
-                        <th>Pemohon</th>
-                        <th>Tujuan</th>
-                        <th>Ruangan & Jadwal</th>
-                        <th class="text-center" style="width: 320px;">Aksi Keputusan</th>
+                        <th class="text-start">ID</th>
+                        <th class="text-start">Tipe</th>
+                        <th class="text-start">Status Booking</th>
+                        <th class="text-start">Pemohon</th>
+                        <th class="text-start">Tujuan</th>
+                        <th class="text-start">Ruangan & Jadwal</th>
+                        <th class="text-start" style="width: 320px;">Aksi Keputusan</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -125,7 +116,7 @@
                             <td>
                                 @if($bStatusVal === 0 && $isKaprodi)
                                     <div class="d-flex flex-column gap-2 border p-2 rounded bg-light">
-                                        <div class="small fw-bold text-primary">Keputusan Kaprodi (Level Booking)</div>
+                                        
                                         <form method="post" action="{{ route('approvals.decideKaprodi', $booking) }}">
                                             @csrf
                                             <input type="hidden" name="status" value="approved">
@@ -150,7 +141,7 @@
                                     </div>
                                 @elseif($bStatusVal === 1 && $isKalab)
                                     <div class="d-flex flex-column gap-2">
-                                        <div class="small fw-bold text-success">Keputusan Kalab (Per Ruangan):</div>
+                                        
                                         @foreach($booking->details as $dtIndex => $dt)
                                             @php
                                                 $dStatusVal = $dt->status instanceof \App\Enums\BookingDetailStatus ? $dt->status->value : (int) $dt->status;
@@ -203,71 +194,19 @@
     @endif
 </div>
 
-<div class="card shadow-sm border-0 mb-5">
-    <div class="card-header bg-white py-3">
-        <h2 class="h5 fw-bold mb-0">Riwayat Keputusan Terbaru</h2>
-    </div>
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0 text-sm">
-                <thead class="table-light">
-                    <tr>
-                        <th>ID</th>
-                        <th>Pemohon</th>
-                        <th>Tujuan</th>
-                        <th>Status Booking</th>
-                        <th>Catatan</th>
-                        <th>Waktu Update</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($recentDecisions as $dec)
-                        @php
-                            $decStatusVal = $dec->status instanceof \App\Enums\BookingStatus ? $dec->status->value : (int) $dec->status;
-                        @endphp
-                        <tr>
-                            <td>#{{ $dec->id }}</td>
-                            <td>{{ $dec->requester_name }}</td>
-                            <td>{{ Str::limit($dec->purpose, 30) }}</td>
-                            <td>
-                                @if($decStatusVal === 2)
-                                    <span class="badge text-bg-success">Disetujui</span>
-                                @elseif($decStatusVal === 3)
-                                    <span class="badge text-bg-danger">Ditolak</span>
-                                @else
-                                    <span class="badge text-bg-secondary">{{ $dec->status_label }}</span>
-                                @endif
-                            </td>
-                            <td class="small">{{ $dec->notes ?? '-' }}</td>
-                            <td class="small">{{ $dec->updated_at ? $dec->updated_at->format('d/m/Y H:i') : '-' }}</td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="6" class="text-center py-3 text-muted">Belum ada riwayat persetujuan.</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-
+@push('scripts')
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    const searchInput = document.getElementById('approvalSearchInput');
-    const tableBody = document.querySelector('#pendingBookingsTable tbody');
-    if (searchInput && tableBody) {
-        searchInput.addEventListener('keyup', function () {
-            const filter = this.value.toLowerCase().trim();
-            const rows = tableBody.querySelectorAll('tr');
-            rows.forEach(function (row) {
-                if (row.cells.length > 1) {
-                    const text = row.textContent.toLowerCase();
-                    row.style.display = text.includes(filter) ? '' : 'none';
-                }
-            });
-        });
+$(document).ready(function() {
+    if ($.fn.DataTable.isDataTable('#pendingBookingsTable')) {
+        $('#pendingBookingsTable').DataTable().destroy();
     }
+    $('#pendingBookingsTable').DataTable({
+        order: [[0, 'desc']],
+        columnDefs: [
+            { orderable: false, targets: [6] }
+        ]
+    });
 });
 </script>
+@endpush
 @endsection

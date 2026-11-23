@@ -65,13 +65,13 @@
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
+                    <table class="table table-hover align-middle text-nowrap mb-0">
                         <thead class="table-light">
                             <tr>
                                 <th>Rentang Tanggal Libur</th>
                                 <th>Durasi</th>
                                 <th>Keterangan</th>
-                                <th class="text-end">Aksi</th>
+                                <th>Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -99,7 +99,7 @@
                                     <td>
                                         <span class="text-dark">{{ $h->note ?? 'Libur' }}</span>
                                     </td>
-                                    <td class="text-end">
+                                    <td>
                                         <form method="post" action="{{ route('admin.holidays.destroy', [$period, $h->start_date->toDateString()]) }}" class="d-inline" onsubmit="return confirm('Hapus hari libur ini?')">
                                             @csrf
                                             @method('DELETE')
@@ -118,6 +118,11 @@
                     </table>
                 </div>
             </div>
+            @if($holidays->hasPages())
+                <div class="card-footer bg-white border-top py-3">
+                    {{ $holidays->links() }}
+                </div>
+            @endif
         </div>
     </div>
 </div>

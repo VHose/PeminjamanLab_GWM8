@@ -112,7 +112,6 @@
                             <th>Waktu Mulai</th>
                             <th>Waktu Selesai</th>
                             <th>Status Ruangan</th>
-                            <th>Catatan / Alasan</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -136,7 +135,6 @@
                                         <span class="badge bg-warning text-dark">Menunggu</span>
                                     @endif
                                 </td>
-                                <td>{{ $dt->notes ?? '-' }}</td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -146,20 +144,32 @@
 
         @php
             $firstSlot = $booking->details->sortBy('start_datetime')->first();
-            $canCancelOrChange = $booking->user_id === auth()->id()
+            $statusVal = $booking->status instanceof \App\Enums\BookingStatus ? $booking->status->value : (int) $booking->status;
+            $isOwner = (string) $booking->user_id === (string) auth()->id();
+            $hasNotStarted = $firstSlot ? now()->lt(\Carbon\Carbon::parse($firstSlot->start_datetime)) : true;
+            $isHMinus2OrMore = $firstSlot ? now()->lte(\Carbon\Carbon::parse($firstSlot->start_datetime)->subDays(2)) : true;
+
+            $canCancel = $isOwner 
+                && in_array($statusVal, [0, 1, 2])
+                && ($statusVal === 2 ? $isHMinus2OrMore : $hasNotStarted);
+
+            $canChange = $isOwner
                 && $statusVal === 2
-                && $firstSlot
-                && now()->lte(\Carbon\Carbon::parse($firstSlot->start_datetime)->subDays(2));
+                && $isHMinus2OrMore;
         @endphp
 
-        @if($canCancelOrChange)
+        @if($canCancel || $canChange)
             <div class="card shadow-sm border-0 mb-5">
                 <div class="card-body d-flex justify-content-end gap-2">
-                    <a class="btn btn-warning" href="{{ route('bookings.change', $booking) }}">Ajukan Ubah Jadwal / Ruangan</a>
-                    <form method="post" action="{{ route('bookings.cancel', $booking) }}" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan peminjaman ini? Tindakan ini tidak dapat diulang.')">
-                        @csrf
-                        <button type="submit" class="btn btn-danger">Batalkan Peminjaman</button>
-                    </form>
+                    @if($canChange)
+                        <a class="btn btn-warning" href="{{ route('bookings.change', $booking) }}">Ajukan Ubah Jadwal / Ruangan</a>
+                    @endif
+                    @if($canCancel)
+                        <form method="post" action="{{ route('bookings.cancel', $booking) }}" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan peminjaman ini? Tindakan ini tidak dapat diulang.')">
+                            @csrf
+                            <button type="submit" class="btn btn-danger">Batalkan Peminjaman</button>
+                        </form>
+                    @endif
                 </div>
             </div>
         @endif

@@ -17,21 +17,13 @@ class WelcomePageTest extends TestCase
         $response->assertSee('bootstrap@5.3.3', false);
     }
 
-    public function test_welcome_page_renders_interactive_floor_plan_for_all_labs(): void
+    public function test_welcome_page_renders_floor_plan(): void
     {
         $response = $this->get('/');
 
         $response->assertOk();
-        $response->assertSee('denah-interactive-wrapper');
-
-        $labs = [
-            'PROG1', 'PROG2', 'Network', 'INT1', 'INT2',
-            'ADV1', 'ADV2', 'ADV3', 'ADV4', 'DB', 'MMD', 'ENT1', 'ENT2'
-        ];
-
-        foreach ($labs as $labId) {
-            $response->assertSee('data-room-id="' . $labId . '"', false);
-        }
+        $response->assertSee('denah-lantai-8.png');
+        $response->assertDontSee('denah-lab-link');
     }
 
     public function test_booking_create_preselects_room_from_query_parameter(): void
@@ -55,7 +47,6 @@ class WelcomePageTest extends TestCase
             'email' => 'user@test.com',
             'password' => \Illuminate\Support\Facades\Hash::make('password123'),
             'is_active' => true,
-            'must_change_password' => false,
         ]);
 
         $response = $this->actingAs($user)->get(route('bookings.create', [

@@ -12,7 +12,7 @@
 <div class="card shadow-sm border-0">
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
+            <table class="table table-hover align-middle text-nowrap mb-0">
                 <thead class="table-light">
                     <tr>
                         <th>Periode</th>
@@ -23,7 +23,7 @@
                         <th>Waktu</th>
                         <th>Dosen / Pengajar</th>
                         <th>Kelas</th>
-                        <th class="text-end">Aksi</th>
+                        <th>Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -54,13 +54,13 @@
                                     <span class="badge bg-secondary">Reguler</span>
                                 @endif
                             </td>
-                            <td class="text-end">
-                                <div class="btn-group btn-group-sm">
-                                    <a class="btn btn-outline-primary" href="{{ route('sections.edit', $section) }}">Ubah</a>
+                            <td>
+                                <div class="d-inline-flex gap-1 align-items-center">
+                                    <a class="btn btn-sm btn-outline-primary" href="{{ route('sections.edit', $section) }}">Ubah</a>
                                     <form method="post" action="{{ route('sections.destroy', $section) }}" class="d-inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus jadwal ini?')">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="btn btn-outline-danger">Hapus</button>
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">Hapus</button>
                                     </form>
                                 </div>
                             </td>

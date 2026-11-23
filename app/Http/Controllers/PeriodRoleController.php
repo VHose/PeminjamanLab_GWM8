@@ -12,6 +12,8 @@ use App\Models\User;
 use App\Models\UserRole;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -49,18 +51,31 @@ class PeriodRoleController extends Controller
 
             $userRoles = $userRolesQuery->get();
 
-            $groupedUsers = $userRoles->groupBy('user_id')->map(function ($roles) {
+            $groupedCollection = $userRoles->groupBy('user_id')->map(function ($roles) {
                 return (object) [
                     'user' => $roles->first()->user,
                     'roles' => $roles->pluck('role'),
                     'user_roles' => $roles,
                 ];
-            });
+            })->values();
+
+            $currentPage = Paginator::resolveCurrentPage();
+            $perPage = 20;
+            $itemsForCurrentPage = $groupedCollection->slice(($currentPage - 1) * $perPage, $perPage)->values();
+            $groupedUsers = new LengthAwarePaginator(
+                $itemsForCurrentPage,
+                $groupedCollection->count(),
+                $perPage,
+                $currentPage,
+                ['path' => Paginator::resolveCurrentPath(), 'query' => $request->query()]
+            );
 
             $userIdsInPeriod = $userRoles->pluck('user_id')->unique();
             $invalidEmailUsers = User::whereIn('id', $userIdsInPeriod)
                 ->where('email', 'like', '%@belum-diisi.invalid')
                 ->get();
+        } else {
+            $groupedUsers = new LengthAwarePaginator([], 0, 20);
         }
 
         $allRoles = Role::orderBy('id')->get();
@@ -180,7 +195,8 @@ class PeriodRoleController extends Controller
                         'email' => $email,
                         'password' => Hash::make(Str::random(32)),
                         'is_active' => true,
-                        'must_change_password' => true,
+                        'status' => 'active',
+                        'email_verified_at' => now(),
                     ]);
                 } else {
                     $user->update([
@@ -233,7 +249,8 @@ class PeriodRoleController extends Controller
                 'study_program_id' => $validated['study_program_id'] ?? null,
                 'password' => Hash::make(Str::random(32)),
                 'is_active' => true,
-                'must_change_password' => true,
+                'status' => 'active',
+                'email_verified_at' => now(),
             ]);
         }
 

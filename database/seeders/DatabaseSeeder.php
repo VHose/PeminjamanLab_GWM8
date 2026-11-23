@@ -11,7 +11,6 @@ class DatabaseSeeder extends Seeder
         $this->call([
             InitialDataSeeder::class,
             CalendarSeeder::class,
-            TestingUsersSeeder::class,
         ]);
     }
 }

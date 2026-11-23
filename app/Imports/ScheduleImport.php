@@ -111,6 +111,7 @@ class ScheduleImport implements ToCollection
 
                 $kodeMk = $getVal(['kode', 'kode mk', 'kode_mk'], 1);
                 $namaMk = $getVal(['nama indonesia', 'mata kuliah', 'nama'], 2);
+                $sksRaw = $getVal(['sks buku', 'sks_buku', 'sks real', 'sks_real', 'sks'], null);
                 $nik = $getVal(['nik', 'dosen_id'], 3);
                 $dosenNama = $getVal(['dosen', 'nama dosen'], 4);
                 $kodeKelas = $getVal(['kodekelas', 'kode kelas', 'kelas'], 5) ?: 'A';
@@ -162,6 +163,12 @@ class ScheduleImport implements ToCollection
 
                 $type = (stripos((string) $namaMk, 'praktikum') !== false) ? 1 : 0;
 
+                if ($sksRaw !== null && $sksRaw !== '') {
+                    $sks = trim((string) $sksRaw);
+                } else {
+                    $sks = ($type === 1) ? '1' : '2';
+                }
+
                 $userId = $nik ? trim((string) $nik) : null;
                 if (! $userId || strtolower($userId) === 'team teaching' || strlen($userId) > 10) {
                     $userId = 'DOSEN_TEAM';
@@ -176,9 +183,10 @@ class ScheduleImport implements ToCollection
                             'study_program_id' => $prodiId,
                             'name' => $dosenNama ?: "Dosen {$userId}",
                             'email' => "{$userId}@maranatha.ac.id",
-                            'password' => Hash::make(Str::random(40)),
+                            'password' => Hash::make(env('DEFAULT_PASSWORD', 'password123')),
                             'is_active' => true,
-                            'must_change_password' => true,
+                            'status' => 'active',
+                            'email_verified_at' => $now,
                             'updated_at' => $now,
                             'created_at' => $now,
                         ]
@@ -198,9 +206,10 @@ class ScheduleImport implements ToCollection
                             'study_program_id' => '00',
                             'name' => $dosenNama ?: 'Team Teaching',
                             'email' => 'teamteaching@maranatha.ac.id',
-                            'password' => Hash::make(Str::random(40)),
+                            'password' => Hash::make(env('DEFAULT_PASSWORD', 'password123')),
                             'is_active' => true,
-                            'must_change_password' => true,
+                            'status' => 'active',
+                            'email_verified_at' => $now,
                             'updated_at' => $now,
                             'created_at' => $now,
                         ]
@@ -237,6 +246,7 @@ class ScheduleImport implements ToCollection
                     [
                         'user_id' => $userId,
                         'end_time' => $endTime,
+                        'sks' => $sks,
                         'updated_at' => $now,
                         'created_at' => $now,
                     ]

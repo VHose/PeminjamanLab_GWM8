@@ -38,15 +38,14 @@ class ScheduleImportController extends Controller
         try {
             Excel::import($import, $request->file('file'));
 
-            ActivityLog::create([
-                'created_at' => now(),
-                'user_id' => $request->user()->id,
-                'action' => 'IMPORT',
-                'subject_type' => 'schedule',
-                'subject_id' => (string) $period->id,
-                'description' => "Import jadwal kuliah untuk periode {$period->name}. Berhasil: {$import->getImportedCount()} jadwal lab.",
-                'ip_address' => $request->ip(),
-            ]);
+            ActivityLog::record(
+                $request->user()->id,
+                'import',
+                'schedule',
+                (string) $period->id,
+                "Import jadwal kuliah untuk periode {$period->name}. Berhasil: {$import->getImportedCount()} jadwal lab.",
+                $request->ip()
+            );
 
             return redirect()->route('admin.schedules.import')
                 ->with('success', "Jadwal berhasil diimport! Sebanyak {$import->getImportedCount()} jadwal perkuliahan Lab GWM Lt. 8 telah dimasukkan dan sesi mingguan berhasil digenerate otomatis.");

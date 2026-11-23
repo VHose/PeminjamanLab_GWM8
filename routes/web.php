@@ -7,6 +7,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BookingAvailabilityController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\EmailVerificationController;
 use App\Http\Controllers\MasterController;
 use App\Http\Controllers\PasswordChangeController;
 use App\Http\Controllers\PeriodController;
@@ -14,6 +15,7 @@ use App\Http\Controllers\PeriodHolidayController;
 use App\Http\Controllers\PeriodRoleController;
 use App\Http\Controllers\ScheduleSessionController;
 use App\Http\Controllers\SectionController;
+use App\Http\Controllers\VisitorApprovalController;
 use Illuminate\Support\Facades\Route;
 
 // Halaman Beranda & Jadwal
@@ -35,6 +37,17 @@ Route::middleware('guest')->group(function () {
     Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.update');
 });
 
+// Verifikasi Email
+Route::middleware('auth')->group(function () {
+    Route::get('/email/verify', [EmailVerificationController::class, 'notice'])->name('verification.notice');
+    Route::post('/email/verification-notification', [EmailVerificationController::class, 'send'])
+        ->middleware('throttle:6,1')
+        ->name('verification.send');
+});
+Route::get('/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])
+    ->middleware('signed')
+    ->name('verification.verify');
+
 Route::post('/logout', [AuthController::class, 'destroy'])->middleware('auth')->name('logout');
 
 // Halaman yang membutuhkan login
@@ -43,15 +56,26 @@ Route::middleware('auth')->group(function () {
     Route::get('/change-password', [PasswordChangeController::class, 'edit'])->name('password.change');
     Route::post('/change-password', [PasswordChangeController::class, 'update'])->name('password.change.update');
 
+    // Pengajuan & Perubahan Peminjaman (Wajib akun visitor aktif & disetujui)
+    Route::middleware('visitor.approved')->group(function () {
+        Route::get('/bookings/create', [BookingController::class, 'create'])->name('bookings.create');
+        Route::get('/gwm-lantai8/peminjaman', [BookingController::class, 'create'])->name('bookings.create.alias');
+        Route::post('/bookings', [BookingController::class, 'store'])->name('bookings.store');
+        Route::get('/bookings/{booking}/change', [BookingController::class, 'change'])->name('bookings.change');
+    });
+
     // Peminjaman Ruangan
     Route::get('/bookings', [BookingController::class, 'index'])->name('bookings.index');
-    Route::get('/bookings/create', [BookingController::class, 'create'])->name('bookings.create');
-    Route::get('/gwm-lantai8/peminjaman', [BookingController::class, 'create'])->name('bookings.create.alias');
-    Route::post('/bookings', [BookingController::class, 'store'])->name('bookings.store');
     Route::get('/bookings/{booking}', [BookingController::class, 'show'])->name('bookings.show');
     Route::get('/bookings/{booking}/attachments/{attachment}', [BookingController::class, 'showAttachment'])->name('bookings.attachments.show');
-    Route::get('/bookings/{booking}/change', [BookingController::class, 'change'])->name('bookings.change');
     Route::post('/bookings/{booking}/cancel', [BookingController::class, 'cancel'])->name('bookings.cancel');
+
+    // Staf_Lab, Kepala_Lab, Admin: Persetujuan Pendaftaran Akun Visitor
+    Route::middleware('role:Staf_Lab,Kepala_Lab,Admin')->prefix('admin')->group(function () {
+        Route::get('/visitor-approvals', [VisitorApprovalController::class, 'index'])->name('admin.visitor-approvals.index');
+        Route::post('/visitor-approvals/{user}/approve', [VisitorApprovalController::class, 'approve'])->name('admin.visitor-approvals.approve');
+        Route::post('/visitor-approvals/{user}/reject', [VisitorApprovalController::class, 'reject'])->name('admin.visitor-approvals.reject');
+    });
 
     // Staf_Lab: Booking atas nama dosen
     Route::middleware('role:Staf_Lab')->group(function () {
@@ -76,9 +100,16 @@ Route::middleware('auth')->group(function () {
         Route::post('/approvals/detail/{detail}/kalab', [ApprovalController::class, 'decideKalabDetail'])->name('approvals.decideKalabDetail');
     });
 
-    // Kepala Lab & Admin: Kelola Peran Staf per Periode Semester
+    // Kepala Lab & Admin: Kelola Pengguna, Peran, dan Jadwal
     Route::middleware('role:Kepala_Lab,Admin')->prefix('admin')->group(function () {
-        Route::get('/period-roles', [PeriodRoleController::class, 'index'])->name('admin.period-roles.index');
+        // Kelola Pengguna & Peran (Unified Menu)
+        Route::get('/users', [AdminUserController::class, 'index'])->name('admin.users.index');
+        Route::post('/users', [AdminUserController::class, 'store'])->name('admin.users.store');
+        Route::post('/users/{user}/reset-password', [AdminUserController::class, 'resetPassword'])->name('admin.users.resetPassword');
+        Route::post('/users/{user}/toggle', [AdminUserController::class, 'toggleActive'])->name('admin.users.toggle');
+
+        // Period Roles Actions & Backward Compatibility
+        Route::get('/period-roles', fn (\Illuminate\Http\Request $request) => redirect()->route('admin.users.index', $request->query()))->name('admin.period-roles.index');
         Route::post('/period-roles', [PeriodRoleController::class, 'store'])->name('admin.period-roles.store');
         Route::post('/period-roles/copy', [PeriodRoleController::class, 'copy'])->name('admin.period-roles.copy');
         Route::post('/period-roles/upload', [PeriodRoleController::class, 'upload'])->name('admin.period-roles.upload');
@@ -90,14 +121,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/schedules/import', [\App\Http\Controllers\ScheduleImportController::class, 'store'])->name('admin.schedules.import.store');
     });
 
-    // Admin Only: Fitur Pengaturan Lengkap & Master Data
+    // Admin Only: Fitur Pengaturan Periode & Sesi Jadwal
     Route::middleware('role:Admin')->prefix('admin')->group(function () {
-        // Kelola Pengguna
-        Route::get('/users', [AdminUserController::class, 'index'])->name('admin.users.index');
-        Route::post('/users', [AdminUserController::class, 'store'])->name('admin.users.store');
-        Route::post('/users/{user}/reset-password', [AdminUserController::class, 'resetPassword'])->name('admin.users.resetPassword');
-        Route::post('/users/{user}/toggle', [AdminUserController::class, 'toggleActive'])->name('admin.users.toggle');
-
         // Periode Semester
         Route::get('/periods', [PeriodController::class, 'index'])->name('admin.periods.index');
         Route::get('/settings', fn () => redirect()->route('admin.periods.index'))->name('admin.settings.index');

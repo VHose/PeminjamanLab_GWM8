@@ -139,7 +139,6 @@
             <div class="card shadow-sm border-0 mb-5">
                 <div class="card-body p-4 text-center">
                     <button type="submit" class="btn btn-primary btn-lg px-5" id="btnSubmit">Kirim Pengajuan Peminjaman</button>
-                    <div id="submitWarning" class="alert alert-danger mt-3 mb-0 mx-auto" style="display: none; max-width: 650px;"></div>
                 </div>
             </div>
         </form>
@@ -204,8 +203,7 @@ function updatePreviews() {
     const container = document.getElementById('previewTablesContainer');
     const items = document.querySelectorAll('.slot-item');
     const btnSubmit = document.getElementById('btnSubmit');
-    const submitWarning = document.getElementById('submitWarning');
-
+    
     let hasCompleteSlot = false;
     let tablesHtml = '';
     let globalConflictFound = false;
@@ -346,15 +344,8 @@ function updatePreviews() {
 
     if (hasConflict) {
         btnSubmit.disabled = true;
-        if (submitWarning) {
-            submitWarning.innerHTML = '<strong><i class="bi bi-exclamation-triangle-fill me-1"></i> Jadwal Bentrok Terdeteksi!</strong><br>Pilihan waktu atau ruangan bentrok / tidak valid. Silakan sesuaikan jam atau ruangan agar tombol kirim dapat ditekan.';
-            submitWarning.style.display = 'block';
-        }
     } else {
         btnSubmit.disabled = false;
-        if (submitWarning) {
-            submitWarning.style.display = 'none';
-        }
     }
 }
 

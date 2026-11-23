@@ -14,7 +14,7 @@ class PeriodHolidayController extends Controller
 {
     public function index(Period $period): View
     {
-        $holidays = $period->holidays()->orderBy('start_date')->get();
+        $holidays = $period->holidays()->orderBy('start_date')->paginate(15)->withQueryString();
 
         return view('admin.holidays.index', compact('period', 'holidays'));
     }

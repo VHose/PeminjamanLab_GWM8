@@ -25,7 +25,7 @@ return new class extends Migration
             $table->time('start_time');
             $table->time('end_time');
             $table->string('notes', 100)->nullable();                // keterangan jadwal (kelas gabungan, dll.)
-            $table->string('sks', 10);                   // total beban SKS (misal "4" atau "3+1")
+            $table->string('sks', 10)->default('0');                   // total beban SKS (misal "4" atau "3+1")
             $table->timestamps();
 
             $table->unique(['period_id', 'course_id', 'class_code', 'type', 'day_of_week'], 'schedule_natural_unique');

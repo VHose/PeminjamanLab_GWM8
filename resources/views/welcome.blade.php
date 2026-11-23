@@ -16,136 +16,67 @@
     </div>
     <div class="col-md-4 text-md-end mt-3 mt-md-0">
         @auth
-            <a class="btn btn-primary" href="{{ route('bookings.create') }}">Ajukan Peminjaman Ruangan</a>
+            @if(!auth()->user()->isInternal() && !auth()->user()->hasVerifiedEmail())
+                <a class="btn btn-warning" href="{{ route('verification.notice') }}">Verifikasi Email</a>
+            @elseif(!auth()->user()->isInternal() && (auth()->user()->status !== 'active' || !auth()->user()->is_active))
+                <button class="btn btn-secondary" disabled title="Menunggu persetujuan akun dari Kepala Lab / Staf Lab">Menunggu Persetujuan</button>
+            @else
+                <a class="btn btn-primary" href="{{ route('bookings.create') }}">Ajukan Peminjaman Ruangan</a>
+            @endif
         @else
             <a class="btn btn-primary" href="{{ route('login') }}">Masuk untuk Meminjam</a>
         @endauth
     </div>
 </div>
 
-@php
-    $bookingDate = ($date->isPast() && !$date->isToday()) ? now()->toDateString() : $date->toDateString();
+@auth
+    @if(!auth()->user()->isInternal())
+        @if(!auth()->user()->hasVerifiedEmail())
+            <div class="alert alert-warning d-flex align-items-center justify-content-between mb-4 shadow-sm" role="alert">
+                <div>
+                    <strong>Email Belum Terverifikasi:</strong> Silakan verifikasi alamat email Anda agar dapat mengajukan peminjaman laboratorium.
+                </div>
+                <a href="{{ route('verification.notice') }}" class="btn btn-sm btn-warning text-dark fw-semibold text-nowrap ms-3">Verifikasi Sekarang</a>
+            </div>
+        @elseif(auth()->user()->status === 'pending' || !auth()->user()->is_active)
+            <div class="alert alert-info d-flex align-items-center mb-4 shadow-sm" role="alert">
+                <div>
+                    <strong>Pendaftaran Menunggu Persetujuan:</strong> Akun Anda telah terverifikasi email dan saat ini sedang menunggu persetujuan (approval) oleh Kepala Lab / Staf Lab. Tombol pengajuan peminjaman akan otomatis aktif setelah akun Anda disetujui.
+                </div>
+            </div>
+        @elseif(auth()->user()->status === 'rejected')
+            <div class="alert alert-danger d-flex align-items-center mb-4 shadow-sm" role="alert">
+                <div>
+                    <strong>Akun Tidak Disetujui:</strong> Pendaftaran akun visitor Anda tidak disetujui oleh pengelola laboratorium. Silakan hubungi Staf Lab atau Kepala Lab.
+                </div>
+            </div>
+        @endif
+    @endif
 
-    $labRooms = [
-        [
-            'id' => 'PROG2',
-            'name' => 'Programming Lab 2',
-            'x' => 24, 'y' => 95, 'w' => 98, 'h' => 166,
-            'color' => '#0d6efd',
-            'bg' => 'rgba(13, 110, 253, 0.38)',
-        ],
-        [
-            'id' => 'PROG1',
-            'name' => 'Programming Lab 1',
-            'x' => 122, 'y' => 75, 'w' => 94, 'h' => 169,
-            'color' => '#0d6efd',
-            'bg' => 'rgba(13, 110, 253, 0.38)',
-        ],
-        [
-            'id' => 'Network',
-            'name' => 'Computer Network Lab',
-            'x' => 216, 'y' => 88, 'w' => 92, 'h' => 156,
-            'color' => '#0dcaf0',
-            'bg' => 'rgba(13, 202, 240, 0.40)',
-        ],
-        [
-            'id' => 'INT2',
-            'name' => 'Internet Lab 2',
-            'x' => 173, 'y' => 296, 'w' => 136, 'h' => 143,
-            'color' => '#20c997',
-            'bg' => 'rgba(32, 201, 151, 0.38)',
-        ],
-        [
-            'id' => 'INT1',
-            'name' => 'Internet Lab 1',
-            'x' => 309, 'y' => 297, 'w' => 94, 'h' => 142,
-            'color' => '#20c997',
-            'bg' => 'rgba(32, 201, 151, 0.38)',
-        ],
-        [
-            'id' => 'ADV4',
-            'name' => 'Advance Programming Lab 4',
-            'x' => 403, 'y' => 297, 'w' => 95, 'h' => 143,
-            'color' => '#6610f2',
-            'bg' => 'rgba(102, 16, 242, 0.38)',
-        ],
-        [
-            'id' => 'ADV3',
-            'name' => 'Advance Programming Lab 3',
-            'x' => 498, 'y' => 297, 'w' => 88, 'h' => 146,
-            'color' => '#6610f2',
-            'bg' => 'rgba(102, 16, 242, 0.38)',
-        ],
-        [
-            'id' => 'DB',
-            'name' => 'Database Lab',
-            'x' => 778, 'y' => 299, 'w' => 92, 'h' => 145,
-            'color' => '#fd7e14',
-            'bg' => 'rgba(253, 126, 20, 0.40)',
-        ],
-        [
-            'id' => 'MMD',
-            'name' => 'Multimedia Lab',
-            'x' => 870, 'y' => 279, 'w' => 107, 'h' => 219,
-            'color' => '#d63384',
-            'bg' => 'rgba(214, 51, 132, 0.38)',
-        ],
-        [
-            'id' => 'ENT1',
-            'name' => 'Enterprise Lab 1',
-            'x' => 28, 'y' => 487, 'w' => 99, 'h' => 90,
-            'color' => '#198754',
-            'bg' => 'rgba(25, 135, 84, 0.38)',
-        ],
-        [
-            'id' => 'ENT2',
-            'name' => 'Enterprise Lab 2',
-            'x' => 127, 'y' => 488, 'w' => 88, 'h' => 122,
-            'color' => '#198754',
-            'bg' => 'rgba(25, 135, 84, 0.38)',
-        ],
-        [
-            'id' => 'ADV1',
-            'name' => 'Advance Programming Lab 1',
-            'x' => 313, 'y' => 490, 'w' => 89, 'h' => 139,
-            'color' => '#6610f2',
-            'bg' => 'rgba(102, 16, 242, 0.38)',
-        ],
-        [
-            'id' => 'ADV2',
-            'name' => 'Advance Programming Lab 2',
-            'x' => 402, 'y' => 490, 'w' => 92, 'h' => 140,
-            'color' => '#6610f2',
-            'bg' => 'rgba(102, 16, 242, 0.38)',
-        ],
-    ];
-@endphp
+    @if(auth()->user()->hasRole('Kepala_Lab', 'Staf_Lab', 'Admin'))
+        @php
+            $pendingVisitorCount = \App\Models\User::where('status', 'pending')->count();
+        @endphp
+        @if($pendingVisitorCount > 0)
+            <div class="alert alert-warning d-flex justify-content-between align-items-center mb-4 shadow-sm">
+                <div>
+                    <strong>Pemberitahuan Pendaftar Baru:</strong> Terdapat <strong>{{ $pendingVisitorCount }} akun visitor baru</strong> yang menunggu persetujuan Anda.
+                </div>
+                <a href="{{ route('admin.visitor-approvals.index', ['status' => 'pending']) }}" class="btn btn-sm btn-warning text-dark fw-bold text-nowrap ms-3">
+                    Tinjau & Setujui
+                </a>
+            </div>
+        @endif
+    @endif
+@endauth
 
 <div class="card mb-4 shadow-sm border-0">
     <div class="card-header bg-white py-3">
         <h2 class="h5 mb-0 fw-bold">Denah Laboratorium Komputer GWM Lantai 8</h2>
     </div>
     <div class="card-body p-3 text-center bg-light">
-        <div class="denah-interactive-wrapper shadow-sm rounded border bg-white">
-            <svg viewBox="0 0 1024 765" class="denah-svg" preserveAspectRatio="xMidYMid meet">
-                <!-- Gambar Denah Asli -->
-                <image href="{{ asset('images/denah-lantai-8.png') }}" width="1024" height="765" />
-
-                <!-- Area Interaktif Setiap Ruangan Lab -->
-                @foreach($labRooms as $lab)
-                    <a href="{{ route('bookings.create', ['room_id' => $lab['id'], 'date' => $bookingDate]) }}"
-                       class="denah-lab-link"
-                       style="--lab-hover-bg: {{ $lab['bg'] }}; --lab-hover-stroke: {{ $lab['color'] }};"
-                       data-room-id="{{ $lab['id'] }}"
-                       data-room-name="{{ $lab['name'] }}"
-                       aria-label="Ajukan Peminjaman {{ $lab['name'] }} ({{ $lab['id'] }})">
-                        <rect x="{{ $lab['x'] }}" y="{{ $lab['y'] }}" width="{{ $lab['w'] }}" height="{{ $lab['h'] }}" rx="4" class="denah-room-overlay" />
-                    </a>
-                @endforeach
-            </svg>
-
-            <!-- Floating Tooltip -->
-            <div id="denahTooltip" class="denah-tooltip" role="tooltip"></div>
+        <div class="shadow-sm rounded border bg-white p-2 d-inline-block" style="max-width: 960px; width: 100%;">
+            <img src="{{ asset('images/denah-lantai-8.png') }}" alt="Denah Laboratorium Komputer GWM Lantai 8" class="img-fluid rounded" style="width: 100%; height: auto;">
         </div>
     </div>
 </div>
@@ -157,7 +88,7 @@
             <div class="row g-3 align-items-end">
                 <div class="col-md-3">
                     <label class="form-label fw-semibold">1. Periode</label>
-                    <select name="period_id" class="form-select" onchange="this.form.submit()">
+                    <select name="period_id" class="form-select">
                         @foreach($allPeriods as $p)
                             <option value="{{ $p->id }}" @selected($period && $period->id == $p->id)>
                                 {{ $p->name }} {{ $p->is_active ? '(Aktif)' : '' }}
@@ -167,7 +98,7 @@
                 </div>
                 <div class="col-md-3">
                     <label class="form-label fw-semibold">2. Minggu Pertemuan / Kalender</label>
-                    <select name="week" class="form-select" onchange="this.form.submit()">
+                    <select name="week" class="form-select">
                         @foreach($calendar as $w)
                             <option value="{{ $w['week_index'] }}" @selected($weekIndex == $w['week_index'])>
                                 {{ $w['label'] }}
@@ -177,10 +108,10 @@
                 </div>
                 <div class="col-md-2">
                     <label class="form-label fw-semibold">3. Hari</label>
-                    <select name="day" class="form-select" onchange="this.form.submit()">
+                    <select name="day" class="form-select">
                         @foreach(['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'] as $index => $dayName)
                             <option value="{{ $index + 1 }}" @selected($day == $index + 1)>
-                                {{ $dayName }} {{ $index + 1 === 6 ? '(Tanpa Perkuliahan Reguler)' : '' }}
+                                {{ $dayName }}
                             </option>
                         @endforeach
                     </select>
@@ -390,7 +321,7 @@
                                                 <div class="small text-dark mt-1" style="font-size: 0.70rem;">{{ $sess->schedule->lecturer->name }}</div>
                                             @endif
                                             @if($sess->note)
-                                                <div class="small text-danger fw-semibold mt-1" style="font-size: 0.70rem;">{{ $sess->note }}</div>
+                                                <div class="small text-secondary fw-semibold mt-1" style="font-size: 0.70rem;">{{ $sess->note }}</div>
                                             @endif
 
                                             @if($canToggleSession)
@@ -467,8 +398,8 @@
 
                                             @if($inactiveSess)
                                                 <div class="mt-1 pt-1 border-top border-primary border-opacity-25">
-                                                    <span class="badge text-bg-danger" style="font-size: 0.62rem;">Kuliah Libur</span>
                                                     <div class="small text-muted" style="font-size: 0.65rem;">{{ $inactiveSess->schedule->course->name }}</div>
+                                                    <div class="small text-danger fw-semibold" style="font-size: 0.65rem;">Kuliah diliburkan.</div>
                                                     @if($canToggleSession)
                                                         <div class="d-flex justify-content-center align-items-center gap-2 mt-1">
                                                             <form method="POST" action="{{ route('admin.schedule-sessions.toggle', [$inactiveSess->schedule_id, $inactiveSess->week_no]) }}" class="d-inline-block m-0">
@@ -530,10 +461,7 @@
                                             $effEnd = substr($sess->effectiveEndTime(), 0, 5);
                                         @endphp
                                         <td rowspan="{{ $rowspan }}" class="col-room p-2 text-center" style="background-color: #f8f9fa; border: 1px dashed #adb5bd; vertical-align: middle;">
-                                            <div class="d-flex justify-content-center gap-1 mb-1">
-                                                <span class="badge text-bg-danger" style="font-size: 0.65rem;">Kuliah Libur</span>
-                                            </div>
-                                            <div class="fw-semibold text-secondary text-decoration-line-through" style="font-size: 0.82rem; line-height: 1.25;">
+                                                                                        <div class="fw-semibold text-secondary " style="font-size: 0.82rem; line-height: 1.25;">
                                                 {{ $sess->schedule->course->name }}
                                             </div>
                                             <div class="small text-muted mt-1" style="font-size: 0.70rem;">
@@ -545,9 +473,7 @@
                                             @if($isInternal && $sess->schedule->lecturer)
                                                 <div class="small text-muted mt-1" style="font-size: 0.70rem;">{{ $sess->schedule->lecturer->name }}</div>
                                             @endif
-                                            @if($sess->note)
-                                                <div class="small text-danger fw-semibold mt-1" style="font-size: 0.70rem;">{{ $sess->note }}</div>
-                                            @endif
+                                            <div class="small text-danger fw-semibold mt-1" style="font-size: 0.70rem;">{{ $sess->note ?: 'Kuliah diliburkan.' }}</div>
 
                                             @if($canToggleSession)
                                                 <div class="mt-2 pt-1 border-top border-secondary border-opacity-25 d-flex justify-content-center align-items-center gap-2">
@@ -627,12 +553,7 @@
 {{-- Floating Pop-up Konfirmasi Blok Peminjaman (Kanan Atas) --}}
 <div id="bookingDragPopup" class="booking-selection-popup shadow-lg border">
     <div class="d-flex justify-content-between align-items-center px-3 py-2 bg-primary text-white rounded-top">
-        <div class="d-flex align-items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-calendar2-check-fill" viewBox="0 0 16 16">
-              <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM2 3.5v1a.5.5 0 0 0 .5.5h11a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5H2a.5.5 0 0 0-.5.5zm10.854 4.646a.5.5 0 0 0-.708 0L7.5 12.793l-1.646-1.647a.5.5 0 0 0-.708.708l2 2a.5.5 0 0 0 .708 0l5-5a.5.5 0 0 0 0-.708z"/>
-            </svg>
-            <span class="fw-bold small">Peminjaman Ruangan Terpilih</span>
-        </div>
+        <span class="fw-bold small">Peminjaman Ruangan Terpilih</span>
         <button type="button" class="btn-close btn-close-white btn-sm" id="btnCancelDragSelection" aria-label="Tutup"></button>
     </div>
     <div class="p-3">
@@ -843,8 +764,9 @@
 
 .booking-selection-popup {
     position: fixed;
-    top: 85px;
-    right: 24px;
+    top: 75px;
+    left: 20px;
+    right: auto;
     z-index: 1060;
     width: 320px;
     max-width: calc(100vw - 32px);
@@ -879,101 +801,13 @@
     background: #adb5bd;
 }
 
-.denah-interactive-wrapper {
-    position: relative;
-    display: inline-block;
-    width: 100%;
-    max-width: 960px;
-    margin: 0 auto;
-    overflow: visible;
-}
-.denah-svg {
-    width: 100%;
-    height: auto;
-    display: block;
-    background: #ffffff;
-    border-radius: 0.375rem;
-}
-.denah-lab-link {
-    cursor: pointer;
-    outline: none;
-}
-.denah-room-overlay {
-    fill: transparent;
-    stroke: transparent;
-    stroke-width: 3.5;
-    transition: fill 0.18s ease-in-out, stroke 0.18s ease-in-out, filter 0.18s ease-in-out;
-}
-.denah-lab-link:hover .denah-room-overlay,
-.denah-lab-link:focus .denah-room-overlay {
-    fill: var(--lab-hover-bg, rgba(13, 110, 253, 0.38));
-    stroke: var(--lab-hover-stroke, #0d6efd);
-    filter: drop-shadow(0 0 8px var(--lab-hover-stroke, #0d6efd));
-}
-.denah-tooltip {
-    position: absolute;
-    pointer-events: none;
-    background: rgba(18, 22, 31, 0.94);
-    color: #ffffff;
-    padding: 7px 14px;
-    border-radius: 6px;
-    font-size: 0.82rem;
-    line-height: 1.35;
-    z-index: 1050;
-    transform: translate(-50%, -125%);
-    white-space: nowrap;
-    opacity: 0;
-    transition: opacity 0.15s ease-in-out;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-}
-.denah-tooltip::after {
-    content: '';
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    margin-left: -5px;
-    border-width: 5px;
-    border-style: solid;
-    border-color: rgba(18, 22, 31, 0.94) transparent transparent transparent;
-}
-.denah-tooltip .tooltip-action {
-    display: block;
-    font-size: 0.72rem;
-    color: #9ec5fe;
-    margin-top: 2px;
-}
 </style>
 @endpush
 
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    const wrapper = document.querySelector('.denah-interactive-wrapper');
-    const tooltip = document.getElementById('denahTooltip');
-    if (!wrapper || !tooltip) return;
-
-    const links = wrapper.querySelectorAll('.denah-lab-link');
-    links.forEach(link => {
-        link.addEventListener('mouseenter', () => {
-            const name = link.getAttribute('data-room-name');
-            const code = link.getAttribute('data-room-id');
-            tooltip.innerHTML = `<strong>${name} (${code})</strong><span class="tooltip-action">Klik untuk meminjam ruangan</span>`;
-            tooltip.style.opacity = '1';
-        });
-
-        link.addEventListener('mousemove', (e) => {
-            const rect = wrapper.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            tooltip.style.left = `${x}px`;
-            tooltip.style.top = `${y}px`;
-        });
-
-        link.addEventListener('mouseleave', () => {
-            tooltip.style.opacity = '0';
-        });
-    });
+    
 
     // ── Click & Drag to Block Time Slots ──
     const dragPopup = document.getElementById('bookingDragPopup');

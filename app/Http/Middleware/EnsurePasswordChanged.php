@@ -10,15 +10,6 @@ class EnsurePasswordChanged
 {
     public function handle(Request $request, Closure $next): Response
     {
-        $user = $request->user();
-
-        if ($user && $user->must_change_password) {
-            if (! $request->routeIs('password.change', 'password.change.update', 'logout')) {
-                return redirect()->route('password.change')
-                    ->with('warning', 'Demi keamanan, Anda wajib mengganti kata sandi awal sebelum melanjutkan.');
-            }
-        }
-
         return $next($request);
     }
 }

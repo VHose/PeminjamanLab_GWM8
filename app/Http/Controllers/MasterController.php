@@ -39,9 +39,14 @@ class MasterController extends Controller
     {
         $config = $this->config($type);
         $search = $request->input('search');
+        $prodiFilter = $request->input('study_program_id');
 
         $query = $config['model']::query()
             ->when($type === 'courses', fn ($q) => $q->with('studyProgram'));
+
+        if ($type === 'courses' && $prodiFilter) {
+            $query->where('study_program_id', $prodiFilter);
+        }
 
         if ($search) {
             $query->where(function ($q) use ($search, $type) {
@@ -53,9 +58,10 @@ class MasterController extends Controller
             });
         }
 
-        $records = $query->orderBy('id')->paginate(20)->withQueryString();
+        $records = $query->orderBy('id')->get();
+        $studyPrograms = StudyProgram::where('is_active', true)->orderBy('id')->get();
 
-        return view('master.index', compact('type', 'config', 'records', 'search'));
+        return view('master.index', compact('type', 'config', 'records', 'studyPrograms', 'prodiFilter', 'search'));
     }
 
     public function create(string $type): View
@@ -86,7 +92,7 @@ class MasterController extends Controller
             'courses' => [
                 'id' => ['required', 'string', 'max:12', 'unique:course,id'],
                 'study_program_id' => ['required', 'exists:study_program,id'],
-                'name' => ['required', 'string', 'max:60'],
+                'name' => ['required', 'string', 'max:80'],
                 'is_active' => ['nullable', 'boolean'],
             ],
         };

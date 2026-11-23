@@ -15,7 +15,7 @@ class PasswordChangeController extends Controller
     {
         return view('auth.change-password', [
             'user' => $request->user(),
-            'isForced' => (bool) $request->user()->must_change_password,
+            'isForced' => false,
         ]);
     }
 
@@ -25,7 +25,6 @@ class PasswordChangeController extends Controller
 
         $user->forceFill([
             'password' => Hash::make($request->input('password')),
-            'must_change_password' => false,
         ])->save();
 
         ActivityLog::record(

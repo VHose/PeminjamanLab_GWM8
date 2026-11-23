@@ -12,6 +12,8 @@ return new class extends Migration
         Schema::create('booking', function (Blueprint $table) {
             $table->id();
             $table->string('user_id', 10);                           // peminjam
+            $table->unsignedBigInteger('parent_booking_id')->nullable();
+            $table->unsignedTinyInteger('type')->default(0);          // 0 NEW_BOOKING, 1 RESCHEDULE
             $table->string('pic_name', 100);
             $table->string('pic_phone', 20);
             $table->string('purpose', 500);                          // dibatasi, dokumen panjang lewat attachment
@@ -25,6 +27,8 @@ return new class extends Migration
 
             $table->foreign('user_id')->references('id')->on('user')
                 ->cascadeOnUpdate()->restrictOnDelete();
+            $table->foreign('parent_booking_id')->references('id')->on('booking')
+                ->cascadeOnUpdate()->nullOnDelete();
         });
 
         // Many-to-many booking x room. PK komposit: booking_id + booking_date + start_time.

@@ -2,7 +2,7 @@
 
 namespace App\Notifications;
 
-use App\Constants\BookingStatus;
+use App\Enums\BookingStatus;
 use App\Models\Booking;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -25,16 +25,22 @@ class BookingSubmittedRequesterNotification extends Notification implements Shou
     public function toMail(object $notifiable): MailMessage
     {
         $statusText = match ($this->booking->status) {
-            BookingStatus::PENDING_KAPRODI => 'Menunggu Persetujuan Kaprodi',
-            BookingStatus::PENDING_KALAB => 'Menunggu Persetujuan Kepala Lab',
-            default => 'Sedang Diproses',
+            BookingStatus::PENDING_KAPRODI, BookingStatus::PENDING_PRODI => 'Menunggu Persetujuan Kaprodi (Tahap 1)',
+            BookingStatus::PENDING_KALAB, BookingStatus::PENDING_LAB => 'Menunggu Persetujuan Kepala Lab (Tahap 2)',
+            default => $this->booking->status?->label() ?? 'Sedang Diproses',
         };
 
+        $isReschedule = (int) ($this->booking->type ?? 0) === 1;
+        $subject = $isReschedule ? "Bukti Pengajuan Ubah Jadwal Lab #{$this->booking->id}" : "Bukti Pengajuan Peminjaman Lab #{$this->booking->id}";
+        $intro = $isReschedule
+            ? 'Pengajuan perubahan jadwal/ruangan laboratorium Anda telah berhasil terkirim ke sistem dan langsung menunggu persetujuan Kepala Lab.'
+            : 'Pengajuan peminjaman laboratorium Anda telah berhasil terkirim ke sistem dan saat ini sedang menunggu proses persetujuan.';
+
         $message = (new MailMessage)
-            ->subject("Bukti Pengajuan Peminjaman Lab #{$this->booking->id}")
+            ->subject($subject)
             ->greeting("Halo {$this->booking->requester_name},")
-            ->line("Pengajuan peminjaman laboratorium Anda telah berhasil terkirim ke sistem.")
-            ->line("Berikut rincian peminjaman Anda:")
+            ->line($intro)
+            ->line('Berikut rincian peminjaman Anda:')
             ->line("• ID Pengajuan: #{$this->booking->id}")
             ->line("• Tujuan Kegiatan: {$this->booking->purpose}")
             ->line("• Status Saat Ini: {$statusText}")

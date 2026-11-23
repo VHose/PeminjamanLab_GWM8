@@ -64,7 +64,6 @@ class AdminSettingsTest extends TestCase
             'email' => 'admin@test.com',
             'password' => Hash::make('password123'),
             'is_active' => true,
-            'must_change_password' => false,
         ]);
         UserRole::create([
             'user_id' => $this->admin->id,
@@ -78,7 +77,6 @@ class AdminSettingsTest extends TestCase
             'email' => 'kalab@test.com',
             'password' => Hash::make('password123'),
             'is_active' => true,
-            'must_change_password' => false,
         ]);
         UserRole::create([
             'user_id' => $this->kalab->id,
@@ -92,7 +90,6 @@ class AdminSettingsTest extends TestCase
             'email' => 'visitor@test.com',
             'password' => Hash::make('password123'),
             'is_active' => true,
-            'must_change_password' => false,
         ]);
     }
 
@@ -248,7 +245,7 @@ class AdminSettingsTest extends TestCase
         $this->assertSame('DB', $sessionW1Refreshed->room_id);
     }
 
-    public function test_forced_initial_password_change_enforced_by_middleware(): void
+    public function test_user_can_change_password(): void
     {
         $seededUser = User::create([
             'id' => 'DOSEN01',
@@ -256,13 +253,11 @@ class AdminSettingsTest extends TestCase
             'email' => 'dosen01@test.com',
             'password' => Hash::make('password123'),
             'is_active' => true,
-            'must_change_password' => true,
         ]);
 
-        // User mencoba membuka halaman home -> dialihkan ke password.change
         $this->actingAs($seededUser)
-            ->get(route('home'))
-            ->assertRedirect(route('password.change'));
+            ->get(route('password.change'))
+            ->assertStatus(200);
 
         // User mengganti kata sandi
         $this->actingAs($seededUser)
@@ -273,11 +268,8 @@ class AdminSettingsTest extends TestCase
             ])
             ->assertRedirect(route('home'));
 
-        // Flag must_change_password sekarang false
-        $this->assertFalse($seededUser->fresh()->must_change_password);
         $this->assertTrue(Hash::check('sandiBaru2026!', $seededUser->fresh()->password));
 
-        // Sekarang user bisa akses home tanpa redirect
         $this->actingAs($seededUser->fresh())
             ->get(route('home'))
             ->assertStatus(200);

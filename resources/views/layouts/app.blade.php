@@ -6,6 +6,8 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ config('app.name', 'Peminjaman Ruangan Lab GWM') }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <!-- Datatables CSS -->
+    <link rel="stylesheet" href="{{ asset('assets/css/plugin/datatables/dataTables.bootstrap5.min.css') }}">
     <style>
         .sidebar {
             width: 260px;
@@ -131,20 +133,35 @@
                             </li>
                         @endif
 
-                        @if(auth()->user()->hasRole('Kepala_Prodi', 'Kepala_Lab'))
+                        @if(auth()->user()->hasRole('Kepala_Prodi', 'Kepala_Lab', 'Staf_Lab', 'Admin'))
                             <div class="sidebar-heading">Validasi & Approval</div>
-                            <li class="nav-item">
-                                <a class="nav-link {{ request()->routeIs('approvals.*') ? 'active' : '' }}" href="{{ route('approvals.index') }}">
-                                    Persetujuan
-                                </a>
-                            </li>
+                            @if(auth()->user()->hasRole('Kepala_Prodi', 'Kepala_Lab'))
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->routeIs('approvals.*') ? 'active' : '' }}" href="{{ route('approvals.index') }}">
+                                        Persetujuan Peminjaman
+                                    </a>
+                                </li>
+                            @endif
+                            @if(auth()->user()->hasRole('Kepala_Lab', 'Staf_Lab', 'Admin'))
+                                <li class="nav-item">
+                                    <a class="nav-link d-flex justify-content-between align-items-center {{ request()->routeIs('admin.visitor-approvals.*') ? 'active' : '' }}" href="{{ route('admin.visitor-approvals.index') }}">
+                                        <span>Persetujuan Visitor</span>
+                                        @php
+                                            $pendingVisitors = \App\Models\User::where('status', 'pending')->count();
+                                        @endphp
+                                        @if($pendingVisitors > 0)
+                                            <span class="badge rounded-pill bg-warning text-dark">{{ $pendingVisitors }}</span>
+                                        @endif
+                                    </a>
+                                </li>
+                            @endif
                         @endif
 
                         @if(auth()->user()->hasRole('Kepala_Lab', 'Admin'))
-                            <div class="sidebar-heading">Manajemen Lab</div>
+                            <div class="sidebar-heading">Manajemen Lab & Pengguna</div>
                             <li class="nav-item">
-                                <a class="nav-link {{ request()->routeIs('admin.period-roles.*') ? 'active' : '' }}" href="{{ route('admin.period-roles.index') }}">
-                                    Peran Staf
+                                <a class="nav-link {{ request()->routeIs('admin.users.*') || request()->routeIs('admin.period-roles.*') ? 'active' : '' }}" href="{{ route('admin.users.index') }}">
+                                    Kelola Pengguna
                                 </a>
                             </li>
                             <li class="nav-item">
@@ -159,11 +176,6 @@
                             <li class="nav-item">
                                 <a class="nav-link {{ request()->routeIs('admin.periods.*') || request()->routeIs('admin.holidays.*') ? 'active' : '' }}" href="{{ route('admin.periods.index') }}">
                                     Periode Semester
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}" href="{{ route('admin.users.index') }}">
-                                    Kelola Pengguna
                                 </a>
                             </li>
 
@@ -289,7 +301,38 @@
         </div>
     </div>
 
+    <!-- jQuery & Bootstrap -->
+    <script src="{{ asset('assets/js/plugin/datatables/jquery.min.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    
+    <!-- Datatables -->
+    <script src="{{ asset('assets/js/plugin/datatables/datatables.min.js') }}"></script>
+    <script src="{{ asset('assets/js/plugin/datatables/dataTables.bootstrap5.min.js') }}"></script>
+    <script>
+        if (typeof $.fn.dataTable !== 'undefined') {
+            $.extend(true, $.fn.dataTable.defaults, {
+                language: {
+                    search: "Cari Cepat:",
+                    lengthMenu: "Tampilkan _MENU_ data",
+                    info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
+                    infoEmpty: "Menampilkan 0 data",
+                    infoFiltered: "(disaring dari _MAX_ total data)",
+                    zeroRecords: "Tidak ada data yang cocok",
+                    emptyTable: "Tidak ada data di tabel",
+                    paginate: {
+                        first: "Awal",
+                        last: "Akhir",
+                        next: "Berikutnya",
+                        previous: "Sebelumnya"
+                    }
+                },
+                responsive: true,
+                autoWidth: false,
+                pageLength: 10,
+                lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Semua"]]
+            });
+        }
+    </script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const btnToggle = document.getElementById('btnToggleSidebar');

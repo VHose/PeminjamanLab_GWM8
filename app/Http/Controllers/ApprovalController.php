@@ -50,13 +50,7 @@ class ApprovalController extends Controller
 
         $pendingBookings = $query->latest('created_at')->paginate(15)->withQueryString();
 
-        $recentDecisions = Booking::with(['details.room', 'requester', 'attachments'])
-            ->whereIn('status', [BookingStatus::APPROVED, BookingStatus::REJECTED])
-            ->latest('updated_at')
-            ->take(10)
-            ->get();
-
-        return view('approvals.index', compact('pendingBookings', 'recentDecisions', 'isKaprodi', 'isKalab', 'search'));
+        return view('approvals.index', compact('pendingBookings', 'isKaprodi', 'isKalab', 'search'));
     }
 
     public function decideKaprodi(
@@ -150,11 +144,13 @@ class ApprovalController extends Controller
                 $booking->update(['decision_note' => $data['notes']]);
             }
 
+            $booking->touch();
+
             $logger->log(
                 $request->user()->id,
                 $data['status'] === 'approved' ? 'approve' : 'reject',
                 'booking_detail',
-                $detail->getRouteKey(),
+                (string) $detail->booking_id,
                 ($data['status'] === 'approved' ? 'Disetujui' : 'Ditolak') . " per ruangan {$detail->room_id} oleh Kalab." . (! empty($data['notes']) ? " Alasan: {$data['notes']}" : '')
             );
 

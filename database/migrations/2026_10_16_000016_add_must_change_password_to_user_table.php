@@ -8,15 +8,9 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('user', function (Blueprint $table) {
-            $table->boolean('must_change_password')->default(false)->after('is_active');
-        });
     }
 
     public function down(): void
     {
-        Schema::table('user', function (Blueprint $table) {
-            $table->dropColumn('must_change_password');
-        });
     }
 };

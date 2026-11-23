@@ -50,9 +50,13 @@
                 </div>
                 <div class="card-body">
                     <div class="row g-3">
-                        <div class="col-md-12">
+                        <div class="col-md-6">
                             <label class="form-label fw-semibold">Nama Peminjam / Penanggung Jawab <span class="text-danger">*</span></label>
-                            <input class="form-control" name="requester_name" value="{{ old('requester_name', $booking->requester_name) }}" required>
+                            <input class="form-control" name="pic_name" value="{{ old('pic_name', $booking->pic_name ?? $booking->requester_name) }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Kontak PIC (Telepon / WA) <span class="text-danger">*</span></label>
+                            <input class="form-control" name="pic_phone" value="{{ old('pic_phone', $booking->pic_phone) }}" required>
                         </div>
                         <div class="col-12">
                             <label class="form-label fw-semibold">Tujuan Kegiatan <span class="text-danger">*</span></label>

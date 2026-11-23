@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\EnsureRole;
+use App\Http\Middleware\EnsureVisitorApproved;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -14,9 +15,8 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
             'role' => EnsureRole::class,
-            'password.changed' => \App\Http\Middleware\EnsurePasswordChanged::class,
+            'visitor.approved' => EnsureVisitorApproved::class,
         ]);
-        $middleware->appendToGroup('web', \App\Http\Middleware\EnsurePasswordChanged::class);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

@@ -2,8 +2,8 @@
 
 namespace App\Notifications;
 
-use App\Constants\BookingDetailStatus;
-use App\Constants\BookingStatus;
+use App\Enums\BookingDetailStatus;
+use App\Enums\BookingStatus;
 use App\Models\Booking;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -29,7 +29,7 @@ class BookingFinalResultNotification extends Notification implements ShouldQueue
             BookingStatus::APPROVED => 'Disetujui',
             BookingStatus::REJECTED => 'Ditolak',
             BookingStatus::CANCELLED => 'Dibatalkan',
-            default => 'Selesai Diproses',
+            default => $this->booking->status?->label() ?? 'Selesai Diproses',
         };
 
         $message = (new MailMessage)
@@ -48,9 +48,10 @@ class BookingFinalResultNotification extends Notification implements ShouldQueue
                 BookingDetailStatus::APPROVED => 'Disetujui',
                 BookingDetailStatus::REJECTED => 'Ditolak' . ($detail->notes ? " (Alasan: {$detail->notes})" : ''),
                 BookingDetailStatus::CANCELLED => 'Dibatalkan',
-                default => 'Menunggu',
+                default => $detail->status?->label() ?? 'Menunggu',
             };
-            $message->line("- Ruangan {$detail->room->code} ({$detail->start_datetime->format('d/m/Y H:i')} - {$detail->end_datetime->format('H:i')}): {$dStatus}");
+            $roomName = $detail->room ? ($detail->room->name ?? $detail->room->code) : 'Ruangan';
+            $message->line("- Ruangan {$roomName} ({$detail->start_datetime->format('d/m/Y H:i')} - {$detail->end_datetime->format('H:i')}): {$dStatus}");
         }
 
         return $message->action('Lihat Detail Peminjaman', url(route('bookings.show', $this->booking)));

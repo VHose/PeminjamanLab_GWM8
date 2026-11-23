@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\UserRole;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -47,9 +48,17 @@ class AuthController extends Controller
     {
         $data = $request->validate([
             'name' => ['required', 'string', 'max:80'],
+            'pic_or_instansi' => ['nullable', 'string', 'max:100'],
+            'phone' => ['nullable', 'string', 'max:15'],
             'email' => ['required', 'email', 'max:70', 'unique:user,email'],
             'password' => ['required', 'confirmed', PasswordRule::min(8)],
-            'phone' => ['nullable', 'string', 'max:15'],
+        ], [
+            'name.required' => 'Nama lengkap wajib diisi.',
+            'email.required' => 'Alamat email wajib diisi.',
+            'email.unique' => 'Alamat email sudah terdaftar.',
+            'password.required' => 'Kata sandi wajib diisi.',
+            'password.confirmed' => 'Konfirmasi kata sandi tidak cocok.',
+            'password.min' => 'Kata sandi minimal 8 karakter.',
         ]);
 
         $visitorRole = Role::query()->firstOrCreate(['name' => 'Visitor']);
@@ -59,9 +68,13 @@ class AuthController extends Controller
         $user = User::create([
             'id' => $visitorId,
             'name' => $data['name'],
+            'pic_or_instansi' => !empty($data['pic_or_instansi']) ? $data['pic_or_instansi'] : 'Umum / Eksternal',
             'email' => $data['email'],
             'phone' => $data['phone'] ?? null,
             'password' => Hash::make($data['password']),
+            'status' => 'pending',
+            'is_active' => false,
+            'email_verified_at' => null,
         ]);
 
         UserRole::create([
@@ -70,9 +83,11 @@ class AuthController extends Controller
             'period_id' => null,
         ]);
 
+        event(new Registered($user));
+
         Auth::login($user);
 
-        return redirect()->route('home')->with('success', 'Akun Visitor berhasil dibuat.');
+        return redirect()->route('verification.notice');
     }
 
     public function destroy(Request $request): RedirectResponse

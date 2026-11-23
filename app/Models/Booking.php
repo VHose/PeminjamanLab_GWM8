@@ -13,6 +13,8 @@ class Booking extends Model
 
     protected $fillable = [
         'user_id',
+        'parent_booking_id',
+        'type',
         'pic_name',
         'requester_name',
         'pic_phone',
@@ -54,6 +56,16 @@ class Booking extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
+    public function parent(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'parent_booking_id');
+    }
+
+    public function children(): HasMany
+    {
+        return $this->hasMany(self::class, 'parent_booking_id');
+    }
+
     public function details(): HasMany
     {
         return $this->hasMany(BookingDetail::class, 'booking_id');
@@ -67,6 +79,11 @@ class Booking extends Model
     public function getStatusLabelAttribute(): string
     {
         return $this->status?->label() ?? 'Tidak Diketahui';
+    }
+
+    public function getTypeLabelAttribute(): string
+    {
+        return \App\Constants\BookingType::label((int) ($this->type ?? 0));
     }
 
     /** Backward compatibility alias for requester_name */

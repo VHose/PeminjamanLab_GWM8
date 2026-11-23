@@ -79,7 +79,6 @@ class ScheduleSessionManagementTest extends TestCase
             'email' => 'admin@test.com',
             'password' => Hash::make('password123'),
             'is_active' => true,
-            'must_change_password' => false,
         ]);
         UserRole::create([
             'user_id' => $this->admin->id,
@@ -93,7 +92,6 @@ class ScheduleSessionManagementTest extends TestCase
             'email' => 'visitor@test.com',
             'password' => Hash::make('password123'),
             'is_active' => true,
-            'must_change_password' => false,
         ]);
         UserRole::create([
             'user_id' => $this->visitor->id,
@@ -107,7 +105,6 @@ class ScheduleSessionManagementTest extends TestCase
             'email' => 'staff@test.com',
             'password' => Hash::make('password123'),
             'is_active' => true,
-            'must_change_password' => false,
         ]);
         UserRole::create([
             'user_id' => $this->staff->id,
@@ -121,7 +118,6 @@ class ScheduleSessionManagementTest extends TestCase
             'email' => 'dosen@test.com',
             'password' => Hash::make('password123'),
             'is_active' => true,
-            'must_change_password' => false,
         ]);
         UserRole::create([
             'user_id' => $this->lecturer->id,
@@ -135,7 +131,6 @@ class ScheduleSessionManagementTest extends TestCase
             'email' => 'kalab@test.com',
             'password' => Hash::make('password123'),
             'is_active' => true,
-            'must_change_password' => false,
         ]);
         UserRole::create([
             'user_id' => $this->kalab->id,
@@ -149,7 +144,6 @@ class ScheduleSessionManagementTest extends TestCase
             'email' => 'kaprodi@test.com',
             'password' => Hash::make('password123'),
             'is_active' => true,
-            'must_change_password' => false,
         ]);
         UserRole::create([
             'user_id' => $this->kaprodi->id,
@@ -610,7 +604,7 @@ class ScheduleSessionManagementTest extends TestCase
         $this->assertEquals('08:00:00', $session->effectiveStartTime());
 
         $this->assertDatabaseHas('activity_log', [
-            'action' => 'reset_session_override',
+            'action' => 'reset_override',
             'subject_type' => 'schedule_session',
             'subject_id' => "{$schedule->id}-1",
         ]);

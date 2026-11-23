@@ -33,9 +33,8 @@ class ScheduleSeeder extends Seeder
                     'study_program_id' => in_array($prefix, $prodiIds, true) ? $prefix : '00',
                     'name' => $l['name'],
                     'email' => $l['id'] . '@belum-diisi.invalid',
-                    'password' => Hash::make(Str::random(40)),
+                    'password' => Hash::make(env('DEFAULT_PASSWORD', 'password123')),
                     'is_active' => true,
-                    'must_change_password' => true,
                     'created_at' => $now,
                     'updated_at' => $now,
                 ]);

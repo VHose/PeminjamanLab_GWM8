@@ -71,7 +71,6 @@ class BookingAttachmentTest extends TestCase
             'email' => 'valentino@example.com',
             'password' => Hash::make('password'),
             'is_active' => true,
-            'must_change_password' => false,
         ]);
         UserRole::create([
             'user_id' => $this->user->id,
@@ -85,7 +84,6 @@ class BookingAttachmentTest extends TestCase
             'email' => 'other@example.com',
             'password' => Hash::make('password'),
             'is_active' => true,
-            'must_change_password' => false,
         ]);
         UserRole::create([
             'user_id' => $this->otherUser->id,
@@ -99,7 +97,6 @@ class BookingAttachmentTest extends TestCase
             'email' => 'staf@example.com',
             'password' => Hash::make('password'),
             'is_active' => true,
-            'must_change_password' => false,
         ]);
         UserRole::create([
             'user_id' => $this->staff->id,

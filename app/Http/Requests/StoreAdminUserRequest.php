@@ -8,7 +8,7 @@ class StoreAdminUserRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->hasRole('Admin') ?? false;
+        return $this->user()?->hasRole('Admin') || $this->user()?->hasRole('Kepala_Lab');
     }
 
     public function rules(): array
@@ -18,6 +18,8 @@ class StoreAdminUserRequest extends FormRequest
             'name' => ['required', 'string', 'max:80'],
             'email' => ['required', 'email', 'max:70', 'unique:user,email'],
             'phone' => ['nullable', 'string', 'max:15'],
+            'study_program_id' => ['nullable', 'exists:study_program,id'],
+            'role_id' => ['nullable', 'exists:role,id'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ];
     }

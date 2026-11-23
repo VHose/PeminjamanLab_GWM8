@@ -115,7 +115,7 @@ class ScheduleSessionController extends Controller
 
             ActivityLog::record(
                 $request->user()->id,
-                'reset_session_override',
+                'reset_override',
                 'schedule_session',
                 "{$scheduleId}-{$weekNo}",
                 "Reset override pertemuan ke-{$weekNo} {$courseName} Kelas {$classCode} ({$dateFormatted}) ke jadwal induk.",

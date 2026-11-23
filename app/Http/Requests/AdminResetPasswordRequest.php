@@ -15,7 +15,6 @@ class AdminResetPasswordRequest extends FormRequest
     {
         return [
             'password' => ['required', 'string', 'min:8', 'confirmed'],
-            'must_change_password' => ['nullable', 'boolean'],
         ];
     }
 

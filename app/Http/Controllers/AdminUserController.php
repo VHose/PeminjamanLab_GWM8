@@ -19,31 +19,86 @@ class AdminUserController extends Controller
 {
     public function index(Request $request): View
     {
-        $activePeriodId = Period::where('is_active', true)->value('id');
-        $search = $request->input('search');
+        $allPeriods = Period::orderByDesc('start_date')->get();
+        $activePeriodId = Period::where('is_active', true)->value('id') ?? $allPeriods->first()?->id;
+        $selectedPeriodId = $request->query('period_id', $activePeriodId);
+        $selectedPeriod = Period::find($selectedPeriodId) ?? $allPeriods->first();
+        if ($selectedPeriod) {
+            $selectedPeriodId = $selectedPeriod->id;
+        }
 
-        $query = User::with(['studyProgram', 'roles' => function ($q) use ($activePeriodId) {
-            if ($activePeriodId) {
-                $q->wherePivot('period_id', $activePeriodId);
-            }
-        }]);
+        $search = $request->query('search');
+        $roleFilter = $request->query('role_id');
+        $prodiFilter = $request->query('study_program_id');
+        $statusFilter = $request->query('is_active');
+
+        // Query directly from User table to show all users including newly registered ones
+        $query = User::with([
+            'studyProgram',
+            'userRoles' => function ($q) use ($selectedPeriodId) {
+                if ($selectedPeriodId) {
+                    $q->where(function ($sub) use ($selectedPeriodId) {
+                        $sub->where('period_id', $selectedPeriodId)
+                            ->orWhereNull('period_id');
+                    });
+                }
+            },
+            'userRoles.role',
+            'roles'
+        ]);
 
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('id', 'like', "%{$search}%")
                   ->orWhere('name', 'like', "%{$search}%")
                   ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('phone', 'like', "%{$search}%")
                   ->orWhereHas('studyProgram', fn ($sq) => $sq->where('name', 'like', "%{$search}%"));
             });
         }
 
-        $users = $query->orderBy('id')->paginate(20)->withQueryString();
+        if ($roleFilter) {
+            if ($roleFilter === 'visitor') {
+                $query->whereDoesntHave('userRoles', function ($q) use ($selectedPeriodId) {
+                    $q->where('period_id', $selectedPeriodId)
+                      ->whereHas('role', fn ($rq) => $rq->where('name', '!=', 'Visitor'));
+                });
+            } else {
+                $query->whereHas('userRoles', function ($q) use ($selectedPeriodId, $roleFilter) {
+                    $q->where('role_id', $roleFilter)
+                      ->where(function ($sub) use ($selectedPeriodId) {
+                          $sub->where('period_id', $selectedPeriodId)->orWhereNull('period_id');
+                      });
+                });
+            }
+        }
 
-        $allRoles = Role::all();
+        if ($prodiFilter !== null && $prodiFilter !== '') {
+            $query->where('study_program_id', $prodiFilter);
+        }
+
+        if ($statusFilter !== null && $statusFilter !== '') {
+            $query->where('is_active', (bool) $statusFilter);
+        }
+
+        $users = $query->orderBy('name')->get();
+
+        $allRoles = Role::orderBy('id')->get();
         $studyPrograms = StudyProgram::where('is_active', true)->orderBy('id')->get();
-        $periods = Period::orderByDesc('start_date')->get();
 
-        return view('admin.users.index', compact('users', 'allRoles', 'studyPrograms', 'periods', 'activePeriodId', 'search'));
+        return view('admin.users.index', compact(
+            'users',
+            'allPeriods',
+            'selectedPeriod',
+            'selectedPeriodId',
+            'activePeriodId',
+            'allRoles',
+            'studyPrograms',
+            'search',
+            'roleFilter',
+            'prodiFilter',
+            'statusFilter'
+        ));
     }
 
     public function store(StoreAdminUserRequest $request): RedirectResponse
@@ -53,21 +108,32 @@ class AdminUserController extends Controller
 
         $user = User::create([
             'id' => $data['id'],
+            'study_program_id' => $data['study_program_id'] ?? null,
             'name' => $data['name'],
             'email' => $data['email'],
             'phone' => $data['phone'] ?? null,
             'password' => Hash::make($data['password']),
             'is_active' => true,
-            'must_change_password' => true,
+            'status' => 'active',
+            'email_verified_at' => now(),
         ]);
 
-        $adminRole = Role::where('name', 'Admin')->first();
-        if ($adminRole && $activePeriodId) {
+        $roleId = $request->input('role_id');
+        if ($roleId && $activePeriodId) {
             UserRole::firstOrCreate([
                 'user_id' => $user->id,
-                'role_id' => $adminRole->id,
+                'role_id' => $roleId,
                 'period_id' => $activePeriodId,
             ]);
+        } elseif ($activePeriodId) {
+            $adminRole = Role::where('name', 'Admin')->first();
+            if ($adminRole) {
+                UserRole::firstOrCreate([
+                    'user_id' => $user->id,
+                    'role_id' => $adminRole->id,
+                    'period_id' => $activePeriodId,
+                ]);
+            }
         }
 
         ActivityLog::record(
@@ -75,21 +141,18 @@ class AdminUserController extends Controller
             'create',
             'user',
             $user->id,
-            "Membuat akun admin baru: {$user->id} ({$user->name}).",
+            "Membuat akun pengguna baru: {$user->id} ({$user->name}).",
             $request->ip()
         );
 
         return redirect()->route('admin.users.index')
-            ->with('success', 'Akun admin berhasil dibuat dengan kewajiban mengganti kata sandi saat login pertama.');
+            ->with('success', "Akun pengguna {$user->name} ({$user->id}) berhasil dibuat.");
     }
 
     public function resetPassword(AdminResetPasswordRequest $request, User $user): RedirectResponse
     {
-        $mustChange = $request->boolean('must_change_password', true);
-
         $user->forceFill([
             'password' => Hash::make($request->input('password')),
-            'must_change_password' => $mustChange,
         ])->save();
 
         ActivityLog::record(
@@ -97,7 +160,7 @@ class AdminUserController extends Controller
             'reset_password',
             'user',
             $user->id,
-            "Admin mereset kata sandi pengguna {$user->id} (must_change_password = " . ($mustChange ? 'true' : 'false') . ").",
+            "Admin mereset kata sandi pengguna {$user->id}.",
             $request->ip()
         );
 
@@ -110,9 +173,13 @@ class AdminUserController extends Controller
             return back()->with('error', 'Anda tidak dapat menonaktifkan akun Anda sendiri.');
         }
 
-        $user->update(['is_active' => ! $user->is_active]);
+        $newActive = ! $user->is_active;
+        $user->update([
+            'is_active' => $newActive,
+            'status' => $newActive ? 'active' : 'rejected',
+        ]);
 
-        $statusStr = $user->is_active ? 'mengaktifkan' : 'menonaktifkan';
+        $statusStr = $newActive ? 'mengaktifkan' : 'menonaktifkan';
 
         ActivityLog::record(
             $request->user()->id,

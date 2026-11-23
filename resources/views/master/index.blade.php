@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
     <div>
         <h1 class="h3 fw-bold mb-1">Pengelolaan Data Master: {{ $config['label'] }}</h1>
         <p class="text-secondary mb-0">Kelola master data pendukung sistem. Sesuai ketentuan, data tidak dihapus melainkan dinonaktifkan.</p>
@@ -25,54 +25,63 @@
     <div class="card-header bg-white py-3">
         <div class="row g-2 align-items-center justify-content-between">
             <div class="col-md-5">
-                <h2 class="h5 fw-bold mb-0">Daftar {{ $config['label'] }} (Total: {{ $records->total() }})</h2>
+                <h2 class="h5 fw-bold mb-0">Daftar {{ $config['label'] }} (Total: {{ $records->count() }})</h2>
             </div>
-            <div class="col-md-5">
-                <form method="get" action="{{ route('master.index', $type) }}" class="d-flex gap-2">
-                    <input type="text" name="search" id="searchMasterInput" class="form-control form-control-sm" placeholder="Cari {{ strtolower($config['label']) }}..." value="{{ $search ?? '' }}">
-                    @if(!empty($search))
-                        <a href="{{ route('master.index', $type) }}" class="btn btn-sm btn-outline-secondary">Reset</a>
-                    @endif
-                    <button type="submit" class="btn btn-sm btn-primary">Cari</button>
-                </form>
-            </div>
+            @if($type === 'courses')
+                <div class="col-md-7">
+                    <form method="get" action="{{ route('master.index', $type) }}" class="d-flex gap-2 justify-content-md-end align-items-center">
+                        <label class="form-label small fw-semibold text-secondary mb-0 text-nowrap">Filter Prodi:</label>
+                        <select name="study_program_id" class="form-select form-select-sm" style="max-width: 240px;" onchange="this.form.submit()">
+                            <option value="">-- Semua Program Studi --</option>
+                            @foreach($studyPrograms as $sp)
+                                <option value="{{ $sp->id }}" {{ request('study_program_id') === (string) $sp->id ? 'selected' : '' }}>
+                                    {{ $sp->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @if(request('study_program_id'))
+                            <a href="{{ route('master.index', $type) }}" class="btn btn-sm btn-outline-secondary">Reset</a>
+                        @endif
+                    </form>
+                </div>
+            @endif
         </div>
     </div>
-    <div class="card-body p-0">
+    <div class="card-body p-3">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0" id="masterTable">
+            <table class="table table-hover align-middle text-nowrap mb-0" id="masterTable">
                 <thead class="table-light">
                     <tr>
-                        <th style="width: 160px;">{{ $config['pk_label'] }}</th>
-                        <th>Nama</th>
+                        <th class="text-start" style="width: 160px;">{{ $config['pk_label'] }}</th>
+                        <th class="text-start">Nama</th>
                         @if($type === 'rooms')
-                            <th>Kapasitas</th>
+                            <th class="text-start">Kapasitas</th>
                         @elseif($type === 'courses')
-                            <th>Program Studi</th>
+                            <th class="text-start">Program Studi</th>
                         @endif
-                        <th>Status</th>
-                        <th class="text-end" style="width: 220px;">Aksi</th>
+                        <th class="text-start">Status</th>
+                        <th class="text-start" style="width: 220px;">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($records as $record)
+                    @foreach($records as $record)
                         <tr class="{{ !$record->is_active ? 'table-light text-muted' : '' }}">
-                            <td class="fw-bold font-monospace text-primary">{{ $record->id }}</td>
-                            <td class="fw-semibold">{{ $record->name }}</td>
+                            <td class="fw-bold font-monospace text-primary text-start">{{ $record->id }}</td>
+                            <td class="fw-semibold text-start">{{ $record->name }}</td>
                             @if($type === 'rooms')
-                                <td>{{ $record->capacity ? $record->capacity . ' orang' : '-' }}</td>
+                                <td class="text-start">{{ $record->capacity ? $record->capacity . ' orang' : '-' }}</td>
                             @elseif($type === 'courses')
-                                <td>{{ $record->studyProgram->name ?? $record->study_program_id }}</td>
+                                <td class="text-start">{{ $record->studyProgram->name ?? $record->study_program_id }}</td>
                             @endif
-                            <td>
+                            <td class="text-start">
                                 @if($record->is_active)
                                     <span class="badge bg-success">Aktif</span>
                                 @else
                                     <span class="badge bg-secondary">Nonaktif</span>
                                 @endif
                             </td>
-                            <td class="text-end">
-                                <div class="d-inline-flex gap-1 justify-content-end align-items-center">
+                            <td class="text-start">
+                                <div class="d-inline-flex gap-1 align-items-center">
                                     <a class="btn btn-sm btn-outline-primary" href="{{ route('master.edit', [$type, $record->id]) }}">
                                         Ubah
                                     </a>
@@ -85,38 +94,26 @@
                                 </div>
                             </td>
                         </tr>
-                    @empty
-                        <tr>
-                            <td colspan="{{ $type === 'study-programs' ? 4 : 5 }}" class="text-center py-4 text-muted">Belum ada data {{ $config['label'] }} yang sesuai.</td>
-                        </tr>
-                    @endforelse
+                    @endforeach
                 </tbody>
             </table>
         </div>
     </div>
-    @if($records->hasPages())
-        <div class="card-footer bg-white">
-            {{ $records->links() }}
-        </div>
-    @endif
 </div>
+@endsection
 
 @push('scripts')
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const input = document.getElementById('searchMasterInput');
-    const table = document.getElementById('masterTable');
-    if (input && table) {
-        input.addEventListener('keyup', function() {
-            const filter = input.value.toLowerCase();
-            const rows = table.querySelectorAll('tbody tr');
-            rows.forEach(row => {
-                const text = row.textContent.toLowerCase();
-                row.style.display = text.includes(filter) ? '' : 'none';
-            });
-        });
+$(document).ready(function() {
+    if ($.fn.DataTable.isDataTable('#masterTable')) {
+        $('#masterTable').DataTable().destroy();
     }
+    $('#masterTable').DataTable({
+        order: [[0, 'asc']],
+        columnDefs: [
+            { orderable: false, targets: [-1] }
+        ]
+    });
 });
 </script>
 @endpush
-@endsection

@@ -4,7 +4,6 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
         <h1 class="h3 fw-bold mb-1">Pengelolaan Peran Staf & Asisten Laboratorium</h1>
-        <p class="text-secondary mb-0">Atur penugasan peran per periode semester, unggah daftar staf awal semester, atau salin dari periode sebelumnya.</p>
     </div>
 </div>
 
@@ -39,7 +38,7 @@
     <div class="alert alert-warning border-warning shadow-sm mb-4" role="alert">
         <div class="d-flex align-items-start gap-3">
             <div class="fs-4 text-warning">⚠️</div>
-            <div class="flex-grow-1">
+            <div class="grow">
                 <h2 class="h6 fw-bold mb-1 text-dark">
                     Peringatan: Terdapat {{ $invalidEmailUsers->count() }} Pengguna dengan Email Belum Diisi!
                 </h2>
@@ -115,7 +114,7 @@
 
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0" id="rolesTable">
+            <table class="table table-hover align-middle text-nowrap mb-0" id="rolesTable">
                 <thead class="table-light">
                     <tr>
                         <th style="width: 120px;">NIK / NRP</th>
@@ -123,7 +122,7 @@
                         <th>Email</th>
                         <th>Program Studi</th>
                         <th>Peran di Periode Ini</th>
-                        <th class="text-end" style="width: 140px;">Aksi</th>
+                        <th style="width: 140px;">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -168,7 +167,7 @@
                                     @endforeach
                                 </div>
                             </td>
-                            <td class="text-end">
+                            <td>
                                 <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editUserRolesModal-{{ $item->user->id }}">
                                     Ubah Peran
                                 </button>
@@ -183,6 +182,11 @@
             </table>
         </div>
     </div>
+    @if($groupedUsers->hasPages())
+        <div class="card-footer bg-white border-top py-3">
+            {{ $groupedUsers->links() }}
+        </div>
+    @endif
 </div>
 
 {{-- Modal Ubah Peran untuk Setiap Pengguna --}}

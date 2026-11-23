@@ -44,7 +44,7 @@ return new class extends Migration
         // 5. course
         Schema::table('course', function (Blueprint $table) {
             $table->string('id', 12)->change();
-            $table->string('name', 60)->change();
+            $table->string('name', 80)->change();
         });
 
         // 6. room

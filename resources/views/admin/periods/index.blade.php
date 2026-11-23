@@ -4,7 +4,6 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
         <h1 class="h3 fw-bold mb-1">Periode Semester & Kalender Akademik</h1>
-        <p class="text-secondary mb-0">Kelola periode semester perkuliahan, rentang UTS/UAS, dan kalender hari libur.</p>
     </div>
     <a href="{{ route('admin.periods.create') }}" class="btn btn-primary">
         + Tambah Periode
@@ -21,17 +20,17 @@
         </div>
 
         <div class="table-responsive">
-            <table class="table table-hover align-middle border">
+            <table class="table table-hover align-middle border text-nowrap mb-0" id="periodsTable">
                 <thead class="table-light">
                     <tr>
-                        <th>Nama Periode</th>
-                        <th>Rentang Kuliah (start - end)</th>
-                        <th>Rentang UTS</th>
-                        <th>Rentang UAS</th>
-                        <th>Hari Libur</th>
-                        <th>Jadwal Kuliah</th>
-                        <th>Status</th>
-                        <th class="text-end">Aksi & Regenerate</th>
+                        <th class="text-start">Nama Periode</th>
+                        <th class="text-start">Rentang Kuliah (start - end)</th>
+                        <th class="text-start">Rentang UTS</th>
+                        <th class="text-start">Rentang UAS</th>
+                        <th class="text-start">Hari Libur</th>
+                        <th class="text-start">Jadwal Kuliah</th>
+                        <th class="text-start">Status</th>
+                        <th class="text-start">Aksi & Regenerate</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -77,8 +76,8 @@
                                     </button>
                                 </form>
                             </td>
-                            <td class="text-end">
-                                <div class="btn-group">
+                            <td>
+                                <div class="d-inline-flex gap-1 align-items-center">
                                     <form method="post" action="{{ route('admin.periods.regenerate', $p) }}" class="d-inline" onsubmit="return confirm('Regenerate sesi pertemuan untuk periode ini? Sesi manual yang sudah ada tidak akan ditimpa.')">
                                         @csrf
                                         <button type="submit" class="btn btn-sm btn-outline-primary" title="Generate atau regenerate schedule_session">
@@ -108,6 +107,27 @@
                 </tbody>
             </table>
         </div>
+        @if(method_exists($periods, 'hasPages') && $periods->hasPages())
+            <div class="mt-3">
+                {{ $periods->links() }}
+            </div>
+        @endif
     </div>
 </div>
+
+@push('scripts')
+<script>
+$(document).ready(function() {
+    if ($.fn.DataTable.isDataTable('#periodsTable')) {
+        $('#periodsTable').DataTable().destroy();
+    }
+    $('#periodsTable').DataTable({
+        order: [[0, 'desc']],
+        columnDefs: [
+            { orderable: false, targets: [4, 6, 7] }
+        ]
+    });
+});
+</script>
+@endpush
 @endsection

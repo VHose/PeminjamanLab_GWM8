@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -9,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     use HasFactory, Notifiable;
 
@@ -24,14 +25,18 @@ class User extends Authenticatable
         'study_program_id',
         'name',
         'email',
+        'email_verified_at',
         'phone',
+        'pic_or_instansi',
         'password',
         'is_active',
-        'must_change_password',
+        'status',
     ];
 
     protected $attributes = [
         'study_program_id' => '00',
+        'status' => 'active',
+        'is_active' => true,
     ];
 
     protected $hidden = [
@@ -42,10 +47,19 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
+            'email_verified_at' => 'datetime',
             'is_active' => 'boolean',
-            'must_change_password' => 'boolean',
             'password' => 'hashed',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::creating(function (User $user) {
+            if ($user->status !== 'pending' && is_null($user->email_verified_at)) {
+                $user->email_verified_at = now();
+            }
+        });
     }
 
     /* ── Relationships ── */

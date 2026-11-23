@@ -56,32 +56,86 @@ class InitialDataSeeder extends Seeder
             ]);
         }
 
-        // 5. Akun Administrator Awal (hanya untuk bootstrap pertama kali)
-        $adminId = env('ADMIN_ID', 'ADMIN');
-        $adminEmail = env('ADMIN_EMAIL', 'admin@example.com');
-        $adminPassword = env('ADMIN_PASSWORD', 'ganti-segera');
+        // 5. Akun Awal Pengguna Tiap Role (untuk login & pengujian)
+        $defaultPassword = Hash::make(env('DEFAULT_PASSWORD', 'password123'));
+        $roles = DB::table('role')->pluck('id', 'name');
 
-        DB::table('user')->updateOrInsert(
-            ['id' => $adminId],
+        $initialUsers = [
             [
+                'id' => env('ADMIN_ID', 'ADMIN'),
                 'study_program_id' => '72',
                 'name' => 'Administrator',
-                'email' => $adminEmail,
-                'password' => Hash::make($adminPassword),
-                'is_active' => true,
-                'must_change_password' => true, // Paksa ganti password awal saat login pertama
-                'created_at' => $now,
-                'updated_at' => $now,
-            ]
-        );
+                'email' => env('ADMIN_EMAIL', 'admin@example.com'),
+                'role' => 'Admin',
+            ],
+            [
+                'id' => 'KALAB',
+                'study_program_id' => '72',
+                'name' => 'Kepala Laboratorium',
+                'email' => 'kalab@example.com',
+                'role' => 'Kepala_Lab',
+            ],
+            [
+                'id' => 'KAPRODI',
+                'study_program_id' => '72',
+                'name' => 'Kepala Program Studi IF',
+                'email' => 'kaprodi@example.com',
+                'role' => 'Kepala_Prodi',
+            ],
+            [
+                'id' => 'KAPRODI_SI',
+                'study_program_id' => '73',
+                'name' => 'Kepala Program Studi SI',
+                'email' => 'kaprodi.si@example.com',
+                'role' => 'Kepala_Prodi',
+            ],
+            [
+                'id' => 'STAFLAB',
+                'study_program_id' => '00',
+                'name' => 'Staf Laboratorium',
+                'email' => 'staflab@example.com',
+                'role' => 'Staf_Lab',
+            ],
+            [
+                'id' => 'DOSEN',
+                'study_program_id' => '72',
+                'name' => 'Dosen Informatika',
+                'email' => 'dosen@example.com',
+                'role' => 'Dosen',
+            ],
+            [
+                'id' => 'VISITOR',
+                'study_program_id' => '72',
+                'name' => 'Valentino Hose (Mahasiswa)',
+                'email' => 'visitor@example.com',
+                'role' => 'Visitor',
+            ],
+        ];
 
-        $adminRole = DB::table('role')->where('name', 'Admin')->value('id');
-        if ($adminRole && $periodId) {
-            DB::table('user_role')->insertOrIgnore([
-                'user_id' => $adminId,
-                'role_id' => $adminRole,
-                'period_id' => $periodId,
-            ]);
+        foreach ($initialUsers as $u) {
+            DB::table('user')->updateOrInsert(
+                ['id' => $u['id']],
+                [
+                    'study_program_id' => $u['study_program_id'],
+                    'name' => $u['name'],
+                    'email' => $u['email'],
+                    'email_verified_at' => $now,
+                    'pic_or_instansi' => $u['role'] === 'Visitor' ? 'Universitas / Mahasiswa' : null,
+                    'password' => $defaultPassword,
+                    'is_active' => true,
+                    'status' => 'active',
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ]
+            );
+
+            if (isset($roles[$u['role']]) && $periodId) {
+                DB::table('user_role')->insertOrIgnore([
+                    'user_id' => $u['id'],
+                    'role_id' => $roles[$u['role']],
+                    'period_id' => $periodId,
+                ]);
+            }
         }
     }
 }
