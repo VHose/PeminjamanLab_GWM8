@@ -92,10 +92,10 @@ class DashboardController extends Controller
         $canToggleSession = false;
 
         if ($user) {
-            if ($user->hasRole('Admin')) {
+            if ($user->hasRole('Admin', 'Kepala_Lab', 'Staf_Lab')) {
                 $canSeeInactiveSessions = true;
                 $canToggleSession = true;
-            } elseif ($user->hasRole('Kepala_Prodi', 'Kepala_Lab', 'Dosen')) {
+            } elseif ($user->hasRole('Kepala_Prodi', 'Dosen')) {
                 $canSeeInactiveSessions = true;
             }
         }

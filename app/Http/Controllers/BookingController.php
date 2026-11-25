@@ -127,13 +127,6 @@ class BookingController extends Controller
         return view('bookings.create', compact('rooms'));
     }
 
-    public function staffCreate(): View
-    {
-        $rooms = Room::where('is_active', true)->orderBy('id')->get();
-
-        return view('bookings.staff-create', compact('rooms'));
-    }
-
     public function show(Booking $booking): View
     {
         if (! request()->user()->isInternal() && $booking->user_id !== request()->user()->id) {
@@ -421,97 +414,5 @@ class BookingController extends Controller
         }
 
         return Storage::disk('local')->response($attachment->path, $attachment->original_name);
-    }
-
-    public function staffStore(
-        Request $request,
-        BookingService $service
-    ): RedirectResponse {
-        abort_unless($request->user()->hasRole('Staf_Lab'), 403);
-
-        $data = $request->validate([
-            'requester_name' => ['required', 'string', 'max:70'],
-            'pic_phone' => ['nullable', 'string', 'max:15'],
-            'purpose' => ['required', 'string', 'max:255'],
-            'slots' => ['required', 'array', 'min:1'],
-            'slots.*.room_id' => ['required', 'exists:room,id'],
-            'slots.*.date' => ['required', 'date'],
-            'slots.*.start' => ['required', 'date_format:H:i'],
-            'slots.*.end' => ['required', 'date_format:H:i', 'after:slots.*.start'],
-            'attachments' => ['nullable', 'array', 'max:5'],
-            'attachments.*' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png,doc,docx', 'max:5120'],
-            'attachment' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png,doc,docx', 'max:5120'],
-        ], [
-            'purpose.max' => 'Informasi terlalu panjang. Jika memerlukan deskripsi yang lebih panjang, mohon lampirkan melalui berkas pendukung (file).',
-            'requester_name.max' => 'Nama dosen / pemohon tidak boleh lebih dari :max karakter.',
-            'pic_phone.max' => 'Nomor telepon tidak boleh lebih dari :max karakter.',
-        ]);
-
-        foreach ($data['slots'] as $slot) {
-            $start = Carbon::parse("{$slot['date']} {$slot['start']}");
-            $end = Carbon::parse("{$slot['date']} {$slot['end']}");
-
-            if (! $service->isAvailable($slot['room_id'], $start, $end)) {
-                throw ValidationException::withMessages([
-                    'slots' => "Ruangan {$slot['room_id']} pada tanggal {$slot['date']} ({$slot['start']} - {$slot['end']}) sudah terisi.",
-                ]);
-            }
-        }
-
-        $booking = DB::transaction(function () use ($request, $data) {
-            $user = $request->user();
-
-            $booking = Booking::create([
-                'user_id' => $user->id,
-                'created_by' => $user->id,
-                'pic_name' => $data['requester_name'],
-                'pic_phone' => $request->input('pic_phone') ?? $user->phone ?? '-',
-                'purpose' => $data['purpose'],
-                'status' => BookingStatus::APPROVED,
-            ]);
-
-            foreach ($data['slots'] as $slot) {
-                BookingDetail::create([
-                    'booking_id' => $booking->id,
-                    'room_id' => $slot['room_id'],
-                    'booking_date' => $slot['date'],
-                    'start_time' => $slot['start'] . ':00',
-                    'end_time' => $slot['end'] . ':00',
-                    'status' => BookingDetailStatus::APPROVED,
-                ]);
-            }
-
-            $uploadedFiles = [];
-            if ($request->hasFile('attachments')) {
-                $rawFiles = $request->file('attachments');
-                $uploadedFiles = is_array($rawFiles) ? $rawFiles : [$rawFiles];
-            } elseif ($request->hasFile('attachment')) {
-                $uploadedFiles = [$request->file('attachment')];
-            }
-
-            foreach ($uploadedFiles as $file) {
-                if ($file && $file->isValid()) {
-                    $originalName = mb_substr($file->getClientOriginalName(), 0, 100);
-                    $file->storeAs("booking_attachments/{$booking->id}", $originalName, 'local');
-                    BookingAttachment::updateOrCreate(
-                        ['booking_id' => $booking->id, 'original_name' => $originalName],
-                        ['created_at' => now()]
-                    );
-                }
-            }
-
-            ActivityLog::record(
-                $user->id,
-                'create',
-                'booking',
-                $booking->id,
-                "Staf Lab menginput peminjaman langsung #{$booking->id} atas nama {$booking->pic_name}.",
-                $request->ip()
-            );
-
-            return $booking;
-        });
-
-        return redirect()->route('bookings.show', $booking)->with('success', 'Peminjaman atas nama dosen berhasil disimpan.');
     }
 }

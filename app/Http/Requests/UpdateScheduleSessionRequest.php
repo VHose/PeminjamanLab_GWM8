@@ -12,7 +12,7 @@ class UpdateScheduleSessionRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return $this->user()?->hasRole('Admin') ?? false;
+        return $this->user()?->hasRole('Admin', 'Kepala_Lab', 'Staf_Lab') ?? false;
     }
 
     /**

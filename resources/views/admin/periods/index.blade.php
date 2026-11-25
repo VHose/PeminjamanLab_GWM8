@@ -34,7 +34,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($periods as $p)
+                    @foreach($periods as $p)
                         <tr class="{{ $p->is_active ? 'table-success bg-opacity-10' : '' }}">
                             <td>
                                 <span class="fw-bold">{{ $p->name }}</span>
@@ -99,11 +99,7 @@
                                 </div>
                             </td>
                         </tr>
-                    @empty
-                        <tr>
-                            <td colspan="8" class="text-center text-muted py-4">Belum ada periode semester yang terdaftar.</td>
-                        </tr>
-                    @endforelse
+                    @endforeach
                 </tbody>
             </table>
         </div>

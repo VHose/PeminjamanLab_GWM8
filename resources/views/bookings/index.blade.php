@@ -7,9 +7,6 @@
         <p class="text-secondary small mb-0">Lacak status permohonan peminjaman laboratorium Anda di sini.</p>
     </div>
     <div class="d-flex gap-2">
-        @if(auth()->user()->hasRole('Staf_Lab'))
-            <a class="btn btn-outline-primary" href="{{ route('staff-bookings.create') }}">Input Peminjaman Dosen</a>
-        @endif
         @if(!auth()->user()->isInternal() && !auth()->user()->hasVerifiedEmail())
             <a href="{{ route('verification.notice') }}" class="btn btn-warning">Verifikasi Email</a>
         @elseif(!auth()->user()->isInternal() && (auth()->user()->status !== 'active' || !auth()->user()->is_active))

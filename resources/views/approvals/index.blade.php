@@ -39,7 +39,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($pendingBookings as $booking)
+                    @foreach($pendingBookings as $booking)
                         @php
                             $bStatusVal = $booking->status instanceof \App\Enums\BookingStatus ? $booking->status->value : (int) $booking->status;
                         @endphp
@@ -178,11 +178,7 @@
                                 @endif
                             </td>
                         </tr>
-                    @empty
-                        <tr>
-                            <td colspan="7" class="text-center py-4 text-muted">Tidak ada pengajuan yang sedang menunggu persetujuan Anda saat ini.</td>
-                        </tr>
-                    @endforelse
+                    @endforeach
                 </tbody>
             </table>
         </div>
@@ -202,6 +198,10 @@ $(document).ready(function() {
     }
     $('#pendingBookingsTable').DataTable({
         order: [[0, 'desc']],
+        language: {
+            emptyTable: "Tidak ada pengajuan yang sedang menunggu persetujuan Anda saat ini.",
+            zeroRecords: "Tidak ada pengajuan yang cocok."
+        },
         columnDefs: [
             { orderable: false, targets: [6] }
         ]

@@ -125,14 +125,6 @@
                             </a>
                         </li>
 
-                        @if(auth()->user()->hasRole('Staf_Lab'))
-                            <li class="nav-item">
-                                <a class="nav-link {{ request()->routeIs('staff-bookings.*') ? 'active' : '' }}" href="{{ route('staff-bookings.create') }}">
-                                    Input Dosen
-                                </a>
-                            </li>
-                        @endif
-
                         @if(auth()->user()->hasRole('Kepala_Prodi', 'Kepala_Lab', 'Staf_Lab', 'Admin'))
                             <div class="sidebar-heading">Validasi & Approval</div>
                             @if(auth()->user()->hasRole('Kepala_Prodi', 'Kepala_Lab'))
@@ -310,6 +302,7 @@
     <script src="{{ asset('assets/js/plugin/datatables/dataTables.bootstrap5.min.js') }}"></script>
     <script>
         if (typeof $.fn.dataTable !== 'undefined') {
+            $.fn.dataTable.ext.errMode = 'none';
             $.extend(true, $.fn.dataTable.defaults, {
                 language: {
                     search: "Cari Cepat:",

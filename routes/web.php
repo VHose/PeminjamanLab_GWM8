@@ -70,17 +70,15 @@ Route::middleware('auth')->group(function () {
     Route::get('/bookings/{booking}/attachments/{attachment}', [BookingController::class, 'showAttachment'])->name('bookings.attachments.show');
     Route::post('/bookings/{booking}/cancel', [BookingController::class, 'cancel'])->name('bookings.cancel');
 
-    // Staf_Lab, Kepala_Lab, Admin: Persetujuan Pendaftaran Akun Visitor
+    // Staf_Lab, Kepala_Lab, Admin: Persetujuan Pendaftaran Akun Visitor & Sesi Jadwal
     Route::middleware('role:Staf_Lab,Kepala_Lab,Admin')->prefix('admin')->group(function () {
         Route::get('/visitor-approvals', [VisitorApprovalController::class, 'index'])->name('admin.visitor-approvals.index');
         Route::post('/visitor-approvals/{user}/approve', [VisitorApprovalController::class, 'approve'])->name('admin.visitor-approvals.approve');
         Route::post('/visitor-approvals/{user}/reject', [VisitorApprovalController::class, 'reject'])->name('admin.visitor-approvals.reject');
-    });
 
-    // Staf_Lab: Booking atas nama dosen
-    Route::middleware('role:Staf_Lab')->group(function () {
-        Route::get('/staff-bookings/create', [BookingController::class, 'staffCreate'])->name('staff-bookings.create');
-        Route::post('/staff-bookings', [BookingController::class, 'staffStore'])->name('staff-bookings.store');
+        // Toggle Aktif/Libur & Pindah Ruangan Sesi Pertemuan Kuliah Langsung dari Tabel Jadwal (Admin, Kalab, Staf Lab)
+        Route::post('/schedule-sessions/{scheduleId}/{weekNo}/toggle', [ScheduleSessionController::class, 'toggle'])->name('admin.schedule-sessions.toggle');
+        Route::patch('/schedule-sessions/{scheduleId}/{weekNo}', [ScheduleSessionController::class, 'update'])->name('admin.schedule-sessions.update');
     });
 
     // Staf_Lab, Kepala_Prodi, Kepala_Lab: CRUD Section
@@ -100,7 +98,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/approvals/detail/{detail}/kalab', [ApprovalController::class, 'decideKalabDetail'])->name('approvals.decideKalabDetail');
     });
 
-    // Kepala Lab & Admin: Kelola Pengguna, Peran, dan Jadwal
+    // Kepala Lab & Admin: Kelola Pengguna, Peran, Jadwal, dan Sesi Pertemuan
     Route::middleware('role:Kepala_Lab,Admin')->prefix('admin')->group(function () {
         // Kelola Pengguna & Peran (Unified Menu)
         Route::get('/users', [AdminUserController::class, 'index'])->name('admin.users.index');
@@ -133,10 +131,6 @@ Route::middleware('auth')->group(function () {
         Route::post('/periods/{period}/toggle', [PeriodController::class, 'toggleActive'])->name('admin.periods.toggle');
         Route::delete('/periods/{period}', [PeriodController::class, 'destroy'])->name('admin.periods.destroy');
         Route::post('/periods/{period}/regenerate', [PeriodController::class, 'regenerateSessions'])->name('admin.periods.regenerate');
-
-        // Toggle Aktif/Libur Sesi Pertemuan Kuliah Langsung dari Tabel Jadwal
-        Route::post('/schedule-sessions/{scheduleId}/{weekNo}/toggle', [ScheduleSessionController::class, 'toggle'])->name('admin.schedule-sessions.toggle');
-        Route::patch('/schedule-sessions/{scheduleId}/{weekNo}', [ScheduleSessionController::class, 'update'])->name('admin.schedule-sessions.update');
 
         // Hari Libur Periode
         Route::get('/periods/{period}/holidays', [PeriodHolidayController::class, 'index'])->name('admin.holidays.index');

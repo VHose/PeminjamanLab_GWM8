@@ -447,19 +447,19 @@ class ScheduleSessionManagementTest extends TestCase
         $resKaprodi->assertSee($this->course->name);
         $resKaprodi->assertDontSee('toggle-' . $schedule->id . '-1');
 
-        // D. KEPALA LAB: Melihat sesi libur, TIDAK melihat toggle switch
+        // D. KEPALA LAB: Melihat sesi libur dan toggle switch (sama seperti Admin)
         $resKalab = $this->actingAs($this->kalab)->get($url);
         $resKalab->assertOk();
         $resKalab->assertSee('Kuliah Libur');
         $resKalab->assertSee($this->course->name);
-        $resKalab->assertDontSee('toggle-' . $schedule->id . '-1');
+        $resKalab->assertSee('toggle-' . $schedule->id . '-1');
 
-        // E. STAF LAB: TIDAK melihat sesi libur sama sekali, TIDAK melihat toggle switch
+        // E. STAF LAB: Melihat sesi libur dan toggle switch (sama seperti Admin dan Kalab)
         $resStaff = $this->actingAs($this->staff)->get($url);
         $resStaff->assertOk();
-        $resStaff->assertDontSee('Kuliah Libur');
-        $resStaff->assertDontSee($this->course->name);
-        $resStaff->assertDontSee('toggle-' . $schedule->id . '-1');
+        $resStaff->assertSee('Kuliah Libur');
+        $resStaff->assertSee($this->course->name);
+        $resStaff->assertSee('toggle-' . $schedule->id . '-1');
 
         // F. VISITOR: TIDAK melihat sesi libur sama sekali, TIDAK melihat toggle switch
         $resVisitor = $this->actingAs($this->visitor)->get($url);
@@ -498,10 +498,10 @@ class ScheduleSessionManagementTest extends TestCase
         $toggleUrl = route('admin.schedule-sessions.toggle', [$schedule->id, 1]);
 
         $this->actingAs($this->visitor)->post($toggleUrl)->assertForbidden();
-        $this->actingAs($this->staff)->post($toggleUrl)->assertForbidden();
         $this->actingAs($this->lecturer)->post($toggleUrl)->assertForbidden();
         $this->actingAs($this->kaprodi)->post($toggleUrl)->assertForbidden();
-        $this->actingAs($this->kalab)->post($toggleUrl)->assertForbidden();
+        $this->actingAs($this->staff)->post($toggleUrl)->assertRedirect();
+        $this->actingAs($this->kalab)->post($toggleUrl)->assertRedirect();
     }
 
     /**
@@ -689,10 +689,10 @@ class ScheduleSessionManagementTest extends TestCase
         $updateUrl = route('admin.schedule-sessions.update', [$schedule->id, 1]);
 
         $this->actingAs($this->visitor)->patch($updateUrl, ['room_id' => $this->adv2->id])->assertForbidden();
-        $this->actingAs($this->staff)->patch($updateUrl, ['room_id' => $this->adv2->id])->assertForbidden();
         $this->actingAs($this->lecturer)->patch($updateUrl, ['room_id' => $this->adv2->id])->assertForbidden();
         $this->actingAs($this->kaprodi)->patch($updateUrl, ['room_id' => $this->adv2->id])->assertForbidden();
-        $this->actingAs($this->kalab)->patch($updateUrl, ['room_id' => $this->adv2->id])->assertForbidden();
+        $this->actingAs($this->staff)->patch($updateUrl, ['room_id' => $this->adv2->id])->assertRedirect();
+        $this->actingAs($this->kalab)->patch($updateUrl, ['room_id' => $this->adv2->id])->assertRedirect();
     }
 
     /**

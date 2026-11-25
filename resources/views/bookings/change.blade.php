@@ -94,7 +94,8 @@
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label fw-semibold">Hari & Tanggal <span class="text-danger">*</span></label>
-                                    <input class="form-control date-input" type="date" name="slots[0][date]" min="{{ now()->toDateString() }}" required>
+                                    <input class="form-control date-input" type="date" name="slots[0][date]" min="{{ now()->addDays(2)->toDateString() }}" required>
+                                    <div class="form-text small text-muted"><i class="bi bi-info-circle me-1"></i>Paling cepat <strong>{{ now()->addDays(2)->translatedFormat('l, d F Y') }}</strong> (minimal H+2).</div>
                                 </div>
                                 <div class="col-md-2">
                                     <label class="form-label fw-semibold">Jam Mulai <span class="text-danger">*</span></label>
@@ -176,7 +177,41 @@ async function loadAvailability(slotItem) {
     const roomId = roomSelect.value;
     const dateVal = dateInput.value;
 
-    if (!roomId || !dateVal) {
+    if (!dateVal) {
+        startSelect.disabled = true;
+        endSelect.disabled = true;
+        startSelect.innerHTML = '<option value="">Pilih Jam</option>';
+        endSelect.innerHTML = '<option value="">Pilih Jam</option>';
+        alertBox.style.display = 'none';
+        updatePreviews();
+        return;
+    }
+
+    // Cek Hari Minggu
+    const dateObj = new Date(dateVal + 'T00:00:00');
+    if (dateObj.getDay() === 0) {
+        alertBox.className = 'alert alert-danger p-2 small mt-2';
+        alertBox.innerHTML = '<i class="bi bi-x-circle-fill me-1"></i> Laboratorium tutup pada hari Minggu. Silakan pilih hari Senin - Sabtu.';
+        alertBox.style.display = 'block';
+        startSelect.disabled = true;
+        endSelect.disabled = true;
+        updatePreviews();
+        return;
+    }
+
+    // Cek minimal 2 hari dari sekarang (H+2)
+    const minDateStr = "{{ now()->addDays(2)->toDateString() }}";
+    if (dateVal < minDateStr) {
+        alertBox.className = 'alert alert-danger p-2 small mt-2';
+        alertBox.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-1"></i> Waktu peminjaman minimal 2 hari dari sekarang (H+2). Paling cepat tanggal <strong>{{ now()->addDays(2)->translatedFormat("l, d F Y") }}</strong>.';
+        alertBox.style.display = 'block';
+        startSelect.disabled = true;
+        endSelect.disabled = true;
+        updatePreviews();
+        return;
+    }
+
+    if (!roomId) {
         startSelect.disabled = true;
         endSelect.disabled = true;
         startSelect.innerHTML = '<option value="">Pilih Jam</option>';

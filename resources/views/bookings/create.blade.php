@@ -89,7 +89,8 @@
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label fw-semibold">Hari & Tanggal (Senin - Sabtu) <span class="text-danger">*</span></label>
-                                    <input class="form-control date-input" type="date" name="slots[0][date]" value="{{ old('slots.0.date', request('date')) }}" min="{{ now()->toDateString() }}" required>
+                                    <input class="form-control date-input" type="date" name="slots[0][date]" value="{{ old('slots.0.date', request('date')) }}" min="{{ now()->addDays(2)->toDateString() }}" required>
+                                    <div class="form-text small text-muted"><i class="bi bi-info-circle me-1"></i>Paling cepat <strong>{{ now()->addDays(2)->translatedFormat('l, d F Y') }}</strong> (minimal H+2).</div>
                                 </div>
                                 <div class="col-md-2">
                                     <label class="form-label fw-semibold">Jam Mulai <span class="text-danger">*</span></label>
@@ -174,11 +175,46 @@ async function loadAvailability(slotItem) {
     const roomSelect = slotItem.querySelector('.room-select');
     const dateInput = slotItem.querySelector('.date-input');
     const alertBox = slotItem.querySelector('.availability-alert');
+    const startSelect = slotItem.querySelector('.start-time-select');
+    const endSelect = slotItem.querySelector('.end-time-select');
 
     const roomId = roomSelect.value;
     const dateVal = dateInput.value;
 
-    if (!roomId || !dateVal) {
+    if (!dateVal) {
+        alertBox.style.display = 'none';
+        updatePreviews();
+        return;
+    }
+
+    // Cek Hari Minggu
+    const dateObj = new Date(dateVal + 'T00:00:00');
+    if (dateObj.getDay() === 0) {
+        alertBox.className = 'alert alert-danger p-2 small mt-2';
+        alertBox.innerHTML = '<i class="bi bi-x-circle-fill me-1"></i> Laboratorium tutup pada hari Minggu. Silakan pilih hari Senin - Sabtu.';
+        alertBox.style.display = 'block';
+        startSelect.disabled = true;
+        endSelect.disabled = true;
+        updatePreviews();
+        return;
+    }
+
+    // Cek minimal 2 hari dari sekarang (H+2)
+    const minDateStr = "{{ now()->addDays(2)->toDateString() }}";
+    if (dateVal < minDateStr) {
+        alertBox.className = 'alert alert-danger p-2 small mt-2';
+        alertBox.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-1"></i> Waktu peminjaman minimal 2 hari dari sekarang (H+2). Paling cepat tanggal <strong>{{ now()->addDays(2)->translatedFormat("l, d F Y") }}</strong>.';
+        alertBox.style.display = 'block';
+        startSelect.disabled = true;
+        endSelect.disabled = true;
+        updatePreviews();
+        return;
+    }
+
+    startSelect.disabled = false;
+    endSelect.disabled = false;
+
+    if (!roomId) {
         alertBox.style.display = 'none';
         updatePreviews();
         return;
@@ -232,8 +268,15 @@ function updatePreviews() {
             let isPendingQueue = false;
             let pendingMsg = '';
 
+            // 0. Cek Minimal 2 hari dari sekarang (H+2)
+            const minDateStr = "{{ now()->addDays(2)->toDateString() }}";
+            if (dateVal < minDateStr) {
+                isBentrok = true;
+                conflictMsg = 'Waktu mulai peminjaman minimal 2 hari dari sekarang (H+2). Paling cepat adalah {{ now()->addDays(2)->translatedFormat("d/m/Y") }}.';
+            }
+
             // 1. Validasi jam selesai harus lebih besar dari jam mulai
-            if (startTime >= endTime) {
+            if (!isBentrok && startTime >= endTime) {
                 isBentrok = true;
                 conflictMsg = 'Jam Selesai harus lebih besar dari Jam Mulai.';
             }
