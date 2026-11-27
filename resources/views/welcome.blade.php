@@ -39,7 +39,7 @@
                 <a href="{{ route('verification.notice') }}" class="btn btn-sm btn-warning text-dark fw-semibold text-nowrap ms-3">Verifikasi Sekarang</a>
             </div>
         @elseif(auth()->user()->status === 'pending' || !auth()->user()->is_active)
-            <div class="alert alert-info d-flex align-items-center mb-4 shadow-sm" role="alert">
+            <div class="alert alert-secondary d-flex align-items-center mb-4 shadow-sm" role="alert">
                 <div>
                     <strong>Pendaftaran Menunggu Persetujuan:</strong> Akun Anda telah terverifikasi email dan saat ini sedang menunggu persetujuan (approval) oleh Kepala Lab / Staf Lab. Tombol pengajuan peminjaman akan otomatis aktif setelah akun Anda disetujui.
                 </div>
@@ -162,7 +162,7 @@
 </div>
 
 @if($isNonLectureWeek)
-    <div class="alert alert-info border-info mb-4 shadow-sm">
+    <div class="alert alert-secondary mb-4 shadow-sm">
         <strong>Pemberitahuan Kalender Akademik:</strong>
         Minggu terpilih adalah <strong>{{ $selectedWeek['label'] }}</strong>.
         Jadwal perkuliahan reguler pada minggu ini <strong>kosong</strong>, namun ruangan laboratorium tetap dapat dipinjam untuk kegiatan akademik maupun himpunan mahasiswa.

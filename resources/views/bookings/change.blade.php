@@ -11,8 +11,8 @@
             <a class="btn btn-outline-secondary" href="{{ route('bookings.index') }}">Kembali</a>
         </div>
 
-        <div class="card mb-4 border-info">
-            <div class="card-header bg-info-subtle py-2 fw-semibold">
+        <div class="card mb-4 border">
+            <div class="card-header bg-light py-2 fw-semibold">
                 Jadwal Peminjaman Saat Ini (Akan Digantikan jika Perubahan Disetujui)
             </div>
             <div class="card-body p-0">
@@ -321,7 +321,7 @@ function populateEndTimes(slotItem) {
 
     const hasPending = pending.some(p => startTime < p.end && nextBlockedTime > p.start);
     if (hasPending) {
-        alertBox.className = 'alert alert-info p-2 small mt-2';
+        alertBox.className = 'alert alert-secondary p-2 small mt-2';
         alertBox.textContent = 'Jam yang Anda pilih bersinggungan dengan pengajuan berstatus pending. Pengajuan perubahan ini akan masuk ke antrian selanjutnya.';
         alertBox.style.display = 'block';
     } else {

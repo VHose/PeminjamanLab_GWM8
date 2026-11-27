@@ -10,11 +10,11 @@
                     <p class="text-secondary small mb-0">Daftarkan akun eksternal untuk mengajukan peminjaman laboratorium</p>
                 </div>
 
-                <div class="alert alert-info py-2 px-3 small mb-4">
-                    <div class="fw-semibold mb-1"><i class="bi bi-info-circle me-1"></i> Alur Pendaftaran (2 Tahap):</div>
+                <div class="p-3 bg-light border rounded small mb-4 text-secondary">
+                    <div class="fw-semibold text-dark mb-1">Alur Pendaftaran (2 Tahap):</div>
                     <ol class="mb-0 ps-3">
-                        <li><strong>Verifikasi Email:</strong> Tautan konfirmasi akan dikirimkan ke email Anda.</li>
-                        <li><strong>Persetujuan Pengelola:</strong> Akun Anda akan ditinjau oleh Kepala Lab / Staf Lab sebelum dapat membuat pengajuan peminjaman.</li>
+                        <li><strong class="text-dark">Verifikasi Email:</strong> Tautan konfirmasi akan dikirimkan ke email Anda.</li>
+                        <li><strong class="text-dark">Persetujuan Pengelola:</strong> Akun Anda akan ditinjau oleh Kepala Lab / Staf Lab sebelum dapat membuat pengajuan peminjaman.</li>
                     </ol>
                 </div>
 

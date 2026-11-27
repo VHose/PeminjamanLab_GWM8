@@ -42,11 +42,11 @@
                         </div>
                     </div>
 
-                    <div class="alert alert-info border-0 py-3 mb-4">
-                        <div class="fw-bold mb-1">Format Kolom File Excel:</div>
-                        <div class="small">
+                    <div class="p-3 bg-light border rounded mb-4">
+                        <div class="fw-bold text-dark mb-1">Format Kolom File Excel:</div>
+                        <div class="small text-secondary">
                             Sistem secara otomatis membaca kolom dengan header: 
-                            <code>Kode MK</code>, <code>Mata Kuliah</code>, <code>NIK</code>, <code>Dosen</code>, <code>Kode Kelas</code>, <code>Hari</code>, <code>Jam Awal</code>, <code>Jam Akhir</code>, <code>Ruang</code>.<br>
+                            <strong class="text-dark">Kode MK, Mata Kuliah, NIK, Dosen, Kode Kelas, Hari, Jam Awal, Jam Akhir, Ruang</strong>.<br>
                             Baris jadwal di luar 13 Lab GWM Lt. 8 (misal ruang kelas teori umum) akan dilewati secara otomatis dan aman.
                         </div>
                     </div>

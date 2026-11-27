@@ -7,6 +7,8 @@ use App\Enums\BookingStatus;
 use App\Constants\BookingType;
 use App\Models\Booking;
 use App\Models\BookingDetail;
+use App\Models\Period;
+use App\Models\Room;
 use App\Services\ActivityLogger;
 use App\Services\BookingService;
 use App\Services\NotificationService;
@@ -48,9 +50,11 @@ class ApprovalController extends Controller
             });
         }
 
-        $pendingBookings = $query->latest('created_at')->paginate(15)->withQueryString();
+        $allPeriods = Period::orderByDesc('start_date')->get();
+        $rooms = Room::where('is_active', true)->orderBy('id')->get();
+        $pendingBookings = $query->latest('created_at')->get();
 
-        return view('approvals.index', compact('pendingBookings', 'isKaprodi', 'isKalab', 'search'));
+        return view('approvals.index', compact('pendingBookings', 'isKaprodi', 'isKalab', 'search', 'allPeriods', 'rooms'));
     }
 
     public function decideKaprodi(

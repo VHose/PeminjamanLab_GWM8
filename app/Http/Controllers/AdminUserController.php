@@ -35,14 +35,6 @@ class AdminUserController extends Controller
         // Query directly from User table to show all users including newly registered ones
         $query = User::with([
             'studyProgram',
-            'userRoles' => function ($q) use ($selectedPeriodId) {
-                if ($selectedPeriodId) {
-                    $q->where(function ($sub) use ($selectedPeriodId) {
-                        $sub->where('period_id', $selectedPeriodId)
-                            ->orWhereNull('period_id');
-                    });
-                }
-            },
             'userRoles.role',
             'roles'
         ]);

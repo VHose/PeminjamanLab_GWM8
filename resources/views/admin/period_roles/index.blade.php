@@ -42,12 +42,12 @@
                     Peringatan: Terdapat {{ $invalidEmailUsers->count() }} Pengguna dengan Email Belum Diisi!
                 </h2>
                 <p class="small text-secondary mb-2">
-                    Pengguna berikut masih menggunakan alamat email sementara berakhiran <code>@belum-diisi.invalid</code> dari hasil impor jadwal. Segera perbarui dengan alamat email aktif agar pengguna dapat menerima pemberitahuan dan mereset kata sandi.
+                    Pengguna berikut masih menggunakan alamat email sementara berakhiran <strong class="text-dark">@belum-diisi.invalid</strong> dari hasil impor jadwal. Segera perbarui dengan alamat email aktif agar pengguna dapat menerima pemberitahuan dan mereset kata sandi.
                 </p>
                 <div class="d-flex flex-wrap gap-2">
                     @foreach($invalidEmailUsers as $iu)
                         <span class="badge text-bg-light border text-dark">
-                            <strong>{{ $iu->id }}</strong>: {{ $iu->name }} (<code>{{ $iu->email }}</code>)
+                            <strong>{{ $iu->id }}</strong>: {{ $iu->name }} (<strong>{{ $iu->email }}</strong>)
                         </span>
                     @endforeach
                 </div>
@@ -311,20 +311,20 @@
                             <div class="mb-3">
                                 <label class="form-label fw-semibold">Pilih File Berkas</label>
                                 <input type="file" name="staff_file" class="form-control" accept=".csv,.txt">
-                                <div class="form-text">Format: <code>NIK, Nama Lengkap, Email, Peran (Opsional), Kode Prodi (Opsional)</code></div>
+                                <div class="form-text">Format: <strong>NIK, Nama Lengkap, Email, Peran (Opsional), Kode Prodi (Opsional)</strong></div>
                             </div>
                         </div>
                         <div class="tab-pane fade" id="tabPaste">
                             <div class="mb-3">
                                 <label class="form-label fw-semibold">Tempel Baris Data Staf</label>
                                 <textarea name="staff_text" class="form-control font-monospace" rows="6" placeholder="72001, Budi Santoso, budi@maranatha.edu, Staf_Lab, 72&#10;72002, Siti Aminah, siti@maranatha.edu, Staf_Lab, 72"></textarea>
-                                <div class="form-text">Pisahkan tiap kolom dengan tanda koma (<code>,</code>) dan tiap data staf per baris baru.</div>
+                                <div class="form-text">Pisahkan tiap kolom dengan tanda koma (<strong>,</strong>) dan tiap data staf per baris baru.</div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="alert alert-info py-2 px-3 small mb-0">
-                        <strong>Peran yang valid:</strong> Staf_Lab, Dosen, Kepala_Prodi, Kepala_Lab, Admin, Visitor.
+                    <div class="p-2 px-3 bg-light border rounded small mb-0 text-secondary">
+                        <strong class="text-dark">Peran yang valid:</strong> Staf_Lab, Dosen, Kepala_Prodi, Kepala_Lab, Admin, Visitor.
                     </div>
                 </div>
                 <div class="modal-footer">

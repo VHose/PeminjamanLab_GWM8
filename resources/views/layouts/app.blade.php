@@ -84,6 +84,25 @@
                 width: 100%;
             }
         }
+        .dataTables_wrapper .dataTables_filter {
+            text-align: right;
+        }
+        .dataTables_wrapper .dataTables_filter label {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0;
+        }
+        .dataTables_wrapper .dataTables_length label {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0;
+        }
+        .dataTables_wrapper .dataTables_paginate ul.pagination {
+            justify-content: flex-end;
+            margin-bottom: 0;
+        }
     </style>
     @stack('styles')
 </head>
@@ -313,7 +332,8 @@
                         previous: "Sebelumnya"
                     }
                 },
-                responsive: true,
+                dom: "<'row align-items-center mb-2'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>><'table-responsive'tr><'row align-items-center mt-3'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7 d-flex justify-content-md-end'p>>",
+                responsive: false,
                 autoWidth: false,
                 pageLength: 10,
                 lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Semua"]]

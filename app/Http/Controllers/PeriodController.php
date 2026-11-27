@@ -16,7 +16,7 @@ class PeriodController extends Controller
 {
     public function index(): View
     {
-        $periods = Period::withCount('holidays')->withCount('schedules')->orderByDesc('start_date')->paginate(10)->withQueryString();
+        $periods = Period::withCount('holidays')->withCount('schedules')->orderByDesc('start_date')->get();
 
         return view('admin.periods.index', compact('periods'));
     }

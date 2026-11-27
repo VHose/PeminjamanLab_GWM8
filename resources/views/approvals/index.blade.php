@@ -9,24 +9,45 @@
 
 <div class="card shadow-sm border-0 mb-4">
     <div class="card-header bg-white py-3">
-        <div class="row g-2 align-items-center justify-content-between">
-            <div class="col-md-5">
-                <h2 class="h5 fw-bold mb-0">Daftar Pengajuan Menunggu Persetujuan ({{ $pendingBookings->total() }})</h2>
+        <div class="mb-3">
+            <h2 class="h5 fw-bold mb-0">Daftar Pengajuan Menunggu Persetujuan ({{ $pendingBookings->count() }})</h2>
+        </div>
+        <div class="row g-2 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold text-secondary mb-1">Periode Semester</label>
+                <select id="approvalPeriodFilter" class="form-select form-select-sm">
+                    <option value="">Semua Periode</option>
+                    @foreach($allPeriods as $p)
+                        <option value="{{ $p->id }}" data-start="{{ $p->start_date->toDateString() }}" data-end="{{ $p->end_date->toDateString() }}">
+                            {{ $p->name }} {{ $p->is_active ? '(Aktif)' : '' }}
+                        </option>
+                    @endforeach
+                </select>
             </div>
-            <div class="col-md-7">
-                <form method="get" action="{{ route('approvals.index') }}" class="d-flex gap-2 justify-content-md-end">
-                    <input type="text" id="approvalSearchInput" name="search" value="{{ request('search') }}" class="form-control form-control-sm" style="max-width: 280px;" placeholder="Cari pemohon, ID, ruangan...">
-                    <button type="submit" class="btn btn-sm btn-outline-primary">Cari</button>
-                    @if(request('search'))
-                        <a href="{{ route('approvals.index') }}" class="btn btn-sm btn-outline-secondary">Reset</a>
-                    @endif
-                </form>
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold text-secondary mb-1">Ruangan Lab</label>
+                <select id="approvalRoomFilter" class="form-select form-select-sm">
+                    <option value="">Semua Ruangan</option>
+                    @foreach($rooms as $r)
+                        <option value="{{ $r->id }}">{{ $r->code ?? $r->id }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold text-secondary mb-1">Status Booking</label>
+                <select id="approvalStatusFilter" class="form-select form-select-sm">
+                    <option value="">Semua Status</option>
+                    <option value="0">Menunggu Kaprodi</option>
+                    <option value="1">Menunggu Kalab</option>
+                </select>
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="button" id="btnResetApprovalFilter" class="btn btn-sm btn-outline-secondary d-none">Reset</button>
             </div>
         </div>
     </div>
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle text-nowrap mb-0" id="pendingBookingsTable">
+    <div class="card-body p-3">
+        <table class="table table-hover align-middle text-nowrap mb-0" id="pendingBookingsTable">
                 <thead class="table-light">
                     <tr>
                         <th class="text-start">ID</th>
@@ -42,8 +63,10 @@
                     @foreach($pendingBookings as $booking)
                         @php
                             $bStatusVal = $booking->status instanceof \App\Enums\BookingStatus ? $booking->status->value : (int) $booking->status;
+                            $rowDates = $booking->details->map(fn($d) => $d->booking_date->toDateString())->unique()->join(',');
+                            $rowRooms = $booking->details->pluck('room_id')->unique()->join(',');
                         @endphp
-                        <tr>
+                        <tr data-dates="{{ $rowDates }}" data-rooms="{{ $rowRooms }}" data-status="{{ $bStatusVal }}">
                             <td class="fw-semibold">#{{ $booking->id }}</td>
                             <td>
                                 @if($booking->type === \App\Constants\BookingType::RESCHEDULE)
@@ -180,14 +203,8 @@
                         </tr>
                     @endforeach
                 </tbody>
-            </table>
-        </div>
+        </table>
     </div>
-    @if($pendingBookings->hasPages())
-        <div class="card-footer bg-white">
-            {{ $pendingBookings->links() }}
-        </div>
-    @endif
 </div>
 
 @push('scripts')
@@ -196,15 +213,72 @@ $(document).ready(function() {
     if ($.fn.DataTable.isDataTable('#pendingBookingsTable')) {
         $('#pendingBookingsTable').DataTable().destroy();
     }
-    $('#pendingBookingsTable').DataTable({
+
+    $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+        if (settings.nTable.id !== 'pendingBookingsTable') {
+            return true;
+        }
+
+        const rowNode = settings.aoData[dataIndex]?.nTr;
+        if (!rowNode) {
+            return true;
+        }
+
+        const $periodOpt = $('#approvalPeriodFilter option:selected');
+        const periodVal = $('#approvalPeriodFilter').val();
+        const roomVal = $('#approvalRoomFilter').val();
+        const statusVal = $('#approvalStatusFilter').val();
+
+        if (periodVal) {
+            const pStart = $periodOpt.data('start');
+            const pEnd = $periodOpt.data('end');
+            const rowDates = (rowNode.getAttribute('data-dates') || '').split(',').filter(Boolean);
+            const inPeriod = rowDates.some(function(d) {
+                return d >= pStart && d <= pEnd;
+            });
+            if (!inPeriod) return false;
+        }
+
+        if (roomVal) {
+            const rowRooms = (rowNode.getAttribute('data-rooms') || '').split(',').filter(Boolean);
+            if (!rowRooms.includes(roomVal)) return false;
+        }
+
+        if (statusVal !== '') {
+            const rowStatus = rowNode.getAttribute('data-status') || '';
+            if (rowStatus !== statusVal) return false;
+        }
+
+        return true;
+    });
+
+    const table = $('#pendingBookingsTable').DataTable({
         order: [[0, 'desc']],
         language: {
             emptyTable: "Tidak ada pengajuan yang sedang menunggu persetujuan Anda saat ini.",
             zeroRecords: "Tidak ada pengajuan yang cocok."
         },
         columnDefs: [
-            { orderable: false, targets: [6] }
+            { orderable: false, targets: [2, 4, 5, 6] }
         ]
+    });
+
+    function syncApprovalResetBtn() {
+        const hasFilter = $('#approvalPeriodFilter').val() !== ''
+            || $('#approvalRoomFilter').val() !== ''
+            || $('#approvalStatusFilter').val() !== '';
+        $('#btnResetApprovalFilter').toggleClass('d-none', !hasFilter);
+    }
+
+    $('#approvalPeriodFilter, #approvalRoomFilter, #approvalStatusFilter').on('change', function() {
+        syncApprovalResetBtn();
+        table.draw();
+    });
+
+    $('#btnResetApprovalFilter').on('click', function() {
+        $('#approvalPeriodFilter, #approvalRoomFilter, #approvalStatusFilter').val('');
+        syncApprovalResetBtn();
+        table.draw();
     });
 });
 </script>

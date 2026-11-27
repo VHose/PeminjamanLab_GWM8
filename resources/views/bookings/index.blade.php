@@ -28,7 +28,7 @@
             <a href="{{ route('verification.notice') }}" class="btn btn-sm btn-warning text-dark fw-semibold text-nowrap ms-3">Verifikasi Sekarang</a>
         </div>
     @elseif(auth()->user()->status === 'pending' || !auth()->user()->is_active)
-        <div class="alert alert-info d-flex align-items-center mb-4 shadow-sm" role="alert">
+        <div class="alert alert-secondary d-flex align-items-center mb-4 shadow-sm" role="alert">
             <div>
                 <strong>Pendaftaran Menunggu Persetujuan:</strong> Akun Anda telah terverifikasi email dan saat ini sedang menunggu persetujuan (approval) oleh Kepala Lab / Staf Lab. Tombol pengajuan peminjaman akan otomatis aktif setelah akun Anda disetujui.
             </div>
@@ -44,13 +44,13 @@
 
 <div class="card shadow-sm border-0 mb-4">
     <div class="card-header bg-white py-3">
-        <form method="get" action="{{ route('bookings.index') }}" class="row g-2 align-items-center">
+        <div class="row g-2 align-items-end">
             <div class="col-md-3">
                 <label class="form-label small fw-semibold text-secondary mb-1">Periode Semester</label>
-                <select name="period_id" class="form-select form-select-sm" onchange="this.form.submit()">
+                <select id="bookingPeriodFilter" class="form-select form-select-sm">
                     <option value="">Semua Periode</option>
                     @foreach($allPeriods as $p)
-                        <option value="{{ $p->id }}" {{ (string) request('period_id') === (string) $p->id ? 'selected' : '' }}>
+                        <option value="{{ $p->id }}" data-start="{{ $p->start_date->toDateString() }}" data-end="{{ $p->end_date->toDateString() }}">
                             {{ $p->name }} {{ $p->is_active ? '(Aktif)' : '' }}
                         </option>
                     @endforeach
@@ -58,10 +58,10 @@
             </div>
             <div class="col-md-3">
                 <label class="form-label small fw-semibold text-secondary mb-1">Ruangan Lab</label>
-                <select name="room_id" class="form-select form-select-sm" onchange="this.form.submit()">
+                <select id="bookingRoomFilter" class="form-select form-select-sm">
                     <option value="">Semua Ruangan</option>
                     @foreach($rooms as $r)
-                        <option value="{{ $r->id }}" {{ request('room_id') === $r->id ? 'selected' : '' }}>
+                        <option value="{{ $r->id }}">
                             {{ $r->code ?? $r->id }}
                         </option>
                     @endforeach
@@ -69,26 +69,22 @@
             </div>
             <div class="col-md-3">
                 <label class="form-label small fw-semibold text-secondary mb-1">Status</label>
-                <select name="status" class="form-select form-select-sm" id="bookingStatusFilter" onchange="this.form.submit()">
+                <select class="form-select form-select-sm" id="bookingStatusFilter">
                     <option value="">Semua Status</option>
-                    <option value="0" @selected(request('status') === '0')>Menunggu Kaprodi</option>
-                    <option value="1" @selected(request('status') === '1')>Menunggu Kalab</option>
-                    <option value="2" @selected(request('status') === '2')>Disetujui</option>
-                    <option value="3" @selected(request('status') === '3')>Ditolak</option>
-                    <option value="4" @selected(request('status') === '4')>Dibatalkan</option>
+                    <option value="0">Menunggu Kaprodi</option>
+                    <option value="1">Menunggu Kalab</option>
+                    <option value="2">Disetujui</option>
+                    <option value="3">Ditolak</option>
+                    <option value="4">Dibatalkan</option>
                 </select>
             </div>
-            <div class="col-md-3 d-flex gap-1 align-items-end pt-3">
-                <button type="submit" class="btn btn-sm btn-primary flex-grow-1">Filter</button>
-                @if(request()->hasAny(['period_id', 'room_id', 'status', 'type', 'search', 'date_from', 'date_to']))
-                    <a href="{{ route('bookings.index') }}" class="btn btn-sm btn-outline-secondary">Reset</a>
-                @endif
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="button" id="btnResetBookingFilter" class="btn btn-sm btn-outline-secondary d-none">Reset</button>
             </div>
-        </form>
+        </div>
     </div>
     <div class="card-body p-3">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle text-nowrap mb-0" id="bookingsTable">
+        <table class="table table-hover align-middle text-nowrap mb-0" id="bookingsTable">
                 <thead class="table-light">
                     <tr>
                         <th class="text-start" style="width: 70px;">ID</th>
@@ -115,8 +111,11 @@
                             $canChange = $isOwner
                                 && $statusVal === 2
                                 && $isHMinus2OrMore;
+
+                            $rowDates = $booking->details->map(fn($d) => $d->booking_date->toDateString())->unique()->join(',');
+                            $rowRooms = $booking->details->pluck('room_id')->unique()->join(',');
                         @endphp
-                        <tr>
+                        <tr data-dates="{{ $rowDates }}" data-rooms="{{ $rowRooms }}" data-status="{{ $statusVal }}">
                             <td class="fw-semibold text-start">#{{ $booking->id }}</td>
                             <td class="text-start">
                                 <div class="fw-bold">{{ $booking->pic_name ?? $booking->requester_name }}</div>
@@ -150,7 +149,11 @@
                                 <div class="d-inline-flex gap-1 align-items-center">
                                     <a class="btn btn-sm btn-outline-primary" href="{{ route('bookings.show', $booking) }}">Detail</a>
                                     @if($canChange)
-                                        <a class="btn btn-sm btn-outline-warning" href="{{ route('bookings.change', $booking) }}">Ubah</a>
+                                        <a class="btn btn-sm btn-outline-warning" href="{{ route('bookings.change', $booking) }}" title="Ubah Jadwal" aria-label="Ubah Jadwal">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+                                                <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325"/>
+                                            </svg>
+                                        </a>
                                     @endif
                                     @if($canCancel)
                                         <form method="post" action="{{ route('bookings.cancel', $booking) }}" class="d-inline m-0 p-0" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan peminjaman ini?')">
@@ -163,8 +166,7 @@
                         </tr>
                     @endforeach
                 </tbody>
-            </table>
-        </div>
+        </table>
     </div>
 </div>
 @endsection
@@ -175,11 +177,68 @@ $(document).ready(function() {
     if ($.fn.DataTable.isDataTable('#bookingsTable')) {
         $('#bookingsTable').DataTable().destroy();
     }
-    $('#bookingsTable').DataTable({
+
+    $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+        if (settings.nTable.id !== 'bookingsTable') {
+            return true;
+        }
+
+        const rowNode = settings.aoData[dataIndex]?.nTr;
+        if (!rowNode) {
+            return true;
+        }
+
+        const $periodOpt = $('#bookingPeriodFilter option:selected');
+        const periodVal = $('#bookingPeriodFilter').val();
+        const roomVal = $('#bookingRoomFilter').val();
+        const statusVal = $('#bookingStatusFilter').val();
+
+        if (periodVal) {
+            const pStart = $periodOpt.data('start');
+            const pEnd = $periodOpt.data('end');
+            const rowDates = (rowNode.getAttribute('data-dates') || '').split(',').filter(Boolean);
+            const inPeriod = rowDates.some(function(d) {
+                return d >= pStart && d <= pEnd;
+            });
+            if (!inPeriod) return false;
+        }
+
+        if (roomVal) {
+            const rowRooms = (rowNode.getAttribute('data-rooms') || '').split(',').filter(Boolean);
+            if (!rowRooms.includes(roomVal)) return false;
+        }
+
+        if (statusVal !== '') {
+            const rowStatus = rowNode.getAttribute('data-status') || '';
+            if (rowStatus !== statusVal) return false;
+        }
+
+        return true;
+    });
+
+    const table = $('#bookingsTable').DataTable({
         order: [[0, 'desc']],
         columnDefs: [
             { orderable: false, targets: [2, 3, 4, 5] }
         ]
+    });
+
+    function syncBookingResetBtn() {
+        const hasFilter = $('#bookingPeriodFilter').val() !== ''
+            || $('#bookingRoomFilter').val() !== ''
+            || $('#bookingStatusFilter').val() !== '';
+        $('#btnResetBookingFilter').toggleClass('d-none', !hasFilter);
+    }
+
+    $('#bookingPeriodFilter, #bookingRoomFilter, #bookingStatusFilter').on('change', function() {
+        syncBookingResetBtn();
+        table.draw();
+    });
+
+    $('#btnResetBookingFilter').on('click', function() {
+        $('#bookingPeriodFilter, #bookingRoomFilter, #bookingStatusFilter').val('');
+        syncBookingResetBtn();
+        table.draw();
     });
 });
 </script>

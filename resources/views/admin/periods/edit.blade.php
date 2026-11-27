@@ -5,10 +5,7 @@
     <div class="col-lg-8">
         <div class="card shadow-sm border-0">
             <div class="card-header bg-white py-3">
-                <div class="d-flex justify-content-between align-items-center">
-                    <h1 class="h5 fw-bold mb-0">Ubah Periode Semester: {{ $period->name }}</h1>
-                    <a href="{{ route('admin.periods.index') }}" class="btn btn-sm btn-outline-secondary">Kembali</a>
-                </div>
+                <h1 class="h5 fw-bold mb-0">Ubah Periode Semester: {{ $period->name }}</h1>
             </div>
             <div class="card-body p-4">
                 <form method="post" action="{{ route('admin.periods.update', $period) }}">
@@ -67,7 +64,7 @@
                     </div>
 
                     <div class="d-flex justify-content-between align-items-center">
-                        <a href="{{ route('admin.holidays.index', $period) }}" class="btn btn-outline-info">
+                        <a href="{{ route('admin.holidays.index', $period) }}" class="btn btn-outline-secondary">
                             Kelola Hari Libur Periode ({{ $period->holidays()->count() }})
                         </a>
                         <div class="d-flex gap-2">

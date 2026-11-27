@@ -11,10 +11,10 @@
                 </div>
             </div>
             <div class="card-body p-4">
-                <div class="alert alert-info small mb-4">
-                    <strong>Ketentuan Periode Akademik:</strong>
+                <div class="p-3 bg-light border rounded small mb-4 text-secondary">
+                    <strong class="text-dark">Ketentuan Periode Akademik:</strong>
                     <ul class="mb-0 ps-3">
-                        <li>Tanggal mulai (start_date) <strong>wajib hari Senin</strong> pertama kuliah.</li>
+                        <li>Tanggal mulai (start_date) <strong class="text-dark">wajib hari Senin</strong> pertama kuliah.</li>
                         <li>Rentang UTS dan UAS harus berada di dalam rentang periode.</li>
                         <li>Rentang UAS harus dimulai setelah rentang UTS berakhir.</li>
                         <li>Jika status "Jadikan Periode Aktif" dicentang, periode lain otomatis dinonaktifkan.</li>
