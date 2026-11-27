@@ -52,11 +52,11 @@
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Nama Peminjam / Penanggung Jawab <span class="text-danger">*</span></label>
-                            <input class="form-control" name="pic_name" value="{{ old('pic_name', $booking->pic_name ?? $booking->requester_name) }}" required>
+                            <input class="form-control" name="pic_name" maxlength="70" value="{{ old('pic_name', $booking->pic_name ?: ($booking->requester_name ?: ($booking->user?->name ?? ''))) }}" required>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Kontak PIC (Telepon / WA) <span class="text-danger">*</span></label>
-                            <input class="form-control" name="pic_phone" value="{{ old('pic_phone', $booking->pic_phone) }}" required>
+                            <input class="form-control" name="pic_phone" maxlength="15" value="{{ old('pic_phone', $booking->pic_phone ?: ($booking->user?->phone ?? '')) }}" placeholder="08xxxxxxxxxx" required>
                         </div>
                         <div class="col-12">
                             <label class="form-label fw-semibold">Tujuan Kegiatan <span class="text-danger">*</span></label>

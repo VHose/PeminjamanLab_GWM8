@@ -35,7 +35,7 @@
             <div class="col-md-3">
                 <label class="form-label small fw-semibold text-secondary mb-1">Kategori Peran</label>
                 <select name="role_id" class="form-select form-select-sm" onchange="this.form.submit()">
-                    <option value="">-- Semua Peran --</option>
+                    <option value="">Semua Peran</option>
                     @foreach($allRoles as $r)
                         <option value="{{ $r->id }}" {{ (string) request('role_id') === (string) $r->id ? 'selected' : '' }}>
                             {{ str_replace('_', ' ', $r->name) }}
@@ -47,7 +47,7 @@
             <div class="col-md-2">
                 <label class="form-label small fw-semibold text-secondary mb-1">Program Studi</label>
                 <select name="study_program_id" class="form-select form-select-sm" onchange="this.form.submit()">
-                    <option value="">-- Semua Prodi --</option>
+                    <option value="">Semua Prodi</option>
                     @foreach($studyPrograms as $sp)
                         <option value="{{ $sp->id }}" {{ request('study_program_id') === (string) $sp->id ? 'selected' : '' }}>
                             {{ $sp->name }}
@@ -58,7 +58,7 @@
             <div class="col-md-2">
                 <label class="form-label small fw-semibold text-secondary mb-1">Status Akun</label>
                 <select name="is_active" class="form-select form-select-sm" onchange="this.form.submit()">
-                    <option value="">-- Semua Status --</option>
+                    <option value="">Semua Status</option>
                     <option value="1" {{ request('is_active') === '1' ? 'selected' : '' }}>Aktif</option>
                     <option value="0" {{ request('is_active') === '0' ? 'selected' : '' }}>Nonaktif</option>
                 </select>

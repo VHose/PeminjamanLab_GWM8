@@ -48,7 +48,7 @@
             <div class="col-md-3">
                 <label class="form-label small fw-semibold text-secondary mb-1">Periode Semester</label>
                 <select name="period_id" class="form-select form-select-sm" onchange="this.form.submit()">
-                    <option value="">-- Semua Periode --</option>
+                    <option value="">Semua Periode</option>
                     @foreach($allPeriods as $p)
                         <option value="{{ $p->id }}" {{ (string) request('period_id') === (string) $p->id ? 'selected' : '' }}>
                             {{ $p->name }} {{ $p->is_active ? '(Aktif)' : '' }}
@@ -56,10 +56,10 @@
                     @endforeach
                 </select>
             </div>
-            <div class="col-md-2">
+            <div class="col-md-3">
                 <label class="form-label small fw-semibold text-secondary mb-1">Ruangan Lab</label>
                 <select name="room_id" class="form-select form-select-sm" onchange="this.form.submit()">
-                    <option value="">-- Semua Ruangan --</option>
+                    <option value="">Semua Ruangan</option>
                     @foreach($rooms as $r)
                         <option value="{{ $r->id }}" {{ request('room_id') === $r->id ? 'selected' : '' }}>
                             {{ $r->code ?? $r->id }}
@@ -67,23 +67,15 @@
                     @endforeach
                 </select>
             </div>
-            <div class="col-md-2">
+            <div class="col-md-3">
                 <label class="form-label small fw-semibold text-secondary mb-1">Status</label>
                 <select name="status" class="form-select form-select-sm" id="bookingStatusFilter" onchange="this.form.submit()">
-                    <option value="">-- Semua Status --</option>
+                    <option value="">Semua Status</option>
                     <option value="0" @selected(request('status') === '0')>Menunggu Kaprodi</option>
                     <option value="1" @selected(request('status') === '1')>Menunggu Kalab</option>
                     <option value="2" @selected(request('status') === '2')>Disetujui</option>
                     <option value="3" @selected(request('status') === '3')>Ditolak</option>
                     <option value="4" @selected(request('status') === '4')>Dibatalkan</option>
-                </select>
-            </div>
-            <div class="col-md-2">
-                <label class="form-label small fw-semibold text-secondary mb-1">Tipe</label>
-                <select name="type" class="form-select form-select-sm" onchange="this.form.submit()">
-                    <option value="">-- Semua Tipe --</option>
-                    <option value="0" {{ request('type') === '0' ? 'selected' : '' }}>Baru</option>
-                    <option value="1" {{ request('type') === '1' ? 'selected' : '' }}>Ubah Jadwal</option>
                 </select>
             </div>
             <div class="col-md-3 d-flex gap-1 align-items-end pt-3">
@@ -103,7 +95,6 @@
                         <th class="text-start">Peminjam</th>
                         <th class="text-start">Tujuan Kegiatan</th>
                         <th class="text-start">Ruangan & Jadwal</th>
-                        <th class="text-start">Tipe</th>
                         <th class="text-start">Status</th>
                         <th class="text-start" style="width: 160px;">Aksi</th>
                     </tr>
@@ -136,22 +127,11 @@
                             <td class="text-start">{{ Str::limit($booking->purpose, 40) }}</td>
                             <td class="text-start">
                                 @foreach($booking->details as $dt)
-                                    <div class="small mb-1">
-                                        <span class="badge bg-secondary">{{ $dt->room->name ?? $dt->room->id ?? $dt->room_id ?? '' }}</span>
-                                        {{ $dt->start_datetime->format('d/m/Y') }}:
-                                        {{ $dt->start_datetime->format('H:i') }} - {{ $dt->end_datetime->format('H:i') }}
-                                        <span class="badge {{ $dt->status?->value === 1 || $dt->status === 1 ? 'bg-success' : ($dt->status?->value === 2 || $dt->status === 2 ? 'bg-danger' : 'bg-warning text-dark') }}" style="font-size: 0.65rem;">
-                                            {{ $dt->status_label }}
-                                        </span>
+                                    <div class="{{ !$loop->last ? 'mb-2' : '' }}">
+                                        <div class="fw-bold">{{ $dt->room->name ?? $dt->room->id ?? $dt->room_id ?? '' }}</div>
+                                        <div class="small text-muted">{{ $dt->start_datetime->format('d/m/Y') }}, {{ $dt->start_datetime->format('H:i') }} - {{ $dt->end_datetime->format('H:i') }}</div>
                                     </div>
                                 @endforeach
-                            </td>
-                            <td class="text-start">
-                                @if($booking->type === \App\Constants\BookingType::RESCHEDULE)
-                                    <span class="badge text-bg-warning">Ubah Jadwal</span>
-                                @else
-                                    <span class="badge text-bg-info">Baru</span>
-                                @endif
                             </td>
                             <td class="text-start">
                                 @if($statusVal === 2)
@@ -198,7 +178,7 @@ $(document).ready(function() {
     $('#bookingsTable').DataTable({
         order: [[0, 'desc']],
         columnDefs: [
-            { orderable: false, targets: [6] }
+            { orderable: false, targets: [2, 3, 4, 5] }
         ]
     });
 });

@@ -14,7 +14,7 @@
             <div class="col-md-3">
                 <label class="form-label small fw-semibold text-secondary mb-1">Aksi / Tindakan</label>
                 <select name="action" class="form-select form-select-sm" onchange="this.form.submit()">
-                    <option value="">-- Semua Aksi --</option>
+                    <option value="">Semua Aksi</option>
                     @foreach($actionList as $act)
                         <option value="{{ $act }}" {{ request('action') === $act ? 'selected' : '' }}>
                             {{ ucfirst(str_replace('_', ' ', $act)) }}

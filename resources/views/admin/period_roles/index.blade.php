@@ -37,7 +37,6 @@
 @if($invalidEmailUsers->isNotEmpty())
     <div class="alert alert-warning border-warning shadow-sm mb-4" role="alert">
         <div class="d-flex align-items-start gap-3">
-            <div class="fs-4 text-warning">⚠️</div>
             <div class="grow">
                 <h2 class="h6 fw-bold mb-1 text-dark">
                     Peringatan: Terdapat {{ $invalidEmailUsers->count() }} Pengguna dengan Email Belum Diisi!

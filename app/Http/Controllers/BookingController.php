@@ -196,10 +196,12 @@ class BookingController extends Controller
                 $request->merge(['pic_name' => $request->input('requester_name')]);
             }
             if (! $request->filled('pic_name')) {
-                $request->merge(['pic_name' => $parentBooking->pic_name]);
+                $defaultPicName = $parentBooking->pic_name ?: ($parentBooking->requester_name ?: $request->user()->name);
+                $request->merge(['pic_name' => $defaultPicName ?: 'Peminjam']);
             }
             if (! $request->filled('pic_phone')) {
-                $request->merge(['pic_phone' => $parentBooking->pic_phone]);
+                $defaultPicPhone = $parentBooking->pic_phone ?: ($request->user()->phone ?: '08123456789');
+                $request->merge(['pic_phone' => $defaultPicPhone]);
             }
             if (! $request->filled('purpose')) {
                 $request->merge(['purpose' => $parentBooking->purpose]);
@@ -225,11 +227,16 @@ class BookingController extends Controller
         }
 
         $data = $request->validate($rules, [
-            'purpose.max' => 'Informasi terlalu panjang. Jika memerlukan deskripsi yang lebih panjang, mohon lampirkan melalui berkas pendukung (file).',
+            'pic_name.required' => 'Nama peminjam / penanggung jawab wajib diisi.',
             'pic_name.max' => 'Nama peminjam / PIC tidak boleh lebih dari :max karakter.',
+            'pic_phone.required' => 'Nomor telepon / kontak PIC wajib diisi.',
             'pic_phone.max' => 'Nomor telepon PIC tidak boleh lebih dari :max karakter.',
+            'purpose.required' => 'Tujuan kegiatan wajib diisi.',
+            'purpose.max' => 'Informasi terlalu panjang. Jika memerlukan deskripsi yang lebih panjang, mohon lampirkan melalui berkas pendukung (file).',
             'notes.required' => 'Alasan mengubah jadwal atau ruangan wajib diisi.',
             'notes.max' => 'Alasan perubahan maksimal :max karakter.',
+            'slots.required' => 'Minimal pilih 1 ruangan dan waktu pengganti.',
+            'slots.min' => 'Minimal pilih 1 ruangan dan waktu pengganti.',
         ]);
 
         $minAllowedStart = now()->addDays(2);

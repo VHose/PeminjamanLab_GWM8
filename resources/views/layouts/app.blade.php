@@ -284,12 +284,6 @@
 
                 @yield('content')
             </main>
-
-            <footer class="border-top bg-white py-3 mt-auto">
-                <div class="container-fluid px-4 text-center text-secondary small">
-                    Sistem Informasi Monitoring & Peminjaman Ruangan Lab Komputer, Gedung Widya Maranatha (GWM) Lantai 8
-                </div>
-            </footer>
         </div>
     </div>
 

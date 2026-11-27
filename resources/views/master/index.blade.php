@@ -32,7 +32,7 @@
                     <form method="get" action="{{ route('master.index', $type) }}" class="d-flex gap-2 justify-content-md-end align-items-center">
                         <label class="form-label small fw-semibold text-secondary mb-0 text-nowrap">Filter Prodi:</label>
                         <select name="study_program_id" class="form-select form-select-sm" style="max-width: 240px;" onchange="this.form.submit()">
-                            <option value="">-- Semua Program Studi --</option>
+                            <option value="">Semua Program Studi</option>
                             @foreach($studyPrograms as $sp)
                                 <option value="{{ $sp->id }}" {{ request('study_program_id') === (string) $sp->id ? 'selected' : '' }}>
                                     {{ $sp->name }}
