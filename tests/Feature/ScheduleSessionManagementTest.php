@@ -433,12 +433,33 @@ class ScheduleSessionManagementTest extends TestCase
         $resAdmin->assertSee($this->course->name);
         $resAdmin->assertSee('toggle-' . $schedule->id . '-1'); // Ada elemen input toggle switch
 
-        // B. DOSEN: Melihat sesi libur, TIDAK melihat toggle switch
+        // B. DOSEN PENGAJAR SENDIRI: Melihat sesi libur DAN melihat toggle switch pada jadwal yang ia ajar sendiri
         $resDosen = $this->actingAs($this->lecturer)->get($url);
         $resDosen->assertOk();
         $resDosen->assertSee('Kuliah Libur');
         $resDosen->assertSee($this->course->name);
-        $resDosen->assertDontSee('toggle-' . $schedule->id . '-1'); // Tidak ada toggle switch
+        $resDosen->assertSee('toggle-' . $schedule->id . '-1');
+
+        // B2. DOSEN LAIN (bukan pengajar mata kuliah tersebut): Melihat sesi libur, TIDAK melihat toggle switch
+        $dosenRole = Role::where('name', 'Dosen')->first();
+        $otherLecturer = User::create([
+            'id' => 'DOSEN02',
+            'name' => 'Dosen Lain',
+            'email' => 'dosen2@test.com',
+            'password' => Hash::make('DOSEN02DOSEN02'),
+            'is_active' => true,
+        ]);
+        UserRole::create([
+            'user_id' => $otherLecturer->id,
+            'role_id' => $dosenRole->id,
+            'period_id' => $this->period->id,
+        ]);
+
+        $resOtherDosen = $this->actingAs($otherLecturer)->get($url);
+        $resOtherDosen->assertOk();
+        $resOtherDosen->assertSee('Kuliah Libur');
+        $resOtherDosen->assertSee($this->course->name);
+        $resOtherDosen->assertDontSee('toggle-' . $schedule->id . '-1');
 
         // C. KEPALA PRODI: Melihat sesi libur, TIDAK melihat toggle switch
         $resKaprodi = $this->actingAs($this->kaprodi)->get($url);
@@ -497,9 +518,24 @@ class ScheduleSessionManagementTest extends TestCase
 
         $toggleUrl = route('admin.schedule-sessions.toggle', [$schedule->id, 1]);
 
+        $dosenRole = Role::where('name', 'Dosen')->first();
+        $otherLecturer = User::create([
+            'id' => 'DOSEN02',
+            'name' => 'Dosen Lain',
+            'email' => 'dosen2@test.com',
+            'password' => Hash::make('DOSEN02DOSEN02'),
+            'is_active' => true,
+        ]);
+        UserRole::create([
+            'user_id' => $otherLecturer->id,
+            'role_id' => $dosenRole->id,
+            'period_id' => $this->period->id,
+        ]);
+
         $this->actingAs($this->visitor)->post($toggleUrl)->assertForbidden();
-        $this->actingAs($this->lecturer)->post($toggleUrl)->assertForbidden();
+        $this->actingAs($otherLecturer)->post($toggleUrl)->assertForbidden();
         $this->actingAs($this->kaprodi)->post($toggleUrl)->assertForbidden();
+        $this->actingAs($this->lecturer)->post($toggleUrl)->assertRedirect();
         $this->actingAs($this->staff)->post($toggleUrl)->assertRedirect();
         $this->actingAs($this->kalab)->post($toggleUrl)->assertRedirect();
     }
@@ -688,10 +724,25 @@ class ScheduleSessionManagementTest extends TestCase
 
         $updateUrl = route('admin.schedule-sessions.update', [$schedule->id, 1]);
 
+        $dosenRole = Role::where('name', 'Dosen')->first();
+        $otherLecturer = User::create([
+            'id' => 'DOSEN02',
+            'name' => 'Dosen Lain',
+            'email' => 'dosen2@test.com',
+            'password' => Hash::make('DOSEN02DOSEN02'),
+            'is_active' => true,
+        ]);
+        UserRole::create([
+            'user_id' => $otherLecturer->id,
+            'role_id' => $dosenRole->id,
+            'period_id' => $this->period->id,
+        ]);
+
         $this->actingAs($this->visitor)->patch($updateUrl, ['room_id' => $this->adv2->id])->assertForbidden();
-        $this->actingAs($this->lecturer)->patch($updateUrl, ['room_id' => $this->adv2->id])->assertForbidden();
+        $this->actingAs($otherLecturer)->patch($updateUrl, ['room_id' => $this->adv2->id])->assertForbidden();
         $this->actingAs($this->kaprodi)->patch($updateUrl, ['room_id' => $this->adv2->id])->assertForbidden();
-        $this->actingAs($this->staff)->patch($updateUrl, ['room_id' => $this->adv2->id])->assertRedirect();
+        $this->actingAs($this->lecturer)->patch($updateUrl, ['room_id' => $this->adv2->id])->assertRedirect();
+        $this->actingAs($this->staff)->patch($updateUrl, ['room_id' => $this->adv1->id])->assertRedirect();
         $this->actingAs($this->kalab)->patch($updateUrl, ['room_id' => $this->adv2->id])->assertRedirect();
     }
 

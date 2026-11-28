@@ -74,7 +74,7 @@
                         <td class="text-end">
                             <div class="d-inline-flex justify-content-end gap-1">
                                 @if($user->status !== 'active')
-                                    <form method="post" action="{{ route('admin.visitor-approvals.approve', $user) }}" class="d-inline m-0" onsubmit="return confirm('Setujui akun visitor {{ $user->name }}? User akan dapat mengajukan peminjaman lab.')">
+                                    <form method="post" action="{{ route('admin.visitor-approvals.approve', $user) }}" class="d-inline m-0" data-confirm="Setujui akun visitor {{ $user->name }}? User akan dapat mengajukan peminjaman lab.">
                                         @csrf
                                         <button type="submit" class="btn btn-sm btn-outline-success" title="Setujui Akun" aria-label="Setujui Akun">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">

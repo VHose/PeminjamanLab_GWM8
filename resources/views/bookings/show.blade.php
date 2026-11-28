@@ -117,7 +117,7 @@
                     <tbody>
                         @foreach($booking->details as $dt)
                             <tr>
-                                <td class="fw-bold">{{ $dt->room->name ?? $dt->room->id ?? $dt->room_id ?? '-' }}</td>
+                                <td class="fw-bold">{{ $dt->room ? $dt->room->labelWithCapacity() : ($dt->room_id ?? '-') }}</td>
                                 <td>{{ $dt->start_datetime->format('l, d F Y') }}</td>
                                 <td>{{ $dt->start_datetime->format('H:i') }}</td>
                                 <td>{{ $dt->end_datetime->format('H:i') }}</td>
@@ -165,7 +165,7 @@
                         <a class="btn btn-warning" href="{{ route('bookings.change', $booking) }}">Ajukan Ubah Jadwal / Ruangan</a>
                     @endif
                     @if($canCancel)
-                        <form method="post" action="{{ route('bookings.cancel', $booking) }}" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan peminjaman ini? Tindakan ini tidak dapat diulang.')">
+                        <form method="post" action="{{ route('bookings.cancel', $booking) }}" data-confirm="Apakah Anda yakin ingin membatalkan peminjaman ini? Tindakan ini tidak dapat diulang.">
                             @csrf
                             <button type="submit" class="btn btn-danger">Batalkan Peminjaman</button>
                         </form>

@@ -78,7 +78,7 @@
                         </td>
                         <td>
                             <div class="d-inline-flex gap-1 align-items-center">
-                                <form method="post" action="{{ route('admin.periods.regenerate', $p) }}" class="d-inline m-0" onsubmit="return confirm('Regenerate sesi pertemuan untuk periode ini? Sesi manual yang sudah ada tidak akan ditimpa.')">
+                                <form method="post" action="{{ route('admin.periods.regenerate', $p) }}" class="d-inline m-0" data-confirm="Regenerate sesi pertemuan untuk periode ini? Sesi manual yang sudah ada tidak akan ditimpa.">
                                     @csrf
                                     <button type="submit" class="btn btn-sm btn-outline-primary" title="Generate atau regenerate schedule_session">
                                         Regenerate Sesi
@@ -90,7 +90,7 @@
                                     </svg>
                                 </a>
                                 @if($p->is_active)
-                                    <form method="post" action="{{ route('admin.periods.destroy', $p) }}" class="d-inline m-0" onsubmit="return confirm('Nonaktifkan periode semester ini?')">
+                                    <form method="post" action="{{ route('admin.periods.destroy', $p) }}" class="d-inline m-0" data-confirm="Nonaktifkan periode semester ini?">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn btn-sm btn-outline-danger" title="Nonaktifkan" aria-label="Nonaktifkan">

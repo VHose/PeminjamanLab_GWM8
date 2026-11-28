@@ -98,7 +98,9 @@
 
                 const fileInput = form.querySelector('input[type="file"]');
                 if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
-                    alert('Silakan pilih file Excel / CSV terlebih dahulu.');
+                    if (typeof window.showAppToast === 'function') {
+                        window.showAppToast('Silakan pilih file Excel / CSV terlebih dahulu.', 'warning');
+                    }
                     return;
                 }
 
@@ -162,9 +164,13 @@
                             // Jika terjadi error dari validasi atau server
                             try {
                                 const response = JSON.parse(xhr.responseText);
-                                alert('Gagal: ' + (response.message || 'Terjadi kesalahan saat memproses file.'));
+                                if (typeof window.showAppToast === 'function') {
+                                    window.showAppToast('Gagal: ' + (response.message || 'Terjadi kesalahan saat memproses file.'), 'danger');
+                                }
                             } catch (e) {
-                                alert('Terjadi kesalahan saat mengunggah file. Silakan periksa format file Anda.');
+                                if (typeof window.showAppToast === 'function') {
+                                    window.showAppToast('Terjadi kesalahan saat mengunggah file. Silakan periksa format file Anda.', 'danger');
+                                }
                             }
                             btn.disabled = false;
                             btnText.classList.remove('d-none');

@@ -152,7 +152,7 @@
                                     Reset Sandi
                                 </button>
                                 @if($user->id !== auth()->id())
-                                    <form method="post" action="{{ route('admin.users.toggle', $user) }}" class="d-inline m-0" onsubmit="return confirm('Ubah status aktif akun ini?')">
+                                    <form method="post" action="{{ route('admin.users.toggle', $user) }}" class="d-inline m-0" data-confirm="Ubah status aktif akun ini?">
                                         @csrf
                                         <button type="submit" class="btn btn-sm {{ $user->is_active ? 'btn-outline-danger' : 'btn-outline-success' }}" title="{{ $user->is_active ? 'Nonaktifkan' : 'Aktifkan' }}" aria-label="{{ $user->is_active ? 'Nonaktifkan' : 'Aktifkan' }}">
                                             @if($user->is_active)
@@ -290,9 +290,9 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Peran Awal (Periode Aktif)</label>
-                        <select name="role_id" class="form-select">
+                        <select name="role_id" class="form-select" id="addUserRoleSelect">
                             @foreach($allRoles as $role)
-                                <option value="{{ $role->id }}" {{ $role->name === 'Visitor' ? 'selected' : '' }}>
+                                <option value="{{ $role->id }}" data-role-name="{{ $role->name }}" {{ $role->name === 'Visitor' ? 'selected' : '' }}>
                                     {{ str_replace('_', ' ', $role->name) }}
                                 </option>
                             @endforeach
@@ -300,11 +300,12 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Kata Sandi <span class="text-danger">*</span></label>
-                        <input type="password" name="password" class="form-control" required minlength="8" placeholder="Minimal 8 karakter">
+                        <input type="password" name="password" id="addUserPassword" class="form-control" required minlength="8" placeholder="Minimal 8 karakter">
+                        <div class="form-text small d-none text-primary" id="addUserDosenPwdHint">Otomatis diisi 2x NIK untuk peran Dosen (dapat disesuaikan bila perlu).</div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Konfirmasi Kata Sandi <span class="text-danger">*</span></label>
-                        <input type="password" name="password_confirmation" class="form-control" required minlength="8" placeholder="Ulangi kata sandi">
+                        <input type="password" name="password_confirmation" id="addUserPasswordConfirm" class="form-control" required minlength="8" placeholder="Ulangi kata sandi">
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -537,6 +538,45 @@ $(document).ready(function() {
         syncUserResetBtn();
         table.draw();
     });
+
+    // Auto-fill password = 2x NIK ketika memilih peran Dosen pada modal Tambah Pengguna
+    const addModal = document.getElementById('addUserModal');
+    if (addModal) {
+        const nikInput = addModal.querySelector('input[name="id"]');
+        const roleSelect = document.getElementById('addUserRoleSelect');
+        const pwdInput = document.getElementById('addUserPassword');
+        const pwdConfirmInput = document.getElementById('addUserPasswordConfirm');
+        const pwdHint = document.getElementById('addUserDosenPwdHint');
+        let pwdManuallyEdited = false;
+
+        function syncDosenDefaultPassword() {
+            if (!nikInput || !roleSelect || !pwdInput || !pwdConfirmInput) return;
+            const roleName = roleSelect.options[roleSelect.selectedIndex]?.dataset?.roleName || '';
+            const isDosen = roleName === 'Dosen';
+            if (pwdHint) {
+                pwdHint.classList.toggle('d-none', !isDosen);
+            }
+            if (isDosen && !pwdManuallyEdited) {
+                const nik = (nikInput.value || '').trim();
+                const doubled = nik ? (nik + nik) : '';
+                pwdInput.value = doubled;
+                pwdConfirmInput.value = doubled;
+            }
+        }
+
+        if (pwdInput) {
+            pwdInput.addEventListener('input', function() { pwdManuallyEdited = this.value !== ''; });
+        }
+        if (nikInput) {
+            nikInput.addEventListener('input', syncDosenDefaultPassword);
+        }
+        if (roleSelect) {
+            roleSelect.addEventListener('change', function() {
+                pwdManuallyEdited = false;
+                syncDosenDefaultPassword();
+            });
+        }
+    }
 });
 </script>
 @endpush

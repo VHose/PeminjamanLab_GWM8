@@ -56,7 +56,7 @@
         <div class="card shadow-sm border-0">
             <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
                 <h2 class="h6 fw-bold mb-0">Daftar Hari Libur Terdaftar ({{ $holidays->count() }})</h2>
-                <form method="post" action="{{ route('admin.periods.regenerate', $period) }}" class="d-inline" onsubmit="return confirm('Regenerate sesi pertemuan setelah mengubah hari libur? Sesi manual tidak akan ditimpa.')">
+                <form method="post" action="{{ route('admin.periods.regenerate', $period) }}" class="d-inline" data-confirm="Regenerate sesi pertemuan setelah mengubah hari libur? Sesi manual tidak akan ditimpa.">
                     @csrf
                     <button type="submit" class="btn btn-sm btn-outline-primary">
                         Sinkronkan ke Sesi Kuliah
@@ -100,7 +100,7 @@
                                         <span class="text-dark">{{ $h->note ?? 'Libur' }}</span>
                                     </td>
                                     <td>
-                                        <form method="post" action="{{ route('admin.holidays.destroy', [$period, $h->start_date->toDateString()]) }}" class="d-inline" onsubmit="return confirm('Hapus hari libur ini?')">
+                                        <form method="post" action="{{ route('admin.holidays.destroy', [$period, $h->start_date->toDateString()]) }}" class="d-inline" data-confirm="Hapus hari libur ini?">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="btn btn-sm btn-outline-danger">

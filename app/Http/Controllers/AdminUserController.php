@@ -76,7 +76,7 @@ class AdminUserController extends Controller
         $users = $query->orderBy('name')->get();
 
         $allRoles = Role::orderBy('id')->get();
-        $studyPrograms = StudyProgram::where('is_active', true)->orderBy('id')->get();
+        $studyPrograms = StudyProgram::orderBy('id')->get();
 
         return view('admin.users.index', compact(
             'users',

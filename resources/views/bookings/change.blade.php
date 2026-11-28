@@ -28,7 +28,7 @@
                     <tbody>
                         @foreach($booking->details as $rb)
                             <tr>
-                                <td class="fw-bold">{{ $rb->room->code ?? '-' }}</td>
+                                <td class="fw-bold">{{ $rb->room ? $rb->room->labelWithCapacity() : ($rb->room_id ?? '-') }}</td>
                                 <td>{{ $rb->start_datetime->format('d/m/Y') }}</td>
                                 <td>{{ $rb->start_datetime->format('H:i') }} - {{ $rb->end_datetime->format('H:i') }}</td>
                                 <td><span class="badge text-bg-success">Disetujui</span></td>
@@ -88,7 +88,7 @@
                                     <select class="form-select room-select" name="slots[0][room_id]" required>
                                         <option value="">-- Pilih Ruangan --</option>
                                         @foreach($rooms as $room)
-                                            <option value="{{ $room->id }}" data-code="{{ $room->code }}">{{ $room->code }} (Kapasitas: {{ $room->capacity ?? '-' }})</option>
+                                            <option value="{{ $room->id }}" data-code="{{ $room->labelWithCapacity() }}">{{ $room->labelWithCapacity() }}</option>
                                         @endforeach
                                     </select>
                                 </div>
@@ -250,6 +250,8 @@ function populateStartTimes(slotItem) {
 
     const unavailable = JSON.parse(slotItem.dataset.unavailable || '[]');
     const pending = JSON.parse(slotItem.dataset.pending || '[]');
+    const dateVal = slotItem.querySelector('.date-input')?.value || '';
+    const minDateTimeStr = "{{ now()->addDays(2)->format('Y-m-d H:i') }}";
 
     startSelect.innerHTML = '<option value="">-- Jam Mulai --</option>';
     endSelect.innerHTML = '<option value="">-- Jam Selesai --</option>';
@@ -257,6 +259,9 @@ function populateStartTimes(slotItem) {
 
     let availableCount = 0;
     standardSlots.slice(0, -1).forEach(slotTime => {
+        if (dateVal && `${dateVal} ${slotTime}` < minDateTimeStr) {
+            return;
+        }
         if (!isSlotBlocked(slotTime, unavailable)) {
             const isPendingSlot = pending.some(p => slotTime >= p.start && slotTime < p.end);
             const opt = document.createElement('option');

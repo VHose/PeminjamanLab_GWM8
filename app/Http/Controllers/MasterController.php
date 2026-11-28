@@ -19,7 +19,7 @@ class MasterController extends Controller
             'model' => StudyProgram::class,
             'label' => 'Program Studi',
             'pk_field' => 'id',
-            'pk_label' => 'Kode Prodi (72/73/79)',
+            'pk_label' => 'Kode Prodi',
         ],
         'rooms' => [
             'model' => Room::class,

@@ -99,9 +99,9 @@ class BookingService
         }
 
         // Cek bentrok dengan jadwal kuliah aktif (schedule_session & schedule)
-        // Kuliah hanya hari 1..5 (Senin..Jumat)
+        // Kuliah dapat berlangsung hari 1..6 (Senin..Sabtu, termasuk kuliah pengganti)
         $dayOfWeek = $start->dayOfWeekIso;
-        if ($dayOfWeek >= 1 && $dayOfWeek <= 5) {
+        if ($dayOfWeek >= 1 && $dayOfWeek <= 6) {
             $blockMinutes = 30;
 
             // Cek dari schedule_session yang aktif di tanggal ini
@@ -254,12 +254,14 @@ class BookingService
             return "Bentrok dengan peminjaman ruangan yang telah disetujui (#{$bId} oleh {$pic} jam {$timeSpan}).";
         }
 
-        // 2. Cek bentrok dengan jadwal kuliah aktif lainnya
+        // 2. Cek bentrok dengan jadwal kuliah aktif lainnya (kecuali sesama kelas gabungan di minggu yang sama)
+        $combinedScheduleIds = $session->combinedScheduleIds();
+
         $otherSessions = ScheduleSession::with(['schedule.course'])
             ->where('session_date', $dateStr)
             ->where('is_active', true)
-            ->where(function ($q) use ($session) {
-                $q->where('schedule_id', '!=', $session->schedule_id)
+            ->where(function ($q) use ($session, $combinedScheduleIds) {
+                $q->whereNotIn('schedule_id', $combinedScheduleIds)
                   ->orWhere('week_no', '!=', $session->week_no);
             })
             ->where(function ($q) use ($roomId) {

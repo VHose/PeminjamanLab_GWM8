@@ -71,53 +71,79 @@
                 </div>
                 <div class="card-body">
                     <div id="slotsContainer">
-                        <div class="border rounded p-3 mb-3 slot-item bg-light" data-index="0">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h3 class="h6 fw-bold mb-0 text-primary slot-title">Ruangan #1</h3>
-                                <button type="button" class="btn btn-sm btn-outline-danger btn-remove-slot" style="display: none;">Hapus</button>
+                        @php
+                            $initialSlots = old('slots');
+                            if (!is_array($initialSlots) || empty($initialSlots)) {
+                                $reqSlots = request('slots');
+                                if (is_array($reqSlots) && !empty($reqSlots)) {
+                                    $initialSlots = array_values($reqSlots);
+                                } else {
+                                    $initialSlots = [[
+                                        'room_id' => request('room_id', ''),
+                                        'date'    => request('date', ''),
+                                        'start'   => request('start', ''),
+                                        'end'     => request('end', ''),
+                                    ]];
+                                }
+                            } else {
+                                $initialSlots = array_values($initialSlots);
+                            }
+                        @endphp
+                        @foreach($initialSlots as $idx => $slotData)
+                            @php
+                                $selRoom = (string) ($slotData['room_id'] ?? '');
+                                $selDate = (string) ($slotData['date'] ?? '');
+                                $selStart = (string) ($slotData['start'] ?? '');
+                                $selEnd = (string) ($slotData['end'] ?? '');
+                            @endphp
+                            <div class="border rounded p-3 mb-3 slot-item bg-light" data-index="{{ $idx }}">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h3 class="h6 fw-bold mb-0 text-primary slot-title">Ruangan #{{ $idx + 1 }}</h3>
+                                    <button type="button" class="btn btn-sm btn-outline-danger btn-remove-slot" style="{{ count($initialSlots) > 1 ? 'display: inline-block;' : 'display: none;' }}">Hapus</button>
+                                </div>
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-semibold">Ruangan Laboratorium <span class="text-danger">*</span></label>
+                                        <select class="form-select room-select" name="slots[{{ $idx }}][room_id]" required>
+                                            <option value="">Pilih Ruangan</option>
+                                            @foreach($rooms as $room)
+                                                <option value="{{ $room->id }}" data-code="{{ $room->labelWithCapacity() }}" @selected($selRoom === $room->id)>{{ $room->labelWithCapacity() }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-semibold">Hari & Tanggal (Senin - Sabtu) <span class="text-danger">*</span></label>
+                                        <input class="form-control date-input" type="date" name="slots[{{ $idx }}][date]" value="{{ $selDate }}" min="{{ now()->addDays(2)->toDateString() }}" required>
+                                        <div class="form-text small text-muted"><i class="bi bi-info-circle me-1"></i>Paling cepat <strong>{{ now()->addDays(2)->translatedFormat('l, d F Y') }}</strong> (minimal H+2).</div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label fw-semibold">Jam Mulai <span class="text-danger">*</span></label>
+                                        <select class="form-select start-time-select" name="slots[{{ $idx }}][start]" data-preselect="{{ $selStart }}" required>
+                                            <option value="">Pilih Jam</option>
+                                            @for($h = 7; $h <= 21; $h++)
+                                                @php $hStr = str_pad($h, 2, '0', STR_PAD_LEFT); @endphp
+                                                <option value="{{ $hStr }}:00" @selected($selStart === "{$hStr}:00")>{{ $hStr }}:00</option>
+                                                <option value="{{ $hStr }}:30" @selected($selStart === "{$hStr}:30")>{{ $hStr }}:30</option>
+                                            @endfor
+                                            <option value="22:00" @selected($selStart === "22:00")>22:00</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label fw-semibold">Jam Selesai <span class="text-danger">*</span></label>
+                                        <select class="form-select end-time-select" name="slots[{{ $idx }}][end]" data-preselect="{{ $selEnd }}" required>
+                                            <option value="">Pilih Jam</option>
+                                            @for($h = 7; $h <= 21; $h++)
+                                                @php $hStr = str_pad($h, 2, '0', STR_PAD_LEFT); @endphp
+                                                <option value="{{ $hStr }}:00" @selected($selEnd === "{$hStr}:00")>{{ $hStr }}:00</option>
+                                                <option value="{{ $hStr }}:30" @selected($selEnd === "{$hStr}:30")>{{ $hStr }}:30</option>
+                                            @endfor
+                                            <option value="22:00" @selected($selEnd === "22:00")>22:00</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="availability-alert mt-2" style="display: none;"></div>
                             </div>
-                            <div class="row g-3">
-                                <div class="col-md-4">
-                                    <label class="form-label fw-semibold">Ruangan Laboratorium <span class="text-danger">*</span></label>
-                                    <select class="form-select room-select" name="slots[0][room_id]" required>
-                                        <option value="">Pilih Ruangan</option>
-                                        @foreach($rooms as $room)
-                                            <option value="{{ $room->id }}" data-code="{{ $room->id }}" @selected(old('slots.0.room_id', request('room_id')) === $room->id)>{{ $room->id }} (Kapasitas: {{ $room->capacity ?? '-' }})</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label fw-semibold">Hari & Tanggal (Senin - Sabtu) <span class="text-danger">*</span></label>
-                                    <input class="form-control date-input" type="date" name="slots[0][date]" value="{{ old('slots.0.date', request('date')) }}" min="{{ now()->addDays(2)->toDateString() }}" required>
-                                    <div class="form-text small text-muted"><i class="bi bi-info-circle me-1"></i>Paling cepat <strong>{{ now()->addDays(2)->translatedFormat('l, d F Y') }}</strong> (minimal H+2).</div>
-                                </div>
-                                <div class="col-md-2">
-                                    <label class="form-label fw-semibold">Jam Mulai <span class="text-danger">*</span></label>
-                                    <select class="form-select start-time-select" name="slots[0][start]" data-preselect="{{ old('slots.0.start', request('start')) }}" required>
-                                        <option value="">Pilih Jam</option>
-                                        @for($h = 7; $h <= 21; $h++)
-                                            @php $hStr = str_pad($h, 2, '0', STR_PAD_LEFT); @endphp
-                                            <option value="{{ $hStr }}:00" @selected(old('slots.0.start', request('start')) === "{$hStr}:00")>{{ $hStr }}:00</option>
-                                            <option value="{{ $hStr }}:30" @selected(old('slots.0.start', request('start')) === "{$hStr}:30")>{{ $hStr }}:30</option>
-                                        @endfor
-                                        <option value="22:00" @selected(old('slots.0.start', request('start')) === "22:00")>22:00</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-2">
-                                    <label class="form-label fw-semibold">Jam Selesai <span class="text-danger">*</span></label>
-                                    <select class="form-select end-time-select" name="slots[0][end]" data-preselect="{{ old('slots.0.end', request('end')) }}" required>
-                                        <option value="">Pilih Jam</option>
-                                        @for($h = 7; $h <= 21; $h++)
-                                            @php $hStr = str_pad($h, 2, '0', STR_PAD_LEFT); @endphp
-                                            <option value="{{ $hStr }}:00" @selected(old('slots.0.end', request('end')) === "{$hStr}:00")>{{ $hStr }}:00</option>
-                                            <option value="{{ $hStr }}:30" @selected(old('slots.0.end', request('end')) === "{$hStr}:30")>{{ $hStr }}:30</option>
-                                        @endfor
-                                        <option value="22:00" @selected(old('slots.0.end', request('end')) === "22:00")>22:00</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="availability-alert mt-2" style="display: none;"></div>
-                        </div>
+                        @endforeach
                     </div>
                 </div>
             </div>
@@ -181,6 +207,8 @@ async function loadAvailability(slotItem) {
     const dateVal = dateInput.value;
 
     if (!dateVal) {
+        startSelect.disabled = false;
+        endSelect.disabled = false;
         alertBox.style.display = 'none';
         updatePreviews();
         return;
@@ -245,6 +273,10 @@ function updatePreviews() {
 
     const collectedSlots = [];
 
+    const minDateStr = "{{ now()->addDays(2)->toDateString() }}";
+    const minDateTimeStr = "{{ now()->addDays(2)->format('Y-m-d H:i') }}";
+    const minTimeOnlyStr = "{{ now()->addDays(2)->format('H:i') }}";
+
     items.forEach((item, index) => {
         const roomSelect = item.querySelector('.room-select');
         const dateInput = item.querySelector('.date-input');
@@ -257,6 +289,13 @@ function updatePreviews() {
         const startTime = startSelect.value;
         const endTime = endSelect.value;
 
+        if (dateVal) {
+            const checkDateObj = new Date(dateVal + 'T00:00:00');
+            if (dateVal < minDateStr || checkDateObj.getDay() === 0) {
+                globalConflictFound = true;
+            }
+        }
+
         if (roomId && dateVal && startTime && endTime) {
             hasCompleteSlot = true;
             const unavailable = JSON.parse(item.dataset.unavailable || '[]');
@@ -267,11 +306,12 @@ function updatePreviews() {
             let isPendingQueue = false;
             let pendingMsg = '';
 
-            // 0. Cek Minimal 2 hari dari sekarang (H+2)
-            const minDateStr = "{{ now()->addDays(2)->toDateString() }}";
-            if (dateVal < minDateStr) {
+            // 0. Cek Minimal 2 hari dari sekarang (H+2) beserta jam
+            if (dateVal < minDateStr || `${dateVal} ${startTime}` < minDateTimeStr) {
                 isBentrok = true;
-                conflictMsg = 'Waktu mulai peminjaman minimal 2 hari dari sekarang (H+2). Paling cepat adalah {{ now()->addDays(2)->translatedFormat("d/m/Y") }}.';
+                conflictMsg = dateVal < minDateStr
+                    ? 'Waktu mulai peminjaman minimal 2 hari dari sekarang (H+2). Paling cepat adalah {{ now()->addDays(2)->translatedFormat("d/m/Y") }}.'
+                    : `Waktu mulai pada tanggal tersebut minimal pukul ${minTimeOnlyStr} (minimal 2 hari / 48 jam dari sekarang).`;
             }
 
             // 1. Validasi jam selesai harus lebih besar dari jam mulai
@@ -413,11 +453,17 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    try {
+        sessionStorage.removeItem('lab_frozen_drag_slots_v1');
+    } catch (e) {}
+
     if (bookingForm) {
         bookingForm.addEventListener('submit', (e) => {
             if (hasConflict) {
                 e.preventDefault();
-                alert('Terdapat jadwal yang bentrok! Silakan sesuaikan jam atau ruangan sebelum mengirim pengajuan.');
+                if (typeof window.showAppToast === 'function') {
+                    window.showAppToast('Terdapat jadwal yang bentrok atau tidak valid! Silakan sesuaikan jam atau ruangan sebelum mengirim pengajuan.', 'danger');
+                }
                 return false;
             }
         });
@@ -430,11 +476,26 @@ document.addEventListener('DOMContentLoaded', () => {
         const firstSlot = container.querySelector('.slot-item');
         const clone = firstSlot.cloneNode(true);
 
-        clone.querySelector('.room-select').value = '';
-        clone.querySelector('.date-input').value = '';
-        clone.querySelector('.start-time-select').value = '';
-        clone.querySelector('.end-time-select').value = '';
+        const rSel = clone.querySelector('.room-select');
+        const dInp = clone.querySelector('.date-input');
+        const sSel = clone.querySelector('.start-time-select');
+        const eSel = clone.querySelector('.end-time-select');
+
+        [rSel, sSel, eSel].forEach(sel => {
+            if (!sel) return;
+            sel.disabled = false;
+            sel.querySelectorAll('option[selected]').forEach(opt => opt.removeAttribute('selected'));
+            sel.value = '';
+            sel.removeAttribute('data-preselect');
+        });
+        if (dInp) {
+            dInp.disabled = false;
+            dInp.value = '';
+            dInp.removeAttribute('value');
+        }
+
         clone.querySelector('.availability-alert').style.display = 'none';
+        clone.querySelector('.availability-alert').innerHTML = '';
         delete clone.dataset.unavailable;
         delete clone.dataset.pending;
 
@@ -463,7 +524,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     document.querySelectorAll('.slot-item').forEach(item => {
-        if (item.querySelector('.room-select').value && item.querySelector('.date-input').value) {
+        const hasRoom = Boolean(item.querySelector('.room-select').value);
+        const hasDate = Boolean(item.querySelector('.date-input').value);
+        if (hasRoom || hasDate) {
             loadAvailability(item);
         }
     });

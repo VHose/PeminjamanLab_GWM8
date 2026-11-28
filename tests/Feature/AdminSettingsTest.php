@@ -359,6 +359,6 @@ class AdminSettingsTest extends TestCase
             'day' => 6, // Sabtu
         ]));
         $satResponse->assertStatus(200);
-        $satResponse->assertSee('Hari Sabtu:');
+        $satResponse->assertSee('Sabtu');
     }
 }

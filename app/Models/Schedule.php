@@ -61,4 +61,19 @@ class Schedule extends Model
     {
         return $this->hasMany(ScheduleSession::class, 'schedule_id');
     }
+
+    /**
+     * Mengembalikan seluruh jadwal kuliah yang digabung (slot induk periode, hari, ruangan, dan jam yang sama).
+     */
+    public function combinedSchedules()
+    {
+        return static::with(['course', 'lecturer', 'room'])
+            ->where('period_id', $this->period_id)
+            ->where('day_of_week', $this->day_of_week)
+            ->where('room_id', $this->room_id)
+            ->where('start_time', $this->start_time)
+            ->where('end_time', $this->end_time)
+            ->orderBy('id')
+            ->get();
+    }
 }

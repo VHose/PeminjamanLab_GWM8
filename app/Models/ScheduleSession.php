@@ -104,6 +104,42 @@ class ScheduleSession extends Model
     }
 
     /**
+     * Mengembalikan seluruh schedule_id dalam kelompok kelas gabungan (Gabung) yang sama.
+     *
+     * @return array<int, int>
+     */
+    public function combinedScheduleIds(): array
+    {
+        $sched = $this->schedule;
+        if (! $sched) {
+            return [(int) $this->schedule_id];
+        }
+
+        return Schedule::where('period_id', $sched->period_id)
+            ->where('day_of_week', $sched->day_of_week)
+            ->where('room_id', $sched->room_id)
+            ->where('start_time', $sched->start_time)
+            ->where('end_time', $sched->end_time)
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+    }
+
+    /**
+     * Mengembalikan seluruh sesi pertemuan (termasuk sesi ini) dalam kelompok kelas gabungan pada minggu yang sama.
+     */
+    public function combinedSessions()
+    {
+        $ids = $this->combinedScheduleIds();
+
+        return static::with(['schedule.course', 'schedule.lecturer', 'schedule.room', 'room'])
+            ->whereIn('schedule_id', $ids)
+            ->where('week_no', $this->week_no)
+            ->orderBy('schedule_id')
+            ->get();
+    }
+
+    /**
      * Mengembalikan tanggal sesi default berdasarkan jadwal induk dan kalender periode.
      */
     public function defaultSessionDate(): ?string

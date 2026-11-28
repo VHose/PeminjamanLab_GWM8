@@ -61,7 +61,7 @@
                     <option value="">Semua Ruangan</option>
                     @foreach($rooms as $r)
                         <option value="{{ $r->id }}">
-                            {{ $r->code ?? $r->id }}
+                            {{ $r->labelWithCapacity() }}
                         </option>
                     @endforeach
                 </select>
@@ -126,7 +126,7 @@
                             <td class="text-start">
                                 @foreach($booking->details as $dt)
                                     <div class="{{ !$loop->last ? 'mb-2' : '' }}">
-                                        <div class="fw-bold">{{ $dt->room->name ?? $dt->room->id ?? $dt->room_id ?? '' }}</div>
+                                        <div class="fw-bold">{{ $dt->room ? $dt->room->labelWithCapacity() : ($dt->room_id ?? '') }}</div>
                                         <div class="small text-muted">{{ $dt->start_datetime->format('d/m/Y') }}, {{ $dt->start_datetime->format('H:i') }} - {{ $dt->end_datetime->format('H:i') }}</div>
                                     </div>
                                 @endforeach
@@ -155,7 +155,7 @@
                                         </a>
                                     @endif
                                     @if($canCancel)
-                                        <form method="post" action="{{ route('bookings.cancel', $booking) }}" class="d-inline m-0 p-0" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan peminjaman ini?')">
+                                        <form method="post" action="{{ route('bookings.cancel', $booking) }}" class="d-inline m-0 p-0" data-confirm="Apakah Anda yakin ingin membatalkan peminjaman ini?">
                                             @csrf
                                             <button type="submit" class="btn btn-sm btn-outline-danger">Batal</button>
                                         </form>

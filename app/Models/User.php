@@ -155,6 +155,44 @@ class User extends Authenticatable implements MustVerifyEmail
         return $names->isNotEmpty() && $names->contains(fn ($n) => $n !== 'Visitor');
     }
 
+    public function teachesSchedule(?Schedule $schedule): bool
+    {
+        if (! $schedule) {
+            return false;
+        }
+
+        if ((string) $schedule->user_id === (string) $this->id) {
+            return true;
+        }
+
+        $lecturerName = trim((string) ($schedule->lecturer?->name ?? ''));
+        $myName = trim((string) $this->name);
+
+        return $lecturerName !== '' && $myName !== '' && mb_strtolower($lecturerName) === mb_strtolower($myName);
+    }
+
+    public function canManageSchedule(?Schedule $schedule, ?iterable $siblingSchedules = null): bool
+    {
+        if ($this->hasRole('Admin', 'Kepala_Lab', 'Staf_Lab')) {
+            return true;
+        }
+
+        if ($schedule && $this->hasRole('Dosen', 'Kepala_Prodi')) {
+            if ($this->teachesSchedule($schedule)) {
+                return true;
+            }
+
+            $siblings = $siblingSchedules ?? $schedule->combinedSchedules();
+            foreach ($siblings as $sib) {
+                if ($sib instanceof Schedule && $this->teachesSchedule($sib)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
     /* ── Visitor ID Generation ── */
 
     public static function generateVisitorId(): string

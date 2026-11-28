@@ -12,7 +12,25 @@ class UpdateScheduleSessionRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return $this->user()?->hasRole('Admin', 'Kepala_Lab', 'Staf_Lab') ?? false;
+        $user = $this->user();
+        if (! $user) {
+            return false;
+        }
+
+        if ($user->hasRole('Admin', 'Kepala_Lab', 'Staf_Lab')) {
+            return true;
+        }
+
+        $session = \App\Models\ScheduleSession::with('schedule.lecturer')
+            ->where('schedule_id', $this->route('scheduleId'))
+            ->where('week_no', $this->route('weekNo'))
+            ->first();
+
+        if (! $session) {
+            return $user->hasRole('Dosen', 'Kepala_Prodi');
+        }
+
+        return $user->canManageSchedule($session->schedule);
     }
 
     /**

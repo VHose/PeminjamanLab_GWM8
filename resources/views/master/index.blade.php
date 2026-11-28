@@ -23,7 +23,7 @@
 <div class="card shadow-sm border-0 mb-4">
     <div class="card-header bg-white py-3">
         <div class="{{ $type === 'courses' ? 'mb-3' : '' }}">
-            <h2 class="h5 fw-bold mb-0">Daftar {{ $config['label'] }} (Total: {{ $records->count() }})</h2>
+            <h2 class="h5 fw-bold mb-0">Daftar {{ $config['label'] }}</h2>
         </div>
         @if($type === 'courses')
             <div class="row g-2 align-items-end">
@@ -93,7 +93,7 @@
                                 </a>
                                 <form method="post" action="{{ route('master.toggle', [$type, $record->id]) }}" class="d-inline m-0">
                                     @csrf
-                                    <button type="submit" class="btn btn-sm {{ $record->is_active ? 'btn-outline-danger' : 'btn-outline-success' }}" title="{{ $record->is_active ? 'Nonaktifkan' : 'Aktifkan' }}" aria-label="{{ $record->is_active ? 'Nonaktifkan' : 'Aktifkan' }}" onclick="return confirm('Apakah Anda yakin ingin {{ $record->is_active ? 'menonaktifkan' : 'mengaktifkan' }} {{ $record->name }}?')">
+                                    <button type="submit" class="btn btn-sm {{ $record->is_active ? 'btn-outline-danger' : 'btn-outline-success' }}" title="{{ $record->is_active ? 'Nonaktifkan' : 'Aktifkan' }}" aria-label="{{ $record->is_active ? 'Nonaktifkan' : 'Aktifkan' }}" data-confirm="Apakah Anda yakin ingin {{ $record->is_active ? 'menonaktifkan' : 'mengaktifkan' }} {{ $record->name }}?">
                                         @if($record->is_active)
                                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
                                                 <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z"/>

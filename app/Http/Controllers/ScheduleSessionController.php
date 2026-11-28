@@ -8,6 +8,7 @@ use App\Models\Room;
 use App\Models\ScheduleSession;
 use App\Services\BookingService;
 use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -15,34 +16,56 @@ class ScheduleSessionController extends Controller
 {
     /**
      * Membatalkan (meliburkan) atau mengaktifkan kembali satu pertemuan kuliah langsung dari tabel jadwal.
+     * Jika jadwal merupakan kelas gabungan (Gabung), seluruh jadwal gabungan di slot tersebut ikut disinkronkan.
      */
     public function toggle(
         Request $request,
         int $scheduleId,
         int $weekNo,
         BookingService $bookingService
-    ): RedirectResponse {
+    ): RedirectResponse|JsonResponse {
         $session = ScheduleSession::with(['schedule.course', 'schedule.lecturer'])
             ->where('schedule_id', $scheduleId)
             ->where('week_no', $weekNo)
             ->firstOrFail();
 
-        $courseName = $session->schedule?->course?->name ?? 'Kuliah';
-        $classCode = $session->schedule?->class_code ?? '';
+        $siblings = $session->combinedSessions();
+
+        abort_unless(
+            $request->user()?->canManageSchedule($session->schedule, $siblings->pluck('schedule')),
+            403,
+            'Anda hanya dapat mengubah jadwal mata kuliah yang Anda ajar sendiri.'
+        );
+
+        // Pilih nama mata kuliah utama (utamakan yang bukan label Gabung)
+        $primarySession = $siblings->sortBy([
+            fn ($s) => stripos($s->schedule?->course?->name ?? '', 'Gabung') !== false ? 1 : 0,
+            fn ($s) => $s->schedule_id,
+        ])->first() ?? $session;
+
+        $courseName = $primarySession->schedule?->course?->name ?? 'Kuliah';
+        $classCode = $primarySession->schedule?->class_code ?? '';
         $dateFormatted = $session->session_date->format('d/m/Y');
 
-        if ($session->is_active) {
+        // Jika salah satu dari kelas gabungan masih aktif (atau sesi yang diklik aktif), aksi adalah meliburkan semuanya.
+        // Namun jika sesi yang diklik berstatus nonaktif, pengguna berniat mengaktifkannya kembali.
+        $targetActive = $request->has('is_active')
+            ? $request->boolean('is_active')
+            : (! $session->is_active);
+
+        if (! $targetActive) {
             $request->validate([
                 'note' => ['nullable', 'string', 'max:100'],
             ]);
 
-            // Aksi: Batalkan / Liburkan pertemuan kuliah
             $note = $request->input('note') ?: 'Kuliah diliburkan.';
 
-            $session->update([
-                'is_active' => false,
-                'note' => $note,
-            ]);
+            foreach ($siblings as $sib) {
+                $sib->update([
+                    'is_active' => false,
+                    'note' => $note,
+                ]);
+            }
 
             ActivityLog::record(
                 $request->user()->id,
@@ -53,23 +76,43 @@ class ScheduleSessionController extends Controller
                 $request->ip()
             );
 
-            return back()->with('success', "Pertemuan ke-{$weekNo} {$courseName} Kelas {$classCode} pada {$dateFormatted} berhasil diliburkan.");
+            $msg = "Pertemuan ke-{$weekNo} {$courseName} Kelas {$classCode} pada {$dateFormatted} berhasil diliburkan.";
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'is_active' => false,
+                    'note' => $note,
+                    'schedule_ids' => $siblings->pluck('schedule_id')->values(),
+                    'week_no' => $weekNo,
+                    'message' => $msg,
+                ]);
+            }
+
+            return back()->with('success', $msg);
         }
 
-        // Aksi: Aktifkan kembali pertemuan kuliah
-        // Periksa apakah slot bentrok dengan booking approved atau jadwal kuliah lain
+        // Aksi: Aktifkan kembali pertemuan kuliah (cek bentrok di luar sesama kelas gabungan)
         $conflictMessage = $bookingService->checkSessionConflict($session);
 
         if ($conflictMessage !== null) {
-            return back()->withErrors([
-                'error' => "Tidak dapat mengaktifkan pertemuan ke-{$weekNo} {$courseName} Kelas {$classCode}: {$conflictMessage}",
-            ]);
+            $errMsg = "Tidak dapat mengaktifkan pertemuan ke-{$weekNo} {$courseName} Kelas {$classCode}: {$conflictMessage}";
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'is_active' => false,
+                    'message' => $errMsg,
+                ], 422);
+            }
+
+            return back()->withErrors(['error' => $errMsg]);
         }
 
-        $session->update([
-            'is_active' => true,
-            'note' => null,
-        ]);
+        foreach ($siblings as $sib) {
+            $sib->update([
+                'is_active' => true,
+                'note' => null,
+            ]);
+        }
 
         ActivityLog::record(
             $request->user()->id,
@@ -80,11 +123,23 @@ class ScheduleSessionController extends Controller
             $request->ip()
         );
 
-        return back()->with('success', "Pertemuan ke-{$weekNo} {$courseName} Kelas {$classCode} pada {$dateFormatted} berhasil diaktifkan kembali.");
+        $msg = "Pertemuan ke-{$weekNo} {$courseName} Kelas {$classCode} pada {$dateFormatted} berhasil diaktifkan kembali.";
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'is_active' => true,
+                'note' => null,
+                'schedule_ids' => $siblings->pluck('schedule_id')->values(),
+                'week_no' => $weekNo,
+                'message' => $msg,
+            ]);
+        }
+
+        return back()->with('success', $msg);
     }
 
     /**
-     * Memperbarui override ruangan dan/atau waktu untuk satu sesi pertemuan kuliah.
+     * Memperbarui override ruangan dan/atau waktu untuk satu sesi pertemuan kuliah (beserta kelas gabungannya).
      */
     public function update(
         UpdateScheduleSessionRequest $request,
@@ -97,21 +152,35 @@ class ScheduleSessionController extends Controller
             ->where('week_no', $weekNo)
             ->firstOrFail();
 
-        $courseName = $session->schedule?->course?->name ?? 'Kuliah';
-        $classCode = $session->schedule?->class_code ?? '';
+        $siblings = $session->combinedSessions();
+
+        abort_unless(
+            $request->user()?->canManageSchedule($session->schedule, $siblings->pluck('schedule')),
+            403,
+            'Anda hanya dapat mengubah jadwal mata kuliah yang Anda ajar sendiri.'
+        );
+
+        $primarySession = $siblings->sortBy([
+            fn ($s) => stripos($s->schedule?->course?->name ?? '', 'Gabung') !== false ? 1 : 0,
+            fn ($s) => $s->schedule_id,
+        ])->first() ?? $session;
+
+        $courseName = $primarySession->schedule?->course?->name ?? 'Kuliah';
+        $classCode = $primarySession->schedule?->class_code ?? '';
         $dateFormatted = $session->session_date->format('d/m/Y');
 
         // 1. Reset override jika clear_override == true
         if ($request->boolean('clear_override')) {
-            $defaultDate = $session->defaultSessionDate() ?? $session->session_date->toDateString();
-
-            $session->update([
-                'session_date' => $defaultDate,
-                'room_id'      => $session->schedule->room_id,
-                'start_time'   => $session->schedule->start_time,
-                'end_time'     => $session->schedule->end_time,
-                'note'         => null,
-            ]);
+            foreach ($siblings as $sib) {
+                $defaultDate = $sib->defaultSessionDate() ?? $sib->session_date->toDateString();
+                $sib->update([
+                    'session_date' => $defaultDate,
+                    'room_id'      => $sib->schedule->room_id,
+                    'start_time'   => $sib->schedule->start_time,
+                    'end_time'     => $sib->schedule->end_time,
+                    'note'         => null,
+                ]);
+            }
 
             ActivityLog::record(
                 $request->user()->id,
@@ -132,7 +201,7 @@ class ScheduleSessionController extends Controller
         $targetEndTime = $request->filled('end_time') ? $request->input('end_time') : null;
         $note = $request->filled('note') ? $request->input('note') : null;
 
-        // 3. Validasi konflik jadwal via BookingService
+        // 3. Validasi konflik jadwal via BookingService (mengecualikan sesama kelas gabungan)
         $conflict = $bookingService->checkSessionConflict(
             $session,
             $targetRoomId,
@@ -151,14 +220,16 @@ class ScheduleSessionController extends Controller
 
         $originalDateStr = $session->session_date->toDateString();
 
-        // 4. Simpan override
-        $session->update([
-            'session_date' => $targetDate,
-            'room_id'      => $targetRoomId ?? $session->room_id,
-            'start_time'   => $formattedStartTime ?? $session->start_time,
-            'end_time'     => $formattedEndTime ?? $session->end_time,
-            'note'         => $note,
-        ]);
+        // 4. Simpan override ke seluruh sesi dalam kelompok gabungan
+        foreach ($siblings as $sib) {
+            $sib->update([
+                'session_date' => $targetDate,
+                'room_id'      => $targetRoomId ?? $sib->room_id,
+                'start_time'   => $formattedStartTime ?? $sib->start_time,
+                'end_time'     => $formattedEndTime ?? $sib->end_time,
+                'note'         => $note,
+            ]);
+        }
 
         // 5. Catat ActivityLog
         $descParts = [];

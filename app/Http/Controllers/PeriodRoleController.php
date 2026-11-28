@@ -187,13 +187,16 @@ class PeriodRoleController extends Controller
                 }
 
                 $user = User::find($nik);
+                $initialPassword = strtolower($role->name) === 'dosen'
+                    ? Hash::make($nik . $nik)
+                    : Hash::make(Str::random(32));
                 if (! $user) {
                     $user = User::create([
                         'id' => $nik,
                         'study_program_id' => $prodiId,
                         'name' => $name,
                         'email' => $email,
-                        'password' => Hash::make(Str::random(32)),
+                        'password' => $initialPassword,
                         'is_active' => true,
                         'status' => 'active',
                         'email_verified_at' => now(),
@@ -242,12 +245,17 @@ class PeriodRoleController extends Controller
 
         $user = User::find($validated['user_id']);
         if (! $user) {
+            $assignedRole = Role::find($validated['role_id']);
+            $defaultPwd = ($assignedRole && strtolower($assignedRole->name) === 'dosen')
+                ? Hash::make($validated['user_id'] . $validated['user_id'])
+                : Hash::make(Str::random(32));
+
             $user = User::create([
                 'id' => $validated['user_id'],
                 'name' => $validated['name'] ?? $validated['user_id'],
-                'email' => $validated['email'] ?? ($validated['user_id'] . '@belum-diisi.invalid'),
-                'study_program_id' => $validated['study_program_id'] ?? null,
-                'password' => Hash::make(Str::random(32)),
+                'email' => $validated['email'] ?? ($validated['user_id'] . '@maranatha.ac.id'),
+                'study_program_id' => $validated['study_program_id'] ?? '00',
+                'password' => $defaultPwd,
                 'is_active' => true,
                 'status' => 'active',
                 'email_verified_at' => now(),

@@ -20,6 +20,11 @@ class Room extends Model
         return (string) $this->id;
     }
 
+    public function labelWithCapacity(): string
+    {
+        return $this->capacity ? "{$this->id} ({$this->capacity})" : (string) $this->id;
+    }
+
     protected function casts(): array
     {
         return [

@@ -29,7 +29,7 @@
                 <select id="approvalRoomFilter" class="form-select form-select-sm">
                     <option value="">Semua Ruangan</option>
                     @foreach($rooms as $r)
-                        <option value="{{ $r->id }}">{{ $r->code ?? $r->id }}</option>
+                        <option value="{{ $r->id }}">{{ $r->labelWithCapacity() }}</option>
                     @endforeach
                 </select>
             </div>
@@ -107,7 +107,7 @@
                                         $dStatusVal = $dt->status instanceof \App\Enums\BookingDetailStatus ? $dt->status->value : (int) $dt->status;
                                     @endphp
                                     <div class="small mb-1 p-1 rounded bg-light border">
-                                        <b>{{ $dt->room->name ?? $dt->room->id ?? $dt->room_id ?? '-' }}</b>
+                                        <b>{{ $dt->room ? $dt->room->labelWithCapacity() : ($dt->room_id ?? '-') }}</b>
                                         <br>
                                         {{ $dt->start_datetime->format('d/m/Y') }}:
                                         {{ $dt->start_datetime->format('H:i') }} - {{ $dt->end_datetime->format('H:i') }}
@@ -137,7 +137,7 @@
                                         <form method="post" action="{{ route('approvals.decideKaprodi', $booking) }}">
                                             @csrf
                                             <input type="hidden" name="status" value="approved">
-                                            <button type="submit" class="btn btn-sm btn-success w-100" onclick="return confirm('Setujui pengajuan ini dan teruskan ke Kepala Lab?')">
+                                            <button type="submit" class="btn btn-sm btn-success w-100" data-confirm="Setujui pengajuan ini dan teruskan ke Kepala Lab?">
                                                 Setujui (Lanjut ke Kalab)
                                             </button>
                                         </form>
@@ -165,7 +165,7 @@
                                             @endphp
                                             @if($dStatusVal === 0)
                                                 <div class="border p-2 rounded bg-white small mb-1">
-                                                    <div class="fw-bold mb-1">{{ $dt->room->name ?? $dt->room->id ?? $dt->room_id }} ({{ $dt->start_datetime->format('H:i') }}-{{ $dt->end_datetime->format('H:i') }})</div>
+                                                    <div class="fw-bold mb-1">{{ $dt->room ? $dt->room->labelWithCapacity() : ($dt->room_id ?? '-') }} ({{ $dt->start_datetime->format('H:i') }}-{{ $dt->end_datetime->format('H:i') }})</div>
                                                     <div class="d-flex gap-1">
                                                         <form method="post" action="{{ route('approvals.decideKalabDetail', $dt) }}" class="flex-grow-1">
                                                             @csrf
