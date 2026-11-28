@@ -4,7 +4,6 @@
 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
     <div>
         <h1 class="h3 fw-bold mb-1">Kelola Pengguna & Peran</h1>
-        <p class="text-secondary mb-0">Kelola akun seluruh pengguna, mahasiswa/visitor, dosen, serta penugasan peran per periode semester.</p>
     </div>
     <div class="d-flex gap-2 flex-wrap">
         <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#copyRolesModal">
@@ -76,7 +75,7 @@
                     <th class="text-start">Nama Pengguna</th>
                     <th class="text-start">Email</th>
                     <th class="text-start">Program Studi</th>
-                    <th class="text-start" id="periodRoleHeader">Peran ({{ $selectedPeriod->name ?? 'Periode Ini' }})</th>
+                    <th class="text-start" id="periodRoleHeader">Peran</th>
                     <th class="text-start">Status</th>
                     <th class="text-start" style="width: 200px;">Aksi</th>
                 </tr>

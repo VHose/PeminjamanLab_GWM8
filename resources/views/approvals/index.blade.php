@@ -51,7 +51,6 @@
                 <thead class="table-light">
                     <tr>
                         <th class="text-start">ID</th>
-                        <th class="text-start">Tipe</th>
                         <th class="text-start">Status Booking</th>
                         <th class="text-start">Pemohon</th>
                         <th class="text-start">Tujuan</th>
@@ -68,13 +67,6 @@
                         @endphp
                         <tr data-dates="{{ $rowDates }}" data-rooms="{{ $rowRooms }}" data-status="{{ $bStatusVal }}">
                             <td class="fw-semibold">#{{ $booking->id }}</td>
-                            <td>
-                                @if($booking->type === \App\Constants\BookingType::RESCHEDULE)
-                                    <span class="badge text-bg-warning">Ubah Jadwal</span>
-                                @else
-                                    <span class="badge text-bg-info">Baru</span>
-                                @endif
-                            </td>
                             <td>
                                 @if($bStatusVal === 0)
                                     <span class="badge bg-secondary">Menunggu Kaprodi</span>
@@ -115,22 +107,24 @@
                                         $dStatusVal = $dt->status instanceof \App\Enums\BookingDetailStatus ? $dt->status->value : (int) $dt->status;
                                     @endphp
                                     <div class="small mb-1 p-1 rounded bg-light border">
-                                        <span class="badge bg-dark">{{ $dt->room->name ?? $dt->room->id ?? $dt->room_id ?? '-' }}</span>
+                                        <b>{{ $dt->room->name ?? $dt->room->id ?? $dt->room_id ?? '-' }}</b>
+                                        <br>
                                         {{ $dt->start_datetime->format('d/m/Y') }}:
                                         {{ $dt->start_datetime->format('H:i') }} - {{ $dt->end_datetime->format('H:i') }}
+                                        <br>
                                         <div>
                                             Status:
                                             @if($dStatusVal === 1)
-                                                <span class="badge bg-success">Disetujui</span>
+                                                <span>Disetujui</span>
                                             @elseif($dStatusVal === 2)
-                                                <span class="badge bg-danger">Ditolak</span>
+                                                <span >Ditolak</span>
                                             @elseif($dStatusVal === 3)
-                                                <span class="badge bg-secondary">Dibatalkan</span>
+                                                <span >Dibatalkan</span>
                                             @else
-                                                <span class="badge bg-warning text-dark">Menunggu</span>
+                                                <span >Menunggu</span>
                                             @endif
                                             @if($dt->notes)
-                                                <span class="text-danger">({{ $dt->notes }})</span>
+                                                <span>({{ $dt->notes }})</span>
                                             @endif
                                         </div>
                                     </div>

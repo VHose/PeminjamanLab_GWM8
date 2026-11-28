@@ -4,7 +4,6 @@
 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
     <div>
         <h1 class="h3 fw-bold mb-1">Daftar Peminjaman Ruangan</h1>
-        <p class="text-secondary small mb-0">Lacak status permohonan peminjaman laboratorium Anda di sini.</p>
     </div>
     <div class="d-flex gap-2">
         @if(!auth()->user()->isInternal() && !auth()->user()->hasVerifiedEmail())

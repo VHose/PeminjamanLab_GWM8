@@ -6,7 +6,6 @@
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
                 <h1 class="h3 fw-bold mb-1">Form Pengajuan Peminjaman Ruangan</h1>
-                <p class="text-secondary mb-0">Isi formulir di bawah ini untuk mengajukan peminjaman laboratorium di GWM Lantai 8.</p>
             </div>
             <a class="btn btn-outline-secondary" href="{{ route('bookings.index') }}">Kembali</a>
         </div>
@@ -81,7 +80,7 @@
                                 <div class="col-md-4">
                                     <label class="form-label fw-semibold">Ruangan Laboratorium <span class="text-danger">*</span></label>
                                     <select class="form-select room-select" name="slots[0][room_id]" required>
-                                        <option value="">-- Pilih Ruangan --</option>
+                                        <option value="">Pilih Ruangan</option>
                                         @foreach($rooms as $room)
                                             <option value="{{ $room->id }}" data-code="{{ $room->id }}" @selected(old('slots.0.room_id', request('room_id')) === $room->id)>{{ $room->id }} (Kapasitas: {{ $room->capacity ?? '-' }})</option>
                                         @endforeach

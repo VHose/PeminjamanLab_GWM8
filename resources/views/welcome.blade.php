@@ -10,7 +10,7 @@
                 <span class="badge bg-danger ms-1">Libur: {{ $selectedDayInfo['holiday_note'] ?? 'Hari Libur' }}</span>
             @endif
             @if($period)
-                | Periode: <span class="badge bg-secondary">{{ $period->name }}</span>
+                | Periode: <span>{{ $period->name }}</span>
             @endif
         </p>
     </div>

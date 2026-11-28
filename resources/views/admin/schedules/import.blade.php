@@ -6,7 +6,6 @@
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
                 <h1 class="h3 fw-bold mb-1">Import Jadwal Perkuliahan Laboratorium</h1>
-                <p class="text-secondary small mb-0">Unggah file Excel / CSV jadwal perkuliahan untuk langsung diproses ke sistem dan digenerate per sesi mingguan.</p>
             </div>
             <a href="{{ route('home') }}" class="btn btn-outline-secondary btn-sm">Lihat Jadwal</a>
         </div>

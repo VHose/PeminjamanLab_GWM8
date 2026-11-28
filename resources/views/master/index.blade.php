@@ -4,7 +4,6 @@
 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
     <div>
         <h1 class="h3 fw-bold mb-1">Pengelolaan Data Master: {{ $config['label'] }}</h1>
-        <p class="text-secondary mb-0">Kelola master data pendukung sistem. Sesuai ketentuan, data tidak dihapus melainkan dinonaktifkan.</p>
     </div>
     <a class="btn btn-primary" href="{{ route('master.create', $type) }}">+ Tambah {{ $config['label'] }}</a>
 </div>
